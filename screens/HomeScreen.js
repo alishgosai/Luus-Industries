@@ -5,28 +5,28 @@ import BottomNavBar from '../components/BottomNavBar';
 export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/150x50.png' }}
-          style={styles.logo}
-        />
-        <TouchableOpacity style={styles.serviceButton}>
-          <Text style={styles.serviceButtonText}>Book a Service</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Scrollable Content */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Image
+            source={{ uri: 'https://via.placeholder.com/150x50.png' }}
+            style={styles.logo}
+          />
+          <TouchableOpacity style={styles.serviceButton}>
+            <Text style={styles.serviceButtonText}>Book a Service</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Welcome Section */}
-      <View style={styles.welcomeContainer}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/100x100.png' }}
-          style={styles.profilePicture}
-        />
-        <Text style={styles.welcomeText}>"Welcome LUUS User"</Text>
-      </View>
+        {/* Welcome Section */}
+        <View style={styles.welcomeContainer}>
+          <Image
+            source={{ uri: 'https://via.placeholder.com/100x100.png' }}
+            style={styles.profilePicture}
+          />
+          <Text style={styles.welcomeText}>"Welcome LUUS User"</Text>
+        </View>
 
-      {/* Content */}
-      <ScrollView style={styles.content}>
         {/* About Section */}
         <View style={styles.card}>
           <Image
@@ -60,10 +60,13 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.cardButtonText}>Explore Asian Products</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Spacer to avoid overlap */}
+        <View style={styles.spacer} />
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <BottomNavBar navigation={navigation} /> {/* Add BottomNavBar here */}
+      {/* Fixed Bottom Navigation Bar */}
+      <BottomNavBar navigation={navigation} />
     </View>
   );
 }
@@ -111,8 +114,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    paddingBottom: 90, // Ensure content does not overlap with the navbar
   },
   card: {
     backgroundColor: '#111',
@@ -148,5 +151,8 @@ const styles = StyleSheet.create({
   cardButtonText: {
     color: '#fff',
     fontSize: 14,
+  },
+  spacer: {
+    height: 100, // Adds space at the bottom to prevent content overlap
   },
 });
