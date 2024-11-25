@@ -159,4 +159,4 @@ const styles = StyleSheet.create({
     height: 70,
     backgroundColor: '#000',
   },
-})
+});
