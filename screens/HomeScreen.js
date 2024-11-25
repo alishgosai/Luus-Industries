@@ -60,13 +60,12 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.cardButtonText}>Explore Asian Products</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Spacer to avoid overlap */}
-        <View style={styles.spacer} />
       </ScrollView>
 
       {/* Fixed Bottom Navigation Bar */}
-      <BottomNavBar navigation={navigation} />
+      <View style={styles.navbarContainer}>
+        <BottomNavBar navigation={navigation} />
+      </View>
     </View>
   );
 }
@@ -75,6 +74,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  scrollContent: {
+    paddingBottom: 90, // Extra space so content doesn't overlap with the navbar
   },
   header: {
     flexDirection: 'row',
@@ -114,9 +116,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  scrollContent: {
-    paddingBottom: 90, // Ensure content does not overlap with the navbar
-  },
   card: {
     backgroundColor: '#111',
     margin: 10,
@@ -152,7 +151,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
-  spacer: {
-    height: 100, // Adds space at the bottom to prevent content overlap
+  navbarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
+    backgroundColor: '#000',
   },
 });
