@@ -9,10 +9,10 @@ import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
 import HomeScreen from './screens/HomeScreen';
-import BrowseScreen from './screens/BrowseScreen';
-import ScanScreen from './screens/ScanScreen';
-import ChatScreen from './screens/ChatScreen';
-import SettingsScreen from './screens/SettingsScreen';
+// import BrowseScreen from './screens/BrowseScreen';
+// import ScanScreen from './screens/ScanScreen';
+// import ChatScreen from './screens/ChatScreen';
+// import SettingsScreen from './screens/SettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -31,10 +31,10 @@ export default function App() {
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
 
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Browse" component={BrowseScreen} />
-        <Stack.Screen name="Scan" component={ScanScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+        {/* <Stack.Screen name="Browse" component={BrowseScreen} /> */}
+        {/* <Stack.Screen name="Scan" component={ScanScreen} /> */}
+        {/* <Stack.Screen name="Settings" component={SettingsScreen} /> */}
+        {/* <Stack.Screen name="Chat" component={ChatScreen} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );

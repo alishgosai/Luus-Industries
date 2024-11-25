@@ -1,38 +1,33 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Ensure this library is installed
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function BottomNavBar({ navigation }) {
   return (
     <View style={styles.navBar}>
-      {/* Home */}
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-        <Ionicons name="home" size={24} color="#fff" />
+        <Ionicons name="home" size={24} color="#00aaff" />
         <Text style={styles.navText}>Home</Text>
       </TouchableOpacity>
 
-      {/* Browse */}
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Browse')}>
         <Ionicons name="search" size={24} color="#fff" />
         <Text style={styles.navText}>Browse</Text>
       </TouchableOpacity>
 
-      {/* Scan */}
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Scan')}>
         <Ionicons name="scan" size={24} color="#fff" />
         <Text style={styles.navText}>Scan</Text>
       </TouchableOpacity>
 
-      {/* Chat */}
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Chat')}>
         <Ionicons name="chatbubble" size={24} color="#fff" />
         <Text style={styles.navText}>Chat</Text>
       </TouchableOpacity>
 
-      {/* Settings */}
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Settings')}>
         <Ionicons name="settings" size={24} color="#fff" />
-        <Text style={styles.navText}>Settings</Text>
+        <Text style={styles.navText}>Account</Text>
       </TouchableOpacity>
     </View>
   );
@@ -44,9 +39,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     height: 60,
-    backgroundColor: '#000', // Background color for the navigation bar
+    backgroundColor: '#000',
     borderTopWidth: 1,
-    borderTopColor: '#444', // Border at the top of the navbar
+    borderTopColor: '#444',
   },
   navItem: {
     justifyContent: 'center',
