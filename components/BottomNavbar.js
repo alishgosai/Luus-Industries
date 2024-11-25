@@ -40,7 +40,7 @@ export default function BottomNavBar({ navigation }) {
 
 const styles = StyleSheet.create({
   navBar: {
-    position: 'absolute',
+    position: 'absolute', // Fix to the bottom of the screen
     bottom: 0,
     left: 0,
     right: 0,
@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#005bb5', // Slightly darker blue for the border
+    zIndex: 10, // Ensure the navbar stays above other content
   },
   navItem: {
     justifyContent: 'center',
