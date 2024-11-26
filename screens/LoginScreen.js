@@ -1,15 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
 export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    // Simulating a login action
+    if (email && password) {
+      // Navigate to Home after successful login
+      navigation.navigate('Home');
+    } else {
+      alert('Please enter valid email and password');
+    }
+  };
+
   return (
     <View style={styles.container}>
+      {/* Logo */}
       <Image source={{ uri: 'https://via.placeholder.com/150x50.png' }} style={styles.logo} />
-      <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#fff" keyboardType="email-address" />
-      <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#fff" secureTextEntry />
-      <TouchableOpacity style={styles.button} onPress={() => alert('Logged in')}>
+
+      {/* Email Input */}
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#fff"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      {/* Password Input */}
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="#fff"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      {/* Login Button */}
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
+
+      {/* Navigation Links */}
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={styles.link}>New User? Create Account</Text>
       </TouchableOpacity>

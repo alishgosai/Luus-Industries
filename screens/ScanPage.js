@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; // Ensure this library is installed
 
 export default function ScanPage({ navigation }) {
   return (
@@ -20,7 +20,7 @@ export default function ScanPage({ navigation }) {
       <Text style={styles.orText}>OR</Text>
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={() => navigation.navigate('Login')}
+        onPress={() => navigation.navigate('Login')} // Navigates to LoginScreen
       >
         <Text style={styles.loginButtonText}>Log In</Text>
       </TouchableOpacity>
@@ -28,7 +28,7 @@ export default function ScanPage({ navigation }) {
         New User?{' '}
         <Text
           style={styles.createAccountText}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigation.navigate('Register')} // Navigates to RegisterScreen
         >
           Create Account
         </Text>
@@ -46,16 +46,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   logo: {
     width: 200,
     height: 80,
-    marginBottom: 30,
+    marginTop: 40,
     resizeMode: 'contain',
   },
   scanButton: {
-    backgroundColor: '#0056b3', // Blue background for the scan button
+    backgroundColor: '#0056b3',
     padding: 20,
     borderRadius: 50,
     justifyContent: 'center',
@@ -63,11 +62,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   labelButton: {
-    paddingHorizontal: 20, // Adds horizontal padding
-    paddingVertical: 10, // Adds vertical padding
-    backgroundColor: '#0073e6', // Button background color
-    borderRadius: 5, // Rounded corners
-    alignSelf: 'center', // Dynamically sizes based on text
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#0073e6',
+    borderRadius: 5,
+    alignSelf: 'center',
     marginBottom: 20,
   },
   labelText: {
@@ -103,9 +102,11 @@ const styles = StyleSheet.create({
   bottomImage: {
     position: 'absolute',
     bottom: 0,
-    width: '100%', // Full width
-    height: undefined, // Allows for dynamic height based on aspect ratio
-    aspectRatio: 3 / 1, // Adjust based on your actual image aspect ratio
-    resizeMode: 'contain', // Ensures the full image is displayed
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: undefined,
+    aspectRatio: 3 / 1,
+    resizeMode: 'cover',
   },
 });
