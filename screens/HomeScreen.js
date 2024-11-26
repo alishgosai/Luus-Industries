@@ -10,7 +10,7 @@ import {
   Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import BottomNavBar from "../components/BottomNavBar";
+import BottomNavBar from "../components/BottomNavbar";
 
 const { width } = Dimensions.get("window");
 
