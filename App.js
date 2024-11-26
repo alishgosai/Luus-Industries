@@ -20,7 +20,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="ScanLogin"
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="ScanLogin" component={ScanPage} />
