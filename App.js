@@ -9,6 +9,8 @@ import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
 import HomeScreen from './screens/HomeScreen';
+import ScannerScreen from "./screens/ScanBeforeLogin";
+
 // import BrowseScreen from './screens/BrowseScreen';
 // import ScanScreen from './screens/ScanScreen';
 // import ChatScreen from './screens/ChatScreen';
@@ -31,6 +33,7 @@ export default function App() {
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
 
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Scanner" component={ScannerScreen} />
         {/* <Stack.Screen name="Browse" component={BrowseScreen} /> */}
         {/* <Stack.Screen name="Scan" component={ScanScreen} /> */}
         {/* <Stack.Screen name="Settings" component={SettingsScreen} /> */}
