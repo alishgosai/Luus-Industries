@@ -52,10 +52,7 @@ export default function App() {
 
 
         <Stack.Screen name="Scanner" component={ScannerScreen} />
-        {/* <Stack.Screen name="Browse" component={BrowseScreen} /> */}
-        {/* <Stack.Screen name="Scan" component={ScanScreen} /> */}
-        {/* <Stack.Screen name="Settings" component={SettingsScreen} /> */}
-        {/* <Stack.Screen name="Chat" component={ChatScreen} /> */}
+     
       </Stack.Navigator>
     </NavigationContainer>
   );
