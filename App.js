@@ -8,7 +8,16 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
+
+// Home page
 import HomeScreen from "./screens/HomeScreen";
+
+// Browse Pages
+import AsianProducts from "./screens/BrowseAsianProducts";
+import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
+import SpareParts from "./screens/SpareParts";
+
+
 import ScannerScreen from "./screens/ScanBeforeLogin";
 
 // import BrowseScreen from './screens/BrowseScreen';
@@ -32,7 +41,16 @@ export default function App() {
         <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
 
+        {/* Home Page */}
         <Stack.Screen name="Home" component={HomeScreen} />
+
+        {/* Browse Pages */}
+        <Stack.Screen name="AsianProducts" component={AsianProducts} />
+        <Stack.Screen
+          name="ProfessionalProducts"
+          component={ProfessionalProducts}
+        />
+
         <Stack.Screen name="Scanner" component={ScannerScreen} />
         {/* <Stack.Screen name="Browse" component={BrowseScreen} /> */}
         {/* <Stack.Screen name="Scan" component={ScanScreen} /> */}
