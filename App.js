@@ -32,9 +32,12 @@ export default function App() {
         initialRouteName="ScanLogin"
         screenOptions={{ headerShown: false }}
       >
+        {/* Scan and Login/Register Pages */}
         <Stack.Screen name="ScanLogin" component={ScanPage} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+
+        {/* Forget and Reset Password pages */}
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
         <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
@@ -50,12 +53,8 @@ export default function App() {
         />
         <Stack.Screen name="BrowseSpareParts" component={SpareParts} />
 
-
+        {/* Add comments here guys like this what pages which pages n stuffs. */}
         <Stack.Screen name="Scanner" component={ScannerScreen} />
-        {/* <Stack.Screen name="Browse" component={BrowseScreen} /> */}
-        {/* <Stack.Screen name="Scan" component={ScanScreen} /> */}
-        {/* <Stack.Screen name="Settings" component={SettingsScreen} /> */}
-        {/* <Stack.Screen name="Chat" component={ChatScreen} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
