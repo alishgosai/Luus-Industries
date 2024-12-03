@@ -49,7 +49,8 @@ export default function HomeScreen({ navigation }) {
       buttonText: "Explore Professional Products",
       link: "https://example.com/professional-products",
       images: [
-        require("../assets/images/image 19.png"), require("../assets/images/image 19.png"),
+        require("../assets/images/image 19.png"),
+        require("../assets/images/image 19.png"),
       ],
     },
   ];
@@ -234,6 +235,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+
   carouselContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -337,4 +339,3 @@ const styles = StyleSheet.create({
     height: 70,
   },
 });
-

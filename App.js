@@ -1,7 +1,7 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import ScanPage from "./screens/ScanPage";
+import ScanLogin from "./screens/ScanLogin";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
@@ -12,11 +12,11 @@ import NewPasswordScreen from "./screens/NewPasswordScreen";
 import HomeScreen from "./screens/HomeScreen";
 
 // Browse Pages
-import AsianProducts from "./screens/BrowseAsianProducts";
-import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
-import SpareParts from "./screens/SpareParts";
+// import AsianProducts from "./screens/BrowseAsianProducts";
+// import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
+// import SpareParts from "./screens/BrowseSpareParts";
 
-import ScannerScreen from "./screens/ScanBeforeLogin";
+// import ScannerScreen from "./screens/ScanBeforeLogin";
 
 // import BrowseScreen from './screens/BrowseScreen';
 // import ScanScreen from './screens/ScanScreen';
@@ -29,11 +29,11 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ScanLogin"
+        initialRouteName="Home"
         screenOptions={{ headerShown: false }}
       >
         {/* Scan and Login/Register Pages */}
-        <Stack.Screen name="ScanLogin" component={ScanPage} />
+        <Stack.Screen name="ScanLogin" component={ScanLogin} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
 
@@ -46,15 +46,15 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
 
         {/* Browse Pages */}
-        <Stack.Screen name="AsianProducts" component={AsianProducts} />
-        <Stack.Screen
+        {/* <Stack.Screen name="AsianProducts" component={AsianProducts} /> */}
+        {/* <Stack.Screen
           name="ProfessionalProducts"
           component={ProfessionalProducts}
         />
-        <Stack.Screen name="BrowseSpareParts" component={SpareParts} />
+        <Stack.Screen name="BrowseSpareParts" component={SpareParts} /> */}
 
         {/* Add comments here guys like this what pages which pages n stuffs. */}
-        <Stack.Screen name="Scanner" component={ScannerScreen} />
+        {/* <Stack.Screen name="Scanner" component={ScannerScreen} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
