@@ -7,10 +7,9 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import BottomNavBar from "../components/BottomNavbar";
+import BottomNavBar from "../components/BottomNavBar";
 
 const { width } = Dimensions.get("window");
 
@@ -21,11 +20,11 @@ export default function HomeScreen({ navigation }) {
   const cards = [
     {
       text: "Your kitchen is our vision. Housed within a purpose-built facility in Melbourne's West, Luus Industries are proudly committed to being the leading manufacturer and solutions provider of commercial catering equipment in Australia.",
-      image: require("../assets/images/image 19.png"),
+      image: require("../assets/images/image19.png"),
     },
     {
       text: "Another vision for your kitchen. With enhanced facilities, we aim to redefine quality and efficiency for modern catering equipment.",
-      image: require("../assets/images/image 19 (1).png"),
+      image: require("../assets/images/image19-1.png"),
     },
   ];
 
@@ -33,13 +32,13 @@ export default function HomeScreen({ navigation }) {
     {
       title: "ASIAN RANGE",
       description:
-        "We've been involved in Asian cuisine since birth! With that in mind, we hold Asian food, and the people who prepare it, close to our hearts. We notice every little detail. Our intricate knowledge of the demands of Asian cooking mean we've taken care of the frustrations Asian chefs often experience.",
+        "We've been involved in Asian cuisine since birth! With that in mind, we hold Asian food, and the people who prepare it, close to our hearts.",
       buttonText: "Explore Asian Products",
-      link: "https://example.com/asian-products",
+      route: "AsianProducts",
       images: [
-        require("../assets/images/image 19.png"),
-        require("../assets/images/image 19.png"),
-        require("../assets/images/image 19.png"),
+        require("../assets/images/image19.png"),
+        require("../assets/images/image19.png"),
+        require("../assets/images/image19.png"),
       ],
     },
     {
@@ -47,9 +46,10 @@ export default function HomeScreen({ navigation }) {
       description:
         "Built for the experts, our professional range ensures efficiency, reliability, and top-notch performance for your culinary needs.",
       buttonText: "Explore Professional Products",
-      link: "https://example.com/professional-products",
+      route: "ProfessionalProducts",
       images: [
-        require("../assets/images/image 19.png"), require("../assets/images/image 19.png"),
+        require("../assets/images/image19-1.png"),
+        require("../assets/images/image19-1.png"),
       ],
     },
   ];
@@ -148,7 +148,7 @@ export default function HomeScreen({ navigation }) {
             </Text>
             <TouchableOpacity
               style={styles.exploreButton}
-              onPress={() => Linking.openURL(ranges[rangeIndex].link)}
+              onPress={() => navigation.navigate(ranges[rangeIndex].route)} // Navigate to the route
             >
               <Text style={styles.exploreButtonText}>
                 {ranges[rangeIndex].buttonText}
@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 40,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     paddingBottom: 10,
     backgroundColor: "#000",
     borderBottomWidth: 1,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Space for bottom nav
+    paddingBottom: 80,
   },
   welcomeContainer: {
     flexDirection: "row",
