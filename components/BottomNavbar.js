@@ -11,10 +11,10 @@ export default function BottomNavBar({ navigation }) {
         <Text style={styles.navText}>Home</Text>
       </TouchableOpacity>
 
-      {/* Browse Button */}
-      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Browse')}>
-        <Ionicons name="search-outline" size={24} color="#ffffff" />
-        <Text style={styles.navText}>Browse</Text>
+      {/* Warranty Button (Replaced Browse) */}
+      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('WarrantyAndProducts')}>
+        <Ionicons name="shield-checkmark-outline" size={24} color="#ffffff" />
+        <Text style={styles.navText}>Warranty</Text>
       </TouchableOpacity>
 
       {/* Scan Button */}
@@ -29,8 +29,8 @@ export default function BottomNavBar({ navigation }) {
         <Text style={styles.navText}>Chat</Text>
       </TouchableOpacity>
 
-      {/* Account Button */}
-      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Settings')}>
+      {/* Account Button (Updated to navigate to AccountInformation) */}
+      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AccountInformation')}>
         <Ionicons name="person-outline" size={24} color="#ffffff" />
         <Text style={styles.navText}>Account</Text>
       </TouchableOpacity>
@@ -64,3 +64,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+
