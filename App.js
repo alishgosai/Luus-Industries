@@ -21,6 +21,9 @@ import AsianProducts from "./screens/BrowseAsianProducts";
 import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
 import SpareParts from "./screens/BrowseSpareParts";
 
+// Products Details
+import ProductDetails from "./screens/ProductDetails";
+
 // Components
 import BottomNavBar from "./components/BottomNavBar";
 
@@ -41,7 +44,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ScanBeforeLogin" // Default screen
+        initialRouteName="ProductDetails" // Default screen this is the first screeen///////////////////////////////////////
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
@@ -74,6 +77,10 @@ export default function App() {
         <Stack.Screen
           name="SpareParts"
           children={(props) => <ScreenWithNavBar Component={SpareParts} {...props} />}
+        />
+        <Stack.Screen
+          name="ProductDetails"
+          children={(props) => <ScreenWithNavBar Component={ProductDetails} {...props} />}
         />
       </Stack.Navigator>
     </NavigationContainer>
