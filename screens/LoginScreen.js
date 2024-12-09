@@ -7,98 +7,199 @@ import {
   StyleSheet,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-export default function LoginScreen({ navigation }) {
+export default function AuthScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState("Login");
+  const [forgotPasswordStep, setForgotPasswordStep] = useState("EnterEmail");
 
   const handleTabSwitch = (tab) => {
     setActiveTab(tab);
   };
 
+  const renderForgotPassword = () => {
+    if (forgotPasswordStep === "EnterEmail") {
+      return (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Email"
+            placeholderTextColor="#888"
+          />
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setForgotPasswordStep("VerifyCode")}
+          >
+            <Text style={styles.actionButtonText}>Send Code</Text>
+          </TouchableOpacity>
+        </>
+      );
+    } else if (forgotPasswordStep === "VerifyCode") {
+      return (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Code"
+            placeholderTextColor="#888"
+          />
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setForgotPasswordStep("SetNewPassword")}
+          >
+            <Text style={styles.actionButtonText}>Submit</Text>
+          </TouchableOpacity>
+        </>
+      );
+    } else if (forgotPasswordStep === "SetNewPassword") {
+      return (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="New Password"
+            placeholderTextColor="#888"
+            secureTextEntry
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor="#888"
+            secureTextEntry
+          />
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setActiveTab("Login")}
+          >
+            <Text style={styles.actionButtonText}>Submit</Text>
+          </TouchableOpacity>
+        </>
+      );
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <Image
-        source={require("../assets/images/logo.png")} // Replace with your logo path
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
-      {/* Tabs */}
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          onPress={() => handleTabSwitch("Login")}
-          style={[
-            styles.tab,
-            activeTab === "Login" && styles.activeTab,
-          ]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "Login" && styles.activeTabText,
-            ]}
-          >
-            Login
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleTabSwitch("Register")}
-          style={[
-            styles.tab,
-            activeTab === "Register" && styles.activeTab,
-          ]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "Register" && styles.activeTabText,
-            ]}
-          >
-            Register
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Form */}
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#888"
-          secureTextEntry
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Logo */}
+        <Image
+          source={require("../assets/images/logo.png")} // Replace with your logo path
+          style={styles.logo}
+          resizeMode="contain"
         />
 
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginButtonText}>
-            {activeTab === "Login" ? "Login" : "Register"}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Footer Links */}
-        {activeTab === "Login" && (
-          <View style={styles.footerLinks}>
-            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-              <Text style={styles.linkText}>Create Account</Text>
+        {/* Tabs */}
+        {activeTab !== "ForgotPassword" && (
+          <View style={styles.tabs}>
+            <TouchableOpacity
+              onPress={() => handleTabSwitch("Login")}
+              style={[styles.tab, activeTab === "Login" && styles.activeTab]}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "Login" && styles.activeTabText,
+                ]}
+              >
+                Login
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => navigation.navigate("ForgotPassword")}
+              onPress={() => handleTabSwitch("Register")}
+              style={[styles.tab, activeTab === "Register" && styles.activeTab]}
             >
-              <Text style={styles.linkText}>Forgot password?</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "Register" && styles.activeTabText,
+                ]}
+              >
+                Register
+              </Text>
             </TouchableOpacity>
           </View>
         )}
-      </View>
 
-      {/* Wave Section */}
+        {/* Form */}
+        <View style={styles.formContainer}>
+          {activeTab === "Login" && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#888"
+                secureTextEntry
+              />
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => navigation.navigate("Home")} // Navigate to Home on login
+              >
+                <Text style={styles.actionButtonText}>Login</Text>
+              </TouchableOpacity>
+              <View style={styles.footerLinks}>
+                <TouchableOpacity
+                  onPress={() => setActiveTab("Register")}
+                >
+                  <Text style={styles.footerLink}>Create Account</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setActiveTab("ForgotPassword")}
+                >
+                  <Text style={styles.footerLink}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {activeTab === "Register" && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Name"
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#888"
+                secureTextEntry
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm Password"
+                placeholderTextColor="#888"
+                secureTextEntry
+              />
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.actionButtonText}>Sign Up</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {activeTab === "ForgotPassword" && renderForgotPassword()}
+        </View>
+      </ScrollView>
+
+      {/* Wave Image */}
       <View style={styles.waveContainer}>
         <Image
           source={require("../assets/images/blue-wave.png")} // Replace with your wave image
@@ -106,7 +207,7 @@ export default function LoginScreen({ navigation }) {
           resizeMode="cover"
         />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -114,6 +215,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -159,14 +263,15 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#111",
   },
-  loginButton: {
+  actionButton: {
     width: "100%",
     backgroundColor: "#00bfff",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
+    marginBottom: 10,
   },
-  loginButtonText: {
+  actionButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
@@ -174,10 +279,10 @@ const styles = StyleSheet.create({
   footerLinks: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
     width: "100%",
+    marginTop: 10,
   },
-  linkText: {
+  footerLink: {
     color: "#00bfff",
     fontSize: 14,
   },

@@ -1,42 +1,73 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Ensure this library is installed
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
+const { width } = Dimensions.get("window");
 
-export default function ScanPage({ navigation }) {
+export default function ScanOrLoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Logo */}
-      <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+      <Image
+        source={require("../assets/images/logo.png")} // Replace with your logo
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-      {/* Scan Icon and Button */}
-      <TouchableOpacity style={styles.scanButton}>
-        <Ionicons name="scan" size={50} color="#fff" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.labelButton}>
-        <Text style={styles.labelText}>Scan Products</Text>
-      </TouchableOpacity>
-
-      {/* Login Options */}
-      <Text style={styles.orText}>OR</Text>
+      {/* Scan Button */}
       <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => navigation.navigate('Login')} // Navigates to LoginScreen
+        style={styles.scanButton}
+        onPress={() => navigation.navigate("Scan")} // Navigate to ScanScreen
       >
-        <Text style={styles.loginButtonText}>Log In</Text>
+        <Ionicons name="scan-outline" size={40} color="#00bfff" />
+        <Text style={styles.scanButtonText}>Scan</Text>
       </TouchableOpacity>
-      <Text style={styles.newUserText}>
-        New User?{' '}
+
+      {/* Scan Products Button */}
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={() => navigation.navigate("Scan")} // Navigate to ScanScreen
+      >
+        <Text style={styles.primaryButtonText}>Scan Products</Text>
+      </TouchableOpacity>
+
+      {/* OR Divider */}
+      <Text style={styles.orText}>OR</Text>
+
+      {/* Log In Button */}
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={() => navigation.navigate("Login")} // Navigate to Login Screen
+      >
+        <Text style={styles.primaryButtonText}>Log In</Text>
+      </TouchableOpacity>
+
+      {/* Create Account Link */}
+      <Text style={styles.footerText}>
+        New User?{" "}
         <Text
-          style={styles.createAccountText}
-          onPress={() => navigation.navigate('Register')} // Navigates to RegisterScreen
+          style={styles.footerLink}
+          onPress={() => navigation.navigate("Register")} // Navigate to Register Screen
         >
           Create Account
         </Text>
       </Text>
 
-      {/* Bottom Wave Image */}
-      <Image source={require('../assets/images/blue-wave.png')} style={styles.bottomImage} />
+      {/* Wave Image */}
+      <View style={styles.waveContainer}>
+        <Image
+          source={require("../assets/images/blue-wave.png")} // Replace with your wave image
+          style={styles.waveImage}
+          resizeMode="cover"
+        />
+      </View>
     </View>
   );
 }
@@ -44,70 +75,66 @@ export default function ScanPage({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
   },
   logo: {
-    width: 200,
-    height: 80,
-    marginTop: 40,
-    resizeMode: 'contain',
+    width: width * 0.5,
+    height: width * 0.2,
+    marginBottom: 40,
   },
   scanButton: {
-    backgroundColor: '#0056b3',
-    padding: 20,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  labelButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#0073e6',
-    borderRadius: 5,
-    alignSelf: 'center',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#111",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#00bfff",
   },
-  labelText: {
-    color: '#fff',
+  scanButtonText: {
+    color: "#00bfff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 5,
+  },
+  primaryButton: {
+    width: "80%",
+    backgroundColor: "#00bfff",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  primaryButtonText: {
+    color: "#fff",
     fontSize: 16,
-    textAlign: 'center',
+    fontWeight: "bold",
   },
   orText: {
-    color: '#aaa',
+    color: "#fff",
     fontSize: 16,
-    marginVertical: 10,
+    marginVertical: 15,
   },
-  loginButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 10,
-    backgroundColor: '#0073e6',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  newUserText: {
-    color: '#fff',
+  footerText: {
+    color: "#fff",
     fontSize: 14,
     marginTop: 20,
   },
-  createAccountText: {
-    color: '#0073e6',
-    fontWeight: 'bold',
+  footerLink: {
+    color: "#00bfff",
+    fontWeight: "600",
   },
-  bottomImage: {
-    position: 'absolute',
+  waveContainer: {
+    position: "absolute",
     bottom: 0,
-    left: 0,
-    right: 0,
-    width: '100%',
-    height: undefined,
-    aspectRatio: 3 / 1,
-    resizeMode: 'cover',
+    width: "100%",
+  },
+  waveImage: {
+    width: "100%",
+    height: width * 0.3,
   },
 });

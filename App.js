@@ -6,6 +6,8 @@ import { StatusBar } from "react-native";
 
 // Login and Register Pages
 import ScannerBeforeLoginScreen from "./screens/ScanBeforeLogin";
+import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
+import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
@@ -43,7 +45,9 @@ export default function App() {
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
+        <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
         <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen}/>
+        <Stack.Screen name="Scan" component={ScanScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
