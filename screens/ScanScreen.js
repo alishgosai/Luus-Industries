@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,15 +25,27 @@ export default function ScanScreen({ navigation }) {
 
   const handleBarCodeScanned = ({ data }) => {
     setScanned(true);
-    alert(`Barcode scanned: ${data}`);
-    // Handle navigation or data processing here
+    Alert.alert("Barcode Scanned", `Data: ${data}`, [
+      { text: "OK", onPress: () => setScanned(false) },
+    ]);
+    // Add further logic here (e.g., navigate or process data)
   };
 
   if (hasPermission === null) {
-    return <Text>Requesting camera permission...</Text>;
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>Requesting camera permission...</Text>
+      </View>
+    );
   }
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>
+          No access to camera. Please enable it in settings.
+        </Text>
+      </View>
+    );
   }
 
   return (
@@ -50,6 +63,12 @@ export default function ScanScreen({ navigation }) {
         style={styles.camera}
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         type={Camera.Constants.Type.back}
+        barCodeScannerSettings={{
+          barCodeTypes: [
+            Camera.Constants.BarCodeType.ean13,
+            Camera.Constants.BarCodeType.qr,
+          ],
+        }}
       >
         {/* Scan Overlay */}
         <View style={styles.scanOverlay}>
@@ -133,5 +152,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#00bfff",
     borderWidth: 4,
     borderColor: "#fff",
+  },
+  permissionContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000",
+  },
+  permissionText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
