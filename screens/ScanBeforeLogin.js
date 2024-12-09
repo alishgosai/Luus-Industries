@@ -1,87 +1,113 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons'; // Ensure this library is installed
 
-const ScannerScreen = () => {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [scannedData, setScannedData] = useState(null);
-  const navigation = useNavigation();
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  const handleBarCodeScanned = ({ data }) => {
-    setScannedData(data);
-  };
-
-  const isValidURL = (string) => {
-    try {
-      new URL(string);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>Camera permission denied, please enable it in settings.</Text>;
-  }
-
+export default function ScanPage({ navigation }) {
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.navigate('Login')}
+      {/* Logo */}
+      <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+
+      {/* Scan Icon and Button */}
+      <TouchableOpacity style={styles.scanButton}>
+        <Ionicons name="scan" size={50} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.labelButton}>
+        <Text style={styles.labelText}>Scan Products</Text>
+      </TouchableOpacity>
+
+      {/* Login Options */}
+      <Text style={styles.orText}>OR</Text>
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => navigation.navigate('Login')} // Navigates to LoginScreen
+      >
+        <Text style={styles.loginButtonText}>Log In</Text>
+      </TouchableOpacity>
+      <Text style={styles.newUserText}>
+        New User?{' '}
+        <Text
+          style={styles.createAccountText}
+          onPress={() => navigation.navigate('Register')} // Navigates to RegisterScreen
         >
-          <Text style={styles.backButtonText}>Go back to Login</Text>
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.scanHereText}>Scan Here</Text>
-      <Text style={styles.scanHereInstructions}>Please point the camera at the barcode.</Text>
-      {scannedData ? (
-        <View style={styles.scannedDataContainer}>
-          <Text style={styles.scannedDataText}>{scannedData}</Text>
-          {isValidURL(scannedData) && (
-            <Image source={{ uri: scannedData }} style={styles.barcodeImage} />
-          )}
-        </View>
-      ) : (
-        <View style={styles.scannerContainer}>
-          <BarCodeScanner
-            onBarCodeScanned={scannedData ? undefined : handleBarCodeScanned}
-            style={StyleSheet.absoluteFillObject}
-          />
-        </View>
-      )}
+          Create Account
+        </Text>
+      </Text>
+
+      {/* Bottom Wave Image */}
+      <Image source={require('../assets/images/blue-wave.png')} style={styles.bottomImage} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  topBar: { padding: 16 },
-  backButton: { padding: 8, backgroundColor: '#ddd', borderRadius: 4 },
-  backButtonText: { color: '#333' },
-  scanHereText: { fontSize: 20, margin: 16, textAlign: 'center' },
-  scanHereInstructions: { fontSize: 16, margin: 8, textAlign: 'center' },
-  scannerContainer: { flex: 1 },
-  scannedDataContainer: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 8,
-    margin: 16,
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  scannedDataText: { fontSize: 16, marginBottom: 8 },
-  barcodeImage: { width: 200, height: 200, resizeMode: 'contain' },
+  logo: {
+    width: 200,
+    height: 80,
+    marginTop: 40,
+    resizeMode: 'contain',
+  },
+  scanButton: {
+    backgroundColor: '#0056b3',
+    padding: 20,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  labelButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#0073e6',
+    borderRadius: 5,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  labelText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  orText: {
+    color: '#aaa',
+    fontSize: 16,
+    marginVertical: 10,
+  },
+  loginButton: {
+    paddingHorizontal: 40,
+    paddingVertical: 10,
+    backgroundColor: '#0073e6',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  newUserText: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 20,
+  },
+  createAccountText: {
+    color: '#0073e6',
+    fontWeight: 'bold',
+  },
+  bottomImage: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: undefined,
+    aspectRatio: 3 / 1,
+    resizeMode: 'cover',
+  },
 });
-
-export default ScannerScreen;
