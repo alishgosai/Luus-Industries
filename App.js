@@ -1,68 +1,81 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { SafeAreaProvider } from "react-native-safe-area-context"; // For SafeArea
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "react-native";
 
 // Login and Register Pages
-import ScanPage from "./screens/ScanPage";
+import ScannerBeforeLoginScreen from "./screens/ScanBeforeLogin";
+import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
+import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
-// Home Page
+// Main Pages
 import HomeScreen from "./screens/HomeScreen";
-
-// Browse Pages
 import BrowseScreen from "./screens/Browse";
 import AsianProducts from "./screens/BrowseAsianProducts";
 import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
 import SpareParts from "./screens/BrowseSpareParts";
 
-// Scan Page
-import ScannerScreen from "./screens/ScanBeforeLogin";
+// Components
+import BottomNavBar from "./components/BottomNavBar";
 
+// Stack Navigator
 const Stack = createStackNavigator();
+
+function ScreenWithNavBar({ Component, navigation, ...props }) {
+  return (
+    <SafeAreaProvider>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <Component {...props} navigation={navigation} />
+      <BottomNavBar navigation={navigation} />
+    </SafeAreaProvider>
+  );
+}
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      {/* Global Status Bar */}
-      <StatusBar barStyle="light-content" backgroundColor="#000" translucent={false} />
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="ScanBeforeLogin" // Default screen
+        screenOptions={{ headerShown: false }}
+      >
+        {/* Authentication Screens */}
+        <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
+        <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen}/>
+        <Stack.Screen name="Scan" component={ScanScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
+        <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
 
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Browse" // Set your default screen
-          screenOptions={{ headerShown: false }}
-        >
-          {/* Scan and Login/Register Pages */}
-          <Stack.Screen name="ScanLogin" component={ScanPage} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-
-          {/* Forgot and Reset Password Pages */}
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
-          <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
-
-          {/* Home Page */}
-          <Stack.Screen name="Home" component={HomeScreen} />
-
-          {/* Browse Pages */}
-          <Stack.Screen name="Browse" component={BrowseScreen} />
-          <Stack.Screen name="AsianProducts" component={AsianProducts} />
-          <Stack.Screen
-            name="ProfessionalProducts"
-            component={ProfessionalProducts}
-          />
-          <Stack.Screen name="SpareParts" component={SpareParts} />
-
-          {/* Scanner Page */}
-          <Stack.Screen name="Scanner" component={ScannerScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+        {/* Main Application Screens */}
+        <Stack.Screen
+          name="Home"
+          children={(props) => <ScreenWithNavBar Component={HomeScreen} {...props} />}
+        />
+        <Stack.Screen
+          name="Browse"
+          children={(props) => <ScreenWithNavBar Component={BrowseScreen} {...props} />}
+        />
+        <Stack.Screen
+          name="AsianProducts"
+          children={(props) => <ScreenWithNavBar Component={AsianProducts} {...props} />}
+        />
+        <Stack.Screen
+          name="ProfessionalProducts"
+          children={(props) => <ScreenWithNavBar Component={ProfessionalProducts} {...props} />}
+        />
+        <Stack.Screen
+          name="SpareParts"
+          children={(props) => <ScreenWithNavBar Component={SpareParts} {...props} />}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
