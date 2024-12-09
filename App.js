@@ -21,8 +21,10 @@ import AsianProducts from "./screens/BrowseAsianProducts";
 import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
 import SpareParts from "./screens/BrowseSpareParts";
 
-// Scan Page
+// Scan Page Before Login
 import ScannerScreen from "./screens/ScanBeforeLogin";
+
+// Scan Page After Login
 
 const Stack = createStackNavigator();
 
