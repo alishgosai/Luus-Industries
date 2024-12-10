@@ -14,6 +14,7 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
+
 // Main Pages
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
@@ -33,6 +34,7 @@ const Stack = createStackNavigator();
 function ScreenWithNavBar({ Component, navigation, ...props }) {
   return (
     <SafeAreaProvider>
+
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <Component {...props} navigation={navigation} />
       <BottomNavBar navigation={navigation} />

@@ -27,6 +27,7 @@ export default function BottomNavBar({ navigation }) {
         </Text>
       </TouchableOpacity>
 
+
       {/* Browse Button */}
       <TouchableOpacity
         style={styles.navItem}
@@ -71,6 +72,7 @@ export default function BottomNavBar({ navigation }) {
           Chat
         </Text>
       </TouchableOpacity>
+
 
       {/* Account Button */}
       <TouchableOpacity
@@ -120,3 +122,4 @@ const styles = StyleSheet.create({
     color: "#00bfff", // Highlighted color for active tab
   },
 });
+
