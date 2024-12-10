@@ -32,6 +32,7 @@ import AccountInformation from "./screens/AccountInformation";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
+import AccountInformationScreen from "./screens/AccountInformation";
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -50,7 +51,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ServiceForm"
+        initialRouteName="AccountInformation"
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
@@ -95,7 +96,7 @@ export default function App() {
         {/* Account and settings */}
         <Stack.Screen
           name="AccountInformation"
-          children={(props) => <ScreenWithNavBar Component={AccountInformation} {...props} />}
+          children={(props) => <ScreenWithNavBar Component={AccountInformationScreen} {...props} />}
         />
       </Stack.Navigator>
     </NavigationContainer>
