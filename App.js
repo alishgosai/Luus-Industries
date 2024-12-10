@@ -5,7 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "react-native";
 
 // Login and Register Pages
-import ScannerBeforeLoginScreen from "./screens/ScanBeforeLogin";
+import ScannerBeforeLoginScreen from "./screens/ScannerBeforeLogin";
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -24,11 +24,11 @@ import SpareParts from "./screens/BrowseSpareParts";
 // Products Details
 import ProductDetails from "./screens/ProductDetails";
 
-// Chat bot
-// import ChatbotScreen from "./screens/ChatBotScreen";
-
 //Service Form
 import ServiceForm from "./screens/ServiceForm";
+
+// Account Information
+import AccountInformation from "./screens/AccountInformation";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
@@ -50,12 +50,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ProductDetails" // Default screen this is the first screeen///////////////////////////////////////
+        initialRouteName="ServiceForm"
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
         <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
-        <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen}/>
+        <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen} />
         <Stack.Screen name="Scan" component={ScanScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
@@ -88,16 +88,17 @@ export default function App() {
           name="ProductDetails"
           children={(props) => <ScreenWithNavBar Component={ProductDetails} {...props} />}
         />
-        {/* <Stack.Screen
-          name="ChatbotScreen"
-          children={(props) => <ScreenWithNavBar Component={ChatbotScreen} {...props} />}
-        /> */}
         <Stack.Screen
           name="ServiceForm"
           children={(props) => <ScreenWithNavBar Component={ServiceForm} {...props} />}
         />
-        
+        {/* Account and settings */}
+        <Stack.Screen
+          name="AccountInformation"
+          children={(props) => <ScreenWithNavBar Component={AccountInformation} {...props} />}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
