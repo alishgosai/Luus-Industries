@@ -5,7 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "react-native";
 
 // Login and Register Pages
-import ScannerBeforeLoginScreen from "./screens/ScannerBeforeLogin";
+// import ScannerBeforeLoginScreen from "./screens/ScannerBeforeLogin";
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -28,10 +28,11 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 
 // Account Information
-import AccountInformation from "./screens/AccountInformation";
+// import AccountInformation from "./screens/AccountInformation";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
+import AccountInformation from "./screens/AccountInformation";
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -50,12 +51,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ServiceForm"
+        initialRouteName="AccountInformation"
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
         <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
-        <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen} />
+        {/* <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen} /> */}
         <Stack.Screen name="Scan" component={ScanScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
