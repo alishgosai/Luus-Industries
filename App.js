@@ -14,7 +14,6 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
-
 // Main Pages
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
@@ -24,6 +23,9 @@ import SpareParts from "./screens/BrowseSpareParts";
 
 // Products Details
 import ProductDetails from "./screens/ProductDetails";
+
+// Chat bot
+// import ChatbotScreen from "./screens/ChatBotScreen";
 
 //Service Form
 import ServiceForm from "./screens/ServiceForm";
@@ -37,7 +39,6 @@ const Stack = createStackNavigator();
 function ScreenWithNavBar({ Component, navigation, ...props }) {
   return (
     <SafeAreaProvider>
-
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <Component {...props} navigation={navigation} />
       <BottomNavBar navigation={navigation} />
@@ -49,7 +50,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ServiceForm" // Default screen this is the first screeen///////////////////////////////////////
+        initialRouteName="ProductDetails" // Default screen this is the first screeen///////////////////////////////////////
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
@@ -87,6 +88,10 @@ export default function App() {
           name="ProductDetails"
           children={(props) => <ScreenWithNavBar Component={ProductDetails} {...props} />}
         />
+        {/* <Stack.Screen
+          name="ChatbotScreen"
+          children={(props) => <ScreenWithNavBar Component={ChatbotScreen} {...props} />}
+        /> */}
         <Stack.Screen
           name="ServiceForm"
           children={(props) => <ScreenWithNavBar Component={ServiceForm} {...props} />}
