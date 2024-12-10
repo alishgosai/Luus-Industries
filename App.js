@@ -24,6 +24,9 @@ import SpareParts from "./screens/BrowseSpareParts";
 // Products Details
 import ProductDetails from "./screens/ProductDetails";
 
+//Service Form
+import ServiceForm from "./screens/ServiceForm";
+
 // Components
 import BottomNavBar from "./components/BottomNavBar";
 
@@ -44,7 +47,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ProductDetails" // Default screen this is the first screeen///////////////////////////////////////
+        initialRouteName="ServiceForm" // Default screen this is the first screeen///////////////////////////////////////
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
@@ -82,6 +85,11 @@ export default function App() {
           name="ProductDetails"
           children={(props) => <ScreenWithNavBar Component={ProductDetails} {...props} />}
         />
+        <Stack.Screen
+          name="ServiceForm"
+          children={(props) => <ScreenWithNavBar Component={ServiceForm} {...props} />}
+        />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
