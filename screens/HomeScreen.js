@@ -7,16 +7,16 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import BottomNavBar from "../components/BottomNavBar";
+// import BottomNavBar from "../components/BottomNavBar";
 
 const { width } = Dimensions.get("window");
+const ITEM_WIDTH = width * 0.85; // For carousel cards with part of the next item visible
+const IMAGE_WIDTH = width * 0.75; // For image carousel
 
 export default function HomeScreen({ navigation }) {
-  const [cardIndex, setCardIndex] = useState(0);
-  const [rangeIndex, setRangeIndex] = useState(0);
-
   const cards = [
     {
       text: "Your kitchen is our vision. Housed within a purpose-built facility in Melbourne's West, Luus Industries are proudly committed to being the leading manufacturer and solutions provider of commercial catering equipment in Australia.",
@@ -35,41 +35,34 @@ export default function HomeScreen({ navigation }) {
         "We've been involved in Asian cuisine since birth! With that in mind, we hold Asian food, and the people who prepare it, close to our hearts.",
       buttonText: "Explore Asian Products",
       route: "AsianProducts",
-      images: [
-        require("../assets/images/image19.png"),
-        require("../assets/images/image19.png"),
-        require("../assets/images/image19.png"),
-      ],
     },
     {
       title: "PROFESSIONAL RANGE",
       description:
-        "Built for the experts, our professional range ensures efficiency, reliability, and top-notch performance for your culinary needs.",
+        "Built for experts, our professional range ensures efficiency, reliability, and top-notch performance for your culinary needs.",
       buttonText: "Explore Professional Products",
       route: "ProfessionalProducts",
-      images: [
-        require("../assets/images/image19-1.png"),
-        require("../assets/images/image19-1.png"),
-      ],
     },
   ];
 
-  const handleCardChange = (direction) => {
-    if (direction === "next") {
-      setCardIndex((prevIndex) => (prevIndex + 1) % cards.length);
-    } else {
-      setCardIndex((prevIndex) =>
-        prevIndex === 0 ? cards.length - 1 : prevIndex - 1
-      );
-    }
-  };
+  const images = [
+    require("../assets/images/image19.png"),
+    require("../assets/images/image19-1.png"),
+    require("../assets/images/image19.png"),
+    require("../assets/images/image19-1.png"),
+  ];
 
-  const handleRangeChange = (direction) => {
+  const renderImageCarouselItem = ({ item }) => (
+    <Image source={item} style={styles.imageCarouselItem} />
+  );
+
+  const handleImageCarouselChange = (direction) => {
+    // Logic for next and previous image buttons
     if (direction === "next") {
-      setRangeIndex((prevIndex) => (prevIndex + 1) % ranges.length);
+      setImageIndex((prevIndex) => (prevIndex + 1) % images.length);
     } else {
-      setRangeIndex((prevIndex) =>
-        prevIndex === 0 ? ranges.length - 1 : prevIndex - 1
+      setImageIndex((prevIndex) =>
+        prevIndex === 0 ? images.length - 1 : prevIndex - 1
       );
     }
   };
@@ -99,83 +92,74 @@ export default function HomeScreen({ navigation }) {
             source={require("../assets/images/person.png")}
             style={styles.profilePicture}
           />
-          <Text style={styles.welcomeText}>"Welcome LUUS User"</Text>
+          <Text style={styles.welcomeText}>"Welcome Mobile User"</Text>
         </View>
 
-        {/* Card Carousel Section */}
-        <View style={styles.carouselContainer}>
-          <TouchableOpacity
-            style={styles.navIcon}
-            onPress={() => handleCardChange("prev")}
-          >
-            <Ionicons name="chevron-back-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.card}>
-            <Image
-              source={cards[cardIndex].image}
-              style={styles.cardImage}
-              resizeMode="cover"
-            />
-            <Text style={styles.cardText}>{cards[cardIndex].text}</Text>
-            <TouchableOpacity style={styles.readMoreButton}>
-              <Text style={styles.readMoreText}>Read More About Us</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={styles.navIcon}
-            onPress={() => handleCardChange("next")}
-          >
-            <Ionicons name="chevron-forward-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Range Section */}
-        <View style={styles.rangeSection}>
-          <View style={styles.rangeImageGrid}>
-            {ranges[rangeIndex].images.map((image, index) => (
+        {/* First Carousel (Cards with Images) */}
+        <FlatList
+          data={cards}
+          renderItem={({ item }) => (
+            <View style={[styles.card, styles.carouselBorder]}>
               <Image
-                key={index}
-                source={image}
-                style={styles.rangeImage}
+                source={item.image}
+                style={styles.cardImage}
                 resizeMode="cover"
               />
-            ))}
-          </View>
-          <View style={styles.rangeContent}>
-            <Text style={styles.rangeTitle}>{ranges[rangeIndex].title}</Text>
-            <Text style={styles.rangeDescription}>
-              {ranges[rangeIndex].description}
-            </Text>
-            <TouchableOpacity
-              style={styles.exploreButton}
-              onPress={() => navigation.navigate(ranges[rangeIndex].route)} // Navigate to the route
-            >
-              <Text style={styles.exploreButtonText}>
-                {ranges[rangeIndex].buttonText}
-              </Text>
-              <Ionicons
-                name="arrow-forward"
-                size={16}
-                color="#fff"
-                style={styles.buttonIcon}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.rangeNavigation}>
-            <TouchableOpacity onPress={() => handleRangeChange("prev")}>
-              <Ionicons name="chevron-back-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleRangeChange("next")}>
-              <Ionicons name="chevron-forward-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
+              <Text style={styles.cardText}>{item.text}</Text>
+              <TouchableOpacity style={styles.readMoreButton}>
+                <Text style={styles.readMoreText}>Read More About Us</Text>
+                <Ionicons name="arrow-forward" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
+          keyExtractor={(item, index) => `card-${index}`}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={ITEM_WIDTH + 10} // Ensures smooth snapping
+          decelerationRate="fast"
+          contentContainerStyle={{ paddingHorizontal: 20 }}
+        />
+
+        {/* Image Carousel (with Left/Right Chevron inside) */}
+        <View style={styles.imageCarouselContainer}>
+          <FlatList
+            data={images}
+            renderItem={renderImageCarouselItem}
+            keyExtractor={(item, index) => `image-${index}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+            style={{ marginVertical: 20 }} // Add space between carousels
+          />
         </View>
+
+        {/* Product Range Carousel */}
+        <FlatList
+          data={ranges}
+          renderItem={({ item }) => (
+            <View style={[styles.card, styles.carouselBorder]}>
+              <Text style={styles.rangeTitle}>{item.title}</Text>
+              <Text style={styles.rangeDescription}>{item.description}</Text>
+              <TouchableOpacity
+                style={styles.exploreButton}
+                onPress={() => navigation.navigate(item.route)}
+              >
+                <Text style={styles.exploreButtonText}>{item.buttonText}</Text>
+                <Ionicons name="arrow-forward" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
+          keyExtractor={(item, index) => `range-${index}`}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={ITEM_WIDTH + 10}
+          decelerationRate="fast"
+          contentContainerStyle={{ paddingHorizontal: 20 }}
+        />
       </ScrollView>
 
-      {/* Fixed Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <BottomNavBar navigation={navigation} />
-      </View>
+      {/* Bottom Navigation */}
+      {/* <BottomNavBar navigation={navigation} /> */}
     </View>
   );
 }
@@ -190,15 +174,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    paddingBottom: 10,
     backgroundColor: "#000",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
   },
   logo: {
-    width: 100,
-    height: 30,
+    width: 120,
+    height: 90,
   },
   serviceButton: {
     backgroundColor: "#00aaff",
@@ -209,13 +189,12 @@ const styles = StyleSheet.create({
   serviceButtonText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "500",
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 80, // Space for bottom nav
   },
   welcomeContainer: {
     flexDirection: "row",
@@ -228,103 +207,102 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 12,
+    marginLeft: 10,
   },
   welcomeText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
-  carouselContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-  },
   card: {
-    flex: 1,
     backgroundColor: "#111",
     borderRadius: 12,
-    marginHorizontal: 8,
-    overflow: "hidden",
+    marginHorizontal: 10,
+    padding: 16,
+    alignItems: "center",
+    width: ITEM_WIDTH,
   },
   cardImage: {
     width: "100%",
-    height: 200,
+    height: 150,
+    borderRadius: 8,
   },
   cardText: {
-    color: "#fff",
+    color: "#aaa", // Light white-grey color
     fontSize: 14,
-    lineHeight: 20,
-    padding: 16,
     textAlign: "center",
+    marginBottom: 10,
   },
   readMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#00aaff",
     paddingVertical: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: 16,
     borderRadius: 8,
   },
   readMoreText: {
     color: "#fff",
-    textAlign: "center",
-    fontSize: 14,
-    fontWeight: "500",
+    marginRight: 8,
   },
-  navIcon: {
-    padding: 8,
-  },
-  rangeSection: {
-    padding: 16,
-  },
-  rangeImageGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  rangeImage: {
-    width: (width - 48) / 3,
-    height: (width - 48) / 3,
+  imageCarouselItem: {
+    width: IMAGE_WIDTH,
+    height: 200,
     borderRadius: 8,
+    marginHorizontal: 10,
   },
-  rangeContent: {
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+  carouselBorder: {
+    borderWidth: 1,
+    borderColor: "#333",
+    borderRadius: 8,
+    padding: 8,
   },
   rangeTitle: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 8,
   },
   rangeDescription: {
-    color: "#999",
+    color: "#aaa", // Light white-grey color
     fontSize: 14,
-    lineHeight: 20,
+    textAlign: "center",
     marginBottom: 16,
   },
   exploreButton: {
-    backgroundColor: "#00aaff",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
+    backgroundColor: "#00aaff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
   },
   exploreButtonText: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "500",
     marginRight: 8,
   },
-  buttonIcon: {
-    marginLeft: 4,
+  imageCarouselContainer: {
+    position: "relative", // For positioning left/right navigation buttons inside the carousel
   },
-  rangeNavigation: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
+  navIconLeft: {
+    position: "absolute",
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    left: 0,
+    backgroundColor: "#000",
+    padding: 8,
+    borderRadius: 20,
+    zIndex: 1,
+  },
+  navIconRight: {
+    position: "absolute",
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    right: 0,
+    backgroundColor: "#000",
+    padding: 8,
+    borderRadius: 20,
+    zIndex: 1,
   },
   bottomNav: {
     position: "absolute",

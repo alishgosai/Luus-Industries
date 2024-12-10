@@ -68,8 +68,7 @@ export default function BrowseScreen({ navigation }) {
         ))}
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <BottomNavBar navigation={navigation} />
+      
     </View>
   );
 }
