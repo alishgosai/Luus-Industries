@@ -28,12 +28,13 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 
 // Account Information
-// import AccountInformation from "./screens/AccountInformation";
+import AccountInformation from "./screens/AccountInformationScreen";
+import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
-import AccountInformation from "./screens/AccountInformation";
-import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
+import AccountInformationScreen from "./screens/AccountInformationScreen";
+
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -52,7 +53,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="WarrantyAndProducts"
+        initialRouteName="AccountInformation"
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
@@ -97,7 +98,7 @@ export default function App() {
         {/* Account and settings */}
         <Stack.Screen
           name="AccountInformation"
-          children={(props) => <ScreenWithNavBar Component={AccountInformation} {...props} />}
+          children={(props) => <ScreenWithNavBar Component={AccountInformationScreen} {...props} />}
         />
         <Stack.Screen
           name="WarrantyAndProducts"
