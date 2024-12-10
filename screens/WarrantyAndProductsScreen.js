@@ -12,7 +12,7 @@ const WarrantyAndProductsScreen = () => {
   const ProductCard = ({ product }) => (
     <View style={styles.productCard}>
       <Image
-        source={require('../assets/product-placeholder.png')}
+        source={require('../assets/images/oven.jpg')}
         style={styles.productImage}
       />
       <View style={styles.productInfo}>
