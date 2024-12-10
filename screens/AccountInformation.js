@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const AccountInformationScreen = () => {
+const AccountInformation = () => {
   const navigation = useNavigation();
 
   const InfoItem = ({ icon, label, value }) => (
@@ -18,7 +18,7 @@ const AccountInformationScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={require('../assets/avatar-placeholder.png')}
+          source={require('../assets/images/person.png')}
           style={styles.avatar}
         />
       </View>
@@ -91,4 +91,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AccountInformationScreen;
+export default AccountInformation;
