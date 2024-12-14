@@ -14,77 +14,120 @@ export default function BottomNavBar({ navigation }) {
     <View style={styles.navBar}>
       {/* Home Button */}
       <TouchableOpacity
-        style={styles.navItem}
+        style={[
+          styles.navItem,
+          isActive("Home") && styles.activeNavItem,
+        ]}
         onPress={() => navigation.navigate("Home")}
+        accessibilityLabel="Home"
       >
         <Ionicons
           name="home-outline"
           size={24}
-          color={isActive("Home") ? "#00bfff" : "#ffffff"}
+          color={isActive("Home") ? "#ffffff" : "#ffffff"} // Icon color remains white
         />
-        <Text style={[styles.navText, isActive("Home") && styles.activeNavText]}>
+        <Text
+          style={[
+            styles.navText,
+            isActive("Home") && styles.activeNavText,
+          ]}
+        >
           Home
         </Text>
       </TouchableOpacity>
 
-
       {/* Browse Button */}
       <TouchableOpacity
-        style={styles.navItem}
+        style={[
+          styles.navItem,
+          isActive("Browse") && styles.activeNavItem,
+        ]}
         onPress={() => navigation.navigate("Browse")}
+        accessibilityLabel="Browse"
       >
         <Ionicons
           name="search-outline"
           size={24}
-          color={isActive("Browse") ? "#00bfff" : "#ffffff"}
+          color={isActive("Browse") ? "#ffffff" : "#ffffff"} // Icon color remains white
         />
-        <Text style={[styles.navText, isActive("Browse") && styles.activeNavText]}>
+        <Text
+          style={[
+            styles.navText,
+            isActive("Browse") && styles.activeNavText,
+          ]}
+        >
           Browse
         </Text>
       </TouchableOpacity>
 
       {/* Scan Button */}
       <TouchableOpacity
-        style={styles.navItem}
+        style={[
+          styles.navItem,
+          isActive("ScanAfterLogin") && styles.activeNavItem,
+        ]}
         onPress={() => navigation.navigate("ScanAfterLogin")}
+        accessibilityLabel="Scan"
       >
         <Ionicons
           name="scan-outline"
           size={24}
-          color={isActive("ScanAfterLogin") ? "#00bfff" : "#ffffff"}
+          color={isActive("ScanAfterLogin") ? "#ffffff" : "#ffffff"} // Icon color remains white
         />
-        <Text style={[styles.navText, isActive("ScanAfterLogin") && styles.activeNavText]}>
+        <Text
+          style={[
+            styles.navText,
+            isActive("ScanAfterLogin") && styles.activeNavText,
+          ]}
+        >
           Scan
         </Text>
       </TouchableOpacity>
 
       {/* Chat Button */}
       <TouchableOpacity
-        style={styles.navItem}
+        style={[
+          styles.navItem,
+          isActive("Chat") && styles.activeNavItem,
+        ]}
         onPress={() => navigation.navigate("Chat")}
+        accessibilityLabel="Chat"
       >
         <Ionicons
           name="chatbubble-outline"
           size={24}
-          color={isActive("Chat") ? "#00bfff" : "#ffffff"}
+          color={isActive("Chat") ? "#ffffff" : "#ffffff"} // Icon color remains white
         />
-        <Text style={[styles.navText, isActive("Chat") && styles.activeNavText]}>
+        <Text
+          style={[
+            styles.navText,
+            isActive("Chat") && styles.activeNavText,
+          ]}
+        >
           Chat
         </Text>
       </TouchableOpacity>
 
-
       {/* Account Button */}
       <TouchableOpacity
-        style={styles.navItem}
+        style={[
+          styles.navItem,
+          isActive("Register") && styles.activeNavItem,
+        ]}
         onPress={() => navigation.navigate("Register")}
+        accessibilityLabel="Account"
       >
         <Ionicons
           name="person-outline"
           size={24}
-          color={isActive("Register") ? "#00bfff" : "#ffffff"}
+          color={isActive("Register") ? "#ffffff" : "#ffffff"} // Icon color remains white
         />
-        <Text style={[styles.navText, isActive("Register") && styles.activeNavText]}>
+        <Text
+          style={[
+            styles.navText,
+            isActive("Register") && styles.activeNavText,
+          ]}
+        >
           Account
         </Text>
       </TouchableOpacity>
@@ -111,6 +154,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
+    paddingVertical: 10, // Added padding for better touch area
+    borderRadius: 10, // Rounded corners
+    margin: 5, // Space around each navItem
+  },
+  activeNavItem: {
+    backgroundColor: "#00aaff", // Active background color matching the blue button
   },
   navText: {
     color: "#ffffff",
@@ -119,7 +168,6 @@ const styles = StyleSheet.create({
   },
   activeNavText: {
     fontWeight: "bold",
-    color: "#00bfff", // Highlighted color for active tab
+    color: "#ffffff", // Active text color set to white for contrast
   },
 });
-

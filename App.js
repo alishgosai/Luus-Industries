@@ -27,15 +27,15 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 
 // Account Information
-// import MyProfileScreen from "./screens/MyProfileScreen";
-// import EditPictureScreen from "./screens/EditPictureScreen";
+import MyProfileScreen from "./screens/MyProfileScreen";
+import EditPictureScreen from "./screens/EditPictureScreen";
 
-// import AccountInformationScreen from "./screens/AccountInformationScreen";
-// import EditPersonalDetailsScreen from "./screens/EditPersonalDetailsScreen";
+import AccountInformationScreen from "./screens/AccountInformationScreen";
+import EditPersonalDetailsScreen from "./screens/EditPersonalDetailsScreen";
 
-// import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
-// import HelpAndSupportScreen from "./screens/HelpAndSupportScreen";
-// import FAQsScreen from "./screens/FAQsScreen";
+import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
+import HelpAndSupportScreen from "./screens/HelpAndSupportScreen";
+import FAQsScreen from "./screens/FAQsScreen";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
@@ -99,7 +99,7 @@ export default function App() {
           />
           
           {/* Account and Settings */}
-          {/* <Stack.Screen
+          <Stack.Screen
             name="MyProfile"
             component={(props) => <ScreenWithNavBar Component={MyProfileScreen} {...props} />}
           />
@@ -129,7 +129,7 @@ export default function App() {
           <Stack.Screen
             name="FAQs"
             component={(props) => <ScreenWithNavBar Component={FAQsScreen} {...props} />}
-          /> */}
+          />
         </Stack.Navigator>
       </SafeAreaProvider>
     </NavigationContainer>

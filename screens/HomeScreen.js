@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,41 +7,23 @@ import {
   Dimensions,
   Image,
   ScrollView,
-  BackHandler,
-  Alert,
   SafeAreaView,
-  FlatList, // Ensure FlatList is imported
+  FlatList,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.85; // For carousel cards with part of the next item visible
 const IMAGE_WIDTH = width * 0.75; // For image carousel
+const CLIENT_IMAGE_SIZE = 60; // Size for client images
+const CLIENT_IMAGE_MARGIN_RIGHT = 10; // Margin between client images
+const CLIENT_COUNT = 10; // Number of client images
+const TOTAL_CLIENTS_WIDTH =
+  (CLIENT_IMAGE_SIZE + CLIENT_IMAGE_MARGIN_RIGHT) * CLIENT_COUNT;
 
 export default function HomeScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState("Login");
-  const [forgotPasswordStep, setForgotPasswordStep] = useState("EnterEmail");
-
-  // Input states for Login
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginErrors, setLoginErrors] = useState({});
-
-  // Input states for Register
-  const [registerName, setRegisterName] = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
-  const [registerErrors, setRegisterErrors] = useState({});
-
-  // Input states for Forgot Password
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotCode, setForgotCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [forgotErrors, setForgotErrors] = useState({});
-
-  // Define the 'cards' array
+  // Define the 'cards' array for the first carousel
   const cards = [
     {
       id: "1",
@@ -136,250 +118,18 @@ export default function HomeScreen({ navigation }) {
     },
   ];
 
-  // Reset forgotPasswordStep when switching to ForgotPassword tab
-  useEffect(() => {
-    if (activeTab === "ForgotPassword") {
-      setForgotPasswordStep("EnterEmail");
-    }
-  }, [activeTab]);
+  // Animation for "Our Clients" section (Removed as per request)
+  // const scrollAnim = useRef(new Animated.Value(0)).current;
 
-  // Handle hardware back button
-  useEffect(() => {
-    const backAction = () => {
-      if (activeTab === "ForgotPassword") {
-        if (forgotPasswordStep === "SetNewPassword") {
-          setForgotPasswordStep("VerifyCode");
-          return true;
-        } else if (forgotPasswordStep === "VerifyCode") {
-          setForgotPasswordStep("EnterEmail");
-          return true;
-        } else if (forgotPasswordStep === "EnterEmail") {
-          setActiveTab("Login");
-          return true;
-        }
-      } else if (activeTab === "Register") {
-        setActiveTab("Login");
-        return true;
-      }
-      return false;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, [activeTab, forgotPasswordStep]);
-
-  const handleTabSwitch = (tab) => {
-    setActiveTab(tab);
-  };
-
-  // Validation functions
-  const validateEmail = (email) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-  };
-
-  const validateLogin = () => {
-    const errors = {};
-    if (!loginEmail) {
-      errors.email = "Email is required";
-    } else if (!validateEmail(loginEmail)) {
-      errors.email = "Invalid email format";
-    }
-    if (!loginPassword) {
-      errors.password = "Password is required";
-    }
-    setLoginErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const validateRegister = () => {
-    const errors = {};
-    if (!registerName) {
-      errors.name = "Name is required";
-    }
-    if (!registerEmail) {
-      errors.email = "Email is required";
-    } else if (!validateEmail(registerEmail)) {
-      errors.email = "Invalid email format";
-    }
-    if (!registerPassword) {
-      errors.password = "Password is required";
-    } else if (registerPassword.length < 6) {
-      errors.password = "Password must be at least 6 characters";
-    }
-    if (!registerConfirmPassword) {
-      errors.confirmPassword = "Please confirm your password";
-    } else if (registerPassword !== registerConfirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
-    setRegisterErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const validateForgotEmail = () => {
-    const errors = {};
-    if (!forgotEmail) {
-      errors.email = "Email is required";
-    } else if (!validateEmail(forgotEmail)) {
-      errors.email = "Invalid email format";
-    }
-    setForgotErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const validateForgotCode = () => {
-    const errors = {};
-    if (!forgotCode) {
-      errors.code = "Code is required";
-    }
-    setForgotErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const validateNewPassword = () => {
-    const errors = {};
-    if (!newPassword) {
-      errors.newPassword = "New password is required";
-    } else if (newPassword.length < 6) {
-      errors.newPassword = "Password must be at least 6 characters";
-    }
-    if (!confirmNewPassword) {
-      errors.confirmNewPassword = "Please confirm your new password";
-    } else if (newPassword !== confirmNewPassword) {
-      errors.confirmNewPassword = "Passwords do not match";
-    }
-    setForgotErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const renderForgotPassword = () => {
-    if (forgotPasswordStep === "EnterEmail") {
-      return (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Email"
-            placeholderTextColor="#888"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={forgotEmail}
-            onChangeText={setForgotEmail}
-          />
-          {forgotErrors.email && (
-            <Text style={styles.errorText}>{forgotErrors.email}</Text>
-          )}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              if (validateForgotEmail()) {
-                // Implement actual send code logic here
-                setForgotPasswordStep("VerifyCode");
-                setForgotErrors({});
-              }
-            }}
-          >
-            <Text style={styles.actionButtonText}>Send Code</Text>
-          </TouchableOpacity>
-        </>
-      );
-    } else if (forgotPasswordStep === "VerifyCode") {
-      return (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Code"
-            placeholderTextColor="#888"
-            keyboardType="number-pad"
-            value={forgotCode}
-            onChangeText={setForgotCode}
-          />
-          {forgotErrors.code && (
-            <Text style={styles.errorText}>{forgotErrors.code}</Text>
-          )}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              if (validateForgotCode()) {
-                // Implement actual verify code logic here
-                setForgotPasswordStep("SetNewPassword");
-                setForgotErrors({});
-              }
-            }}
-          >
-            <Text style={styles.actionButtonText}>Submit</Text>
-          </TouchableOpacity>
-          <View style={styles.forgotFooterLinks}>
-            <TouchableOpacity
-              onPress={() => {
-                // Implement resend code logic here
-                Alert.alert(
-                  "Code Resent",
-                  "A new code has been sent to your email."
-                );
-              }}
-            >
-              <Text style={styles.footerLink}>Send Code Again</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      );
-    } else if (forgotPasswordStep === "SetNewPassword") {
-      return (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="New Password"
-            placeholderTextColor="#888"
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-          {forgotErrors.newPassword && (
-            <Text style={styles.errorText}>{forgotErrors.newPassword}</Text>
-          )}
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            placeholderTextColor="#888"
-            secureTextEntry
-            value={confirmNewPassword}
-            onChangeText={setConfirmNewPassword}
-          />
-          {forgotErrors.confirmNewPassword && (
-            <Text style={styles.errorText}>
-              {forgotErrors.confirmNewPassword}
-            </Text>
-          )}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              if (validateNewPassword()) {
-                // Implement actual password reset logic here
-                Alert.alert("Success", "Your password has been reset.");
-                setActiveTab("Login");
-                setForgotErrors({});
-              }
-            }}
-          >
-            <Text style={styles.actionButtonText}>Submit</Text>
-          </TouchableOpacity>
-          <View style={styles.forgotFooterLinks}>
-            <TouchableOpacity
-              onPress={() => {
-                setActiveTab("Login");
-              }}
-            >
-              <Text style={styles.footerLink}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      );
-    }
-  };
+  // useEffect(() => {
+  //   Animated.loop(
+  //     Animated.timing(scrollAnim, {
+  //       toValue: 1,
+  //       duration: 10000, // Duration of the scroll animation
+  //       useNativeDriver: true,
+  //     })
+  //   ).start();
+  // }, [scrollAnim]);
 
   // Render functions for FlatList components
   const renderRangeItem = ({ item }) => (
@@ -396,34 +146,7 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 
-  const renderProductItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.productCard}
-      onPress={() => navigation.navigate(item.route)}
-    >
-      <Image source={item.image} style={styles.productImage} resizeMode="cover" />
-      <View style={styles.productOverlay}>
-        <Text style={styles.productTitle}>{item.title}</Text>
-        <Text style={styles.productDescription}>{item.description}</Text>
-        <TouchableOpacity style={styles.productButton}>
-          <Text style={styles.productButtonText}>Learn More</Text>
-          <Ionicons name="arrow-forward" size={16} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderTestimonialItem = ({ item }) => (
-    <View style={styles.testimonialCard}>
-      <Image source={item.image} style={styles.testimonialImage} resizeMode="cover" />
-      <Text style={styles.testimonialFeedback}>"{item.feedback}"</Text>
-      <Text style={styles.testimonialName}>- {item.name}</Text>
-    </View>
-  );
-
-  const renderImageCarouselItem = ({ item }) => (
-    <Image source={item} style={styles.imageCarouselItem} />
-  );
+  // "Our Clients" Section Removed
 
   return (
     <SafeAreaView style={styles.outerContainer}>
@@ -496,7 +219,9 @@ export default function HomeScreen({ navigation }) {
                 require("../assets/images/image19.png"),
                 require("../assets/images/image19.png"),
               ]} // All image19.png
-              renderItem={renderImageCarouselItem}
+              renderItem={({ item }) => (
+                <Image source={item} style={styles.imageCarouselItem} />
+              )}
               keyExtractor={(item, index) => `image-${index}`}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -516,7 +241,7 @@ export default function HomeScreen({ navigation }) {
               showsHorizontalScrollIndicator={false}
               snapToInterval={ITEM_WIDTH + 20}
               decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 0 }}
             />
           </View>
 
@@ -552,24 +277,6 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
-
-          {/* About Us Section */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>About Us</Text>
-            <View style={styles.aboutContainer}>
-              <Image
-                source={require("../assets/images/image19.png")} // Using image19.png
-                style={styles.aboutImage}
-                resizeMode="cover"
-              />
-              <Text style={styles.aboutText}>
-                Luus Industries is dedicated to providing top-of-the-line
-                commercial catering equipment tailored to your kitchen's needs.
-                With years of experience, we ensure quality, reliability, and
-                exceptional customer service.
-              </Text>
-            </View>
           </View>
 
           {/* Testimonials Section */}
@@ -611,6 +318,9 @@ export default function HomeScreen({ navigation }) {
               <Ionicons name="arrow-forward" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
+
+          {/* Add extra padding at the bottom to prevent overlap with navigation bar */}
+          <View style={{ height: 60 }} />
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -630,7 +340,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20, // Adjusted padding
+    paddingBottom: 60, // Added padding to prevent overlap with bottom navigation
   },
   header: {
     flexDirection: "row",
@@ -645,7 +355,7 @@ const styles = StyleSheet.create({
     height: 90,
   },
   serviceButton: {
-    backgroundColor: "#00aaff",
+    backgroundColor: "#00aaff", // Blue button color
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -688,7 +398,7 @@ const styles = StyleSheet.create({
   },
   carouselBorder: {
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: "#333", // Light and thin border similar to the first carousel card
     borderRadius: 8,
     padding: 8,
   },
@@ -707,7 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#00aaff",
-    paddingVertical: 12,
+    paddingVertical: 12, // Consistent padding with 'exploreButton'
     paddingHorizontal: 16,
     borderRadius: 8,
     marginTop: 10,
@@ -719,7 +429,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   imageCarouselContainer: {
-    // Removed unused positioning
+    // Additional styles if needed
   },
   imageCarouselItem: {
     width: IMAGE_WIDTH,
@@ -744,6 +454,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#333", // Light and thin border similar to the first carousel card
   },
   rangeTitle: {
     color: "#fff",
@@ -761,7 +473,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#00aaff",
-    paddingVertical: 8,
+    paddingVertical: 12, // Consistent padding with 'readMoreButton'
     paddingHorizontal: 16,
     borderRadius: 8,
     alignSelf: "center",
@@ -822,25 +534,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
     fontWeight: "600",
   },
-  aboutContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 15,
-    marginTop: 10,
-  },
-  aboutImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 15,
-  },
-  aboutText: {
-    color: "#ddd",
-    fontSize: 14,
-    flex: 1,
-  },
   testimonialScroll: {
     paddingVertical: 10,
   },
@@ -871,7 +564,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   ctaContainer: {
-    backgroundColor: "#00aaff",
+    backgroundColor: "#00aaff", // Blue button color
     padding: 20,
     borderRadius: 12,
     marginTop: 30,
@@ -879,7 +572,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   ctaText: {
-    color: "#fff",
+    color: "#fff", // Changed text color to white for better visibility
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 10,
@@ -888,7 +581,7 @@ const styles = StyleSheet.create({
   ctaButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0077cc",
+    backgroundColor: "#00aaff", // Maintain the same blue color for the button
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -899,29 +592,20 @@ const styles = StyleSheet.create({
     marginRight: 5,
     fontWeight: "600",
   },
-  errorText: {
-    width: "100%",
-    color: "red",
-    marginBottom: 10,
-    fontSize: 12,
+  clientsContainer: {
+    flexDirection: "row",
   },
-  actionButton: {
-    backgroundColor: "#00aaff",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+  clientImageContainer: {
+    width: CLIENT_IMAGE_SIZE,
+    height: CLIENT_IMAGE_SIZE,
+    marginRight: CLIENT_IMAGE_MARGIN_RIGHT,
     borderRadius: 8,
-    alignItems: "center",
-    marginTop: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#333", // Light and thin border
   },
-  actionButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  footerLink: {
-    color: "#00aaff",
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 10,
+  clientImage: {
+    width: "100%",
+    height: "100%",
   },
 });
