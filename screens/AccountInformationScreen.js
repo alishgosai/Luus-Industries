@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const AccountInformation = () => {
+const AccountInformationScreen = () => {
   const navigation = useNavigation();
 
   const InfoItem = ({ icon, label, value }) => (
@@ -91,4 +91,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AccountInformation;
+export default AccountInformationScreen;
