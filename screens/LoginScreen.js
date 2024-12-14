@@ -227,6 +227,8 @@ export default function AuthScreen({ navigation }) {
                   "Code Resent",
                   "A new code has been sent to your email."
                 );
+                // Optionally, you can reset to EnterEmail step if desired
+                // setForgotPasswordStep("EnterEmail");
               }}
             >
               <Text style={styles.footerLink}>Send Code Again</Text>
@@ -550,7 +552,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 15,
     color: "#fff",
-    marginBottom: 5,
+    marginBottom: 15, // Increased spacing
     backgroundColor: "#111",
   },
   errorText: {
