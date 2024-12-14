@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "react-native";
 
 // Login and Register Pages
+// import ScannerBeforeLoginScreen from "./screens/ScannerBeforeLogin";
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -27,10 +28,13 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 
 // Account Information
-import AccountInformationScreen from "./screens/AccountInformation";
+import AccountInformation from "./screens/AccountInformationScreen";
+import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
+import AccountInformationScreen from "./screens/AccountInformationScreen";
+
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -49,13 +53,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ServiceForm"
+        initialRouteName="AccountInformation"
         screenOptions={{ headerShown: false }}
       >
         {/* Authentication Screens */}
-        <Stack.Screen name="ScanBeforeLogin" component={ScanOrLoginScreen} />
-        {/*<Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen} /> */}
-
+        <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
+        {/* <Stack.Screen name="ScanBeforeLogin" component={ScannerBeforeLoginScreen} /> */}
         <Stack.Screen name="Scan" component={ScanScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
@@ -96,6 +99,10 @@ export default function App() {
         <Stack.Screen
           name="AccountInformation"
           children={(props) => <ScreenWithNavBar Component={AccountInformationScreen} {...props} />}
+        />
+        <Stack.Screen
+          name="WarrantyAndProducts"
+          children={(props) => <ScreenWithNavBar Component={WarrantyAndProductsScreen} {...props} />}
         />
       </Stack.Navigator>
     </NavigationContainer>
