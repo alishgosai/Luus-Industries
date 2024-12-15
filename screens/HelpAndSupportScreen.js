@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -19,83 +19,76 @@ const HelpAndSupportScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Icon name="chevron-left" size={28} color="#87CEEB" />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Icon name="chevron-left" size={24} color="#000000" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Help And Support</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
 
-      <ScrollView style={styles.content}>
-        <SupportItem 
-          icon="robot" 
-          label="Chat bot" 
-          description="Chat with our AI assistant"
-        />
-        <SupportItem 
-          icon="phone" 
-          label="Call us" 
-          description="Talk to our customer service"
-        />
-        <SupportItem 
-          icon="frequently-asked-questions" 
-          label="FAQs" 
-          description="Browse app information"
-        />
-      </ScrollView>
-
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="home" size={24} color="#87CEEB" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="magnify" size={24} color="#87CEEB" />
-          <Text style={styles.navText}>Browse</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="qrcode-scan" size={24} color="#87CEEB" />
-          <Text style={styles.navText}>Scan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="chat" size={24} color="#87CEEB" />
-          <Text style={styles.navText}>Chat</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Icon name="account" size={24} color="#87CEEB" />
-          <Text style={[styles.navText, styles.navTextActive]}>Account</Text>
-        </TouchableOpacity>
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <SupportItem 
+            icon="robot" 
+            label="Chat bot" 
+            description="Chat with our AI assistant"
+          />
+          <SupportItem 
+            icon="phone" 
+            label="Call us" 
+            description="Talk to our customer service"
+          />
+          <SupportItem 
+            icon="frequently-asked-questions" 
+            label="FAQs" 
+            description="Browse app information"
+          />
+        </ScrollView>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#121212',
   },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+  container: {
+    flex: 1,
   },
-  backButton: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#87CEEB',
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
+  },
+  backButton: {
+    marginRight: 8,
   },
   headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    marginLeft: 8,
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24,
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 16,
+    paddingBottom: 32, 
   },
   supportItem: {
     flexDirection: 'row',
@@ -126,30 +119,6 @@ const styles = StyleSheet.create({
   supportItemDescription: {
     fontSize: 14,
     color: '#666666',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    backgroundColor: '#121212',
-    paddingVertical: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navItemActive: {
-    borderTopWidth: 2,
-    borderTopColor: '#87CEEB',
-  },
-  navText: {
-    color: '#666',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  navTextActive: {
-    color: '#87CEEB',
   },
 });
 
