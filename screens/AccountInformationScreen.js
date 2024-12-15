@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -15,40 +15,86 @@ const AccountInformationScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={require('../assets/images/person.png')}
-          style={styles.avatar}
-        />
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Icon name="chevron-left" size={24} color="#000000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Account Information</Text>
+        </View>
 
-      <View style={styles.infoContainer}>
-        <InfoItem icon="account" label="Name" value="Luxe User" />
-        <InfoItem icon="calendar" label="Date of Birth" value="21/09/2000" />
-        <InfoItem icon="phone" label="Phone Number" value="941234567" />
-        <InfoItem icon="email" label="Email" value="luxeuser@luxe.com" />
-        <InfoItem icon="lock" label="Password" value="********" />
-      </View>
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <View style={styles.avatarContainer}>
+            <Image
+              source={require('../assets/images/person.png')}
+              style={styles.avatar}
+            />
+          </View>
 
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => navigation.navigate('EditPersonalDetails')}
-      >
-        <Text style={styles.editButtonText}>Edit Personal Details</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <View style={styles.infoContainer}>
+            <InfoItem icon="account" label="Name" value="Luxe User" />
+            <InfoItem icon="calendar" label="Date of Birth" value="21/09/2000" />
+            <InfoItem icon="phone" label="Phone Number" value="941234567" />
+            <InfoItem icon="email" label="Email" value="luxeuser@luxe.com" />
+            <InfoItem icon="lock" label="Password" value="********" />
+          </View>
+
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => navigation.navigate('EditPersonalDetails')}
+          >
+            <Text style={styles.editButtonText}>Edit Personal Details</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#121212',
   },
+  container: {
+    flex: 1,
+  },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: '#87CEEB',
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
+  },
+  backButton: {
+    marginRight: 8,
+  },
+  headerTitle: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   avatar: {
     width: 100,
@@ -56,7 +102,10 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   infoContainer: {
-    padding: 20,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
   },
   infoItem: {
     flexDirection: 'row',
@@ -68,27 +117,27 @@ const styles = StyleSheet.create({
   infoLabel: {
     marginLeft: 15,
     fontSize: 14,
-    color: '#666',
+    color: '#87CEEB',
     width: 100,
   },
   infoValue: {
     flex: 1,
     fontSize: 16,
-    color: '#FFF',
+    color: '#FFFFFF',
     textAlign: 'right',
   },
   editButton: {
     backgroundColor: '#87CEEB',
-    margin: 20,
     padding: 15,
     borderRadius: 25,
     alignItems: 'center',
   },
   editButtonText: {
-    color: '#000',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '600',
   },
 });
 
 export default AccountInformationScreen;
+

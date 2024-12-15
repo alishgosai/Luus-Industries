@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // Import Ionicons
-import BottomNavBar from "../components/BottomNavBar";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function BrowseScreen({ navigation }) {
   const products = [
@@ -33,78 +33,92 @@ export default function BrowseScreen({ navigation }) {
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-          <Ionicons name="arrow-back-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Browse Products</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="search-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Scrollable Product List */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {products.map((product, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.productCard}
-            onPress={() => navigation.navigate(product.route)}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            <Image source={product.icon} style={styles.productIcon} />
-            <View style={styles.productInfo}>
-              <Text style={styles.productTitle}>{product.title}</Text>
-              <Text style={styles.productDescription}>
-                {product.description}
-              </Text>
-            </View>
-            <Image
-              source={require("../assets/images/external-link.png")} // Replace with your icon
-              style={styles.externalIcon}
-            />
+            <Ionicons name="chevron-back" size={24} color="#000000" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+          <Text style={styles.headerTitle}>Browse Products</Text>
+          <TouchableOpacity style={styles.searchButton}>
+            <Ionicons name="search-outline" size={24} color="#000000" />
+          </TouchableOpacity>
+        </View>
 
-      
-    </View>
+        {/* Scrollable Product List */}
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {products.map((product, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.productCard}
+              onPress={() => navigation.navigate(product.route)}
+            >
+              <Image source={product.icon} style={styles.productIcon} />
+              <View style={styles.productInfo}>
+                <Text style={styles.productTitle}>{product.title}</Text>
+                <Text style={styles.productDescription}>
+                  {product.description}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#00aaff" />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  container: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#000",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    backgroundColor: "#87CEEB",
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
   },
-  iconButton: {
-    padding: 5,
+  backButton: {
+    marginRight: 8,
   },
-  title: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+  searchButton: {
+    marginLeft: 8,
+  },
+  headerTitle: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "600",
+    flex: 1,
+    textAlign: "center",
+    marginRight: 24,
+  },
+  content: {
+    flex: 1,
   },
   scrollContent: {
-    padding: 15,
+    padding: 16,
+    paddingBottom: 32,
   },
   productCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#111",
-    padding: 10,
-    borderRadius: 5,
+    padding: 15,
+    borderRadius: 10,
     marginBottom: 15,
   },
   productIcon: {
@@ -119,14 +133,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 5,
   },
   productDescription: {
     color: "#aaa",
     fontSize: 14,
   },
-  externalIcon: {
-    width: 24,
-    height: 24,
-    tintColor: "#00aaff",
-  },
 });
+

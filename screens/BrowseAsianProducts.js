@@ -1,26 +1,40 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar } from "react-native";
 import { WebView } from "react-native-webview";
-import BottomNavBar from "../components/BottomNavBar";
 
 export default function AsianProducts({ navigation }) {
   return (
-    <View style={styles.container}>
-      <WebView
-        source={{ uri: "https://luus.com.au/range/asian/" }}
-        style={styles.webview}
-      />
-      <BottomNavBar navigation={navigation} />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <WebView
+          source={{ uri: "https://luus.com.au/range/asian/" }}
+          style={styles.webview}
+          contentInset={{ bottom: 70 }}
+          automaticallyAdjustContentInsets={false}
+        />
+        
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
   },
   webview: {
     flex: 1,
-    marginBottom: 70, // Space for BottomNavBar
+  },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
 });
+

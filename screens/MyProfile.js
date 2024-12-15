@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -15,78 +15,108 @@ const MyProfileScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Profile</Text>
-      </View>
-      <ScrollView style={styles.content}>
-        <View style={styles.profileHeader}>
-          <Image
-            source={require('../assets/images/person.png')}
-            style={styles.avatar}
-          />
-          <Text style={styles.userName}>Luxe Customer/User</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
           <TouchableOpacity 
-            style={styles.editButton}
-            onPress={() => navigation.navigate('EditPicture')}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            <Text style={styles.editButtonText}>Edit Picture</Text>
+            <Icon name="chevron-left" size={24} color="#000000" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Profile</Text>
         </View>
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <View style={styles.profileHeader}>
+            <Image
+              source={require('../assets/images/person.png')}
+              style={styles.avatar}
+            />
+            <Text style={styles.userName}>Luxe Customer/User</Text>
+            <TouchableOpacity 
+              style={styles.editButton}
+              onPress={() => navigation.navigate('EditPicture')}
+            >
+              <Text style={styles.editButtonText}>Edit Picture</Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.profileContainer}>
-          <ProfileItem 
-            icon="account" 
-            label="Account Information" 
-            onPress={() => navigation.navigate('AccountInformation')}
-          />
-          <ProfileItem 
-            icon="shield-check" 
-            label="Warranty & Products" 
-            onPress={() => navigation.navigate('WarrantyAndProducts')}
-          />
-          <ProfileItem 
-            icon="help-circle" 
-            label="Help & Support" 
-            onPress={() => navigation.navigate('HelpAndSupport')}
-          />
-          <ProfileItem 
-            icon="frequently-asked-questions" 
-            label="FAQs" 
-            onPress={() => navigation.navigate('FAQs')}
-          />
+          <View style={styles.profileContainer}>
+            <ProfileItem 
+              icon="account" 
+              label="Account Information" 
+              onPress={() => navigation.navigate('AccountInformation')}
+            />
+            <ProfileItem 
+              icon="shield-check" 
+              label="Warranty & Products" 
+              onPress={() => navigation.navigate('WarrantyAndProducts')}
+            />
+            <ProfileItem 
+              icon="help-circle" 
+              label="Help & Support" 
+              onPress={() => navigation.navigate('HelpAndSupport')}
+            />
+            <ProfileItem 
+              icon="frequently-asked-questions" 
+              label="FAQs" 
+              onPress={() => navigation.navigate('FAQs')}
+            />
+          </View>
+
           <TouchableOpacity style={styles.signOutButton}>
+            <Icon name="logout" size={24} color="#FFFFFF" />
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#121212',
   },
+  container: {
+    flex: 1,
+  },
   header: {
-    backgroundColor: '#87CEEB',
-    padding: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#87CEEB',
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
+  },
+  backButton: {
+    marginRight: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
     color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24,
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
   },
   profileHeader: {
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
+    marginBottom: 20,
   },
   avatar: {
     width: 100,
@@ -112,7 +142,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   profileContainer: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
     padding: 16,
+    marginBottom: 20,
   },
   profileItem: {
     flexDirection: 'row',
@@ -128,16 +161,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   signOutButton: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#FF0000',
-    borderRadius: 25,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF3B30',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
   },
   signOutText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
+    marginLeft: 10,
   },
 });
 
