@@ -27,7 +27,7 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 
 // Account Information
-import MyProfileScreen from "./screens/MyProfileScreen";
+import MyProfileScreen from "./screens/MyProfile";
 import EditPictureScreen from "./screens/EditPictureScreen";
 
 import AccountInformationScreen from "./screens/AccountInformationScreen";
@@ -56,7 +56,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="Home"
+          initialRouteName="MyProfile"
           screenOptions={{ headerShown: false }}
         >
           {/* Authentication Screens */}
