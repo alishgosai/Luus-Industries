@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
@@ -48,71 +48,93 @@ const EditPictureScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Icon name="chevron-left" size={24} color="#000000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Edit Picture</Text>
+        </View>
+
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
         >
-          <Icon name="chevron-left" size={24} color="#000000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Picture</Text>
+          <View style={styles.profilePictureContainer}>
+            <Image
+              source={image ? { uri: image } : require('../assets/images/person.png')}
+              style={styles.profilePicture}
+            />
+          </View>
+
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity 
+              style={styles.option}
+              onPress={() => handleImageSelection('library')}
+            >
+              <Icon name="folder-image" size={24} color="#87CEEB" />
+              <Text style={styles.optionText}>Choose from library</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.option}
+              onPress={() => handleImageSelection('camera')}
+            >
+              <Icon name="camera" size={24} color="#87CEEB" />
+              <Text style={styles.optionText}>Take Photo</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.option, styles.removeOption]}
+              onPress={handleRemovePhoto}
+            >
+              <Icon name="trash-can-outline" size={24} color="#FF0000" />
+              <Text style={styles.removeText}>Remove Current Photo</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
-
-      <View style={styles.profilePictureContainer}>
-        <Image
-          source={image ? { uri: image } : require('../assets/images/person.png')}
-          style={styles.profilePicture}
-        />
-      </View>
-
-      <View style={styles.optionsContainer}>
-        <TouchableOpacity 
-          style={styles.option}
-          onPress={() => handleImageSelection('library')}
-        >
-          <Icon name="folder-image" size={24} color="#87CEEB" />
-          <Text style={styles.optionText}>Choose from library</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.option}
-          onPress={() => handleImageSelection('camera')}
-        >
-          <Icon name="camera" size={24} color="#87CEEB" />
-          <Text style={styles.optionText}>Take Photo</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.option, styles.removeOption]}
-          onPress={handleRemovePhoto}
-        >
-          <Icon name="trash-can-outline" size={24} color="#FF0000" />
-          <Text style={styles.removeText}>Remove Current Photo</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#121212',
+  },
+  container: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
     backgroundColor: '#87CEEB',
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
   },
   backButton: {
-    marginRight: 16,
+    marginRight: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
     color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
   },
   profilePictureContainer: {
     alignItems: 'center',
@@ -124,6 +146,8 @@ const styles = StyleSheet.create({
     borderRadius: 60,
   },
   optionsContainer: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
     padding: 16,
   },
   option: {

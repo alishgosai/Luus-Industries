@@ -112,23 +112,23 @@ export default function BottomNavBar({ navigation }) {
       <TouchableOpacity
         style={[
           styles.navItem,
-          isActive("Register") && styles.activeNavItem,
+          isActive("MyProfile") && styles.activeNavItem,
         ]}
-        onPress={() => navigation.navigate("Register")}
-        accessibilityLabel="Account"
+        onPress={() => navigation.navigate("MyProfile")}
+        accessibilityLabel="Profile"
       >
         <Ionicons
           name="person-outline"
           size={24}
-          color={isActive("Register") ? "#ffffff" : "#ffffff"} // Icon color remains white
+          color={isActive("MyProfile") ? "#ffffff" : "#ffffff"}
         />
         <Text
           style={[
             styles.navText,
-            isActive("Register") && styles.activeNavText,
+            isActive("MyProfile") && styles.activeNavText,
           ]}
         >
-          Account
+          Profile
         </Text>
       </TouchableOpacity>
     </View>

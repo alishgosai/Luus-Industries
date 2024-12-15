@@ -1,12 +1,17 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const WarrantyAndProductsScreen = () => {
+  const navigation = useNavigation();
+
   const products = [
-    { id: 1, name: 'BS 600MM Oven', date: '10 December 2023', warranty: '10 Dec 2028' },
+    { id: 1, name: 'RS 600MM Oven', date: '10 December 2023', warranty: '10 Dec 2028' },
     { id: 2, name: 'SCM-120 Steam Cabinet', date: '10 December 2023', warranty: '10 Dec 2028' },
     { id: 3, name: 'SCM-60 Steam Cabinet', date: '10 December 2023', warranty: '10 Dec 2028' },
-    { id: 4, name: 'BS 1200MM Oven', date: '10 December 2023', warranty: '10 Dec 2028' },
+    { id: 4, name: 'RS 600MM Oven', date: '10 December 2023', warranty: '10 Dec 2028' },
+    { id: 5, name: 'RS 600MM Oven', date: '10 December 2023', warranty: '10 Dec 2028' },
   ];
 
   const ProductCard = ({ product }) => (
@@ -27,19 +32,58 @@ const WarrantyAndProductsScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </ScrollView>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="chevron-left" size={24} color="#000000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Warranty & Products</Text>
+      </View>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#121212',
-    padding: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#87CEEB',
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
+  },
+  backButton: {
+    marginRight: 8,
+  },
+  headerTitle: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24,
+  },
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
   },
   productCard: {
     backgroundColor: '#1E1E1E',
@@ -60,30 +104,32 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#87CEEB',
     marginBottom: 5,
   },
   productDate: {
     fontSize: 14,
-    color: '#87CEEB',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   productWarranty: {
     fontSize: 14,
-    color: '#87CEEB',
+    color: '#FFFFFF',
     marginBottom: 10,
   },
   detailsButton: {
     backgroundColor: '#87CEEB',
-    padding: 8,
+    padding: 10,
     borderRadius: 5,
-    alignSelf: 'flex-start',
+    alignSelf: 'stretch',
   },
   detailsButtonText: {
-    color: '#000',
-    fontSize: 12,
+    color: '#000000',
+    fontSize: 14,
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
 
 export default WarrantyAndProductsScreen;
+
