@@ -41,39 +41,39 @@ export default function HomeScreen({ navigation }) {
   const products = [
     {
       id: "1",
-      title: "Commercial Ovens",
+      title: "Duck Oven",
       description:
-        "High-efficiency ovens designed for commercial kitchens. Reliable and easy to maintain.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "CommercialOvens",
+        "Perfectly designed ovens for preparing roasted duck with precision and consistency.",
+      image: require("../assets/images/duck-oven.jpg"), // duck-oven.jpg
+      route: "DuckOven",
     },
     {
       id: "2",
-      title: "Refrigeration Units",
+      title: "Noodle Cooker",
       description:
-        "State-of-the-art refrigeration solutions to keep your ingredients fresh and safe.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "RefrigerationUnits",
+        "High-performance noodle cookers that ensure quick and efficient cooking for large batches.",
+      image: require("../assets/images/noodlecooker.jpg"), // noodle-cooker.jpg
+      route: "NoodleCooker",
     },
     {
       id: "3",
-      title: "Food Preparation Equipment",
+      title: "Oven Ranges",
       description:
-        "Durable and versatile equipment to streamline your food preparation processes.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "FoodPreparation",
+        "Versatile oven ranges suitable for all your baking and cooking needs in a commercial kitchen.",
+      image: require("../assets/images/Ovenranges.jpg"), // Ovenranges.jpg
+      route: "OvenRanges",
     },
     {
       id: "4",
-      title: "Dishwashers",
+      title: "Pasta Cooker",
       description:
-        "Efficient dishwashing solutions that save time and water without compromising cleanliness.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "Dishwashers",
+        "Efficient pasta cookers designed to deliver perfectly cooked pasta every time.",
+      image: require("../assets/images/pasta-cooker.jpg"), // pasta-cooker.jpg
+      route: "PastaCooker",
     },
-    // Add more products as needed
   ];
-
+  
+QQQQ
   // Data for testimonials
   const testimonials = [
     {

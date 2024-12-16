@@ -1,36 +1,40 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, SafeAreaView } from "react-native";
 import { WebView } from "react-native-webview";
+import BottomNavBar from "../components/BottomNavBar";
 
-export default function ProfessionalProducts() {
+export default function ProfessionalProducts({ navigation }) {
   return (
-    <View style={styles.container}>
-      <WebView
-        source={{ uri: "https://luus.com.au/range/professional/" }}
-        style={styles.webview}
-        scalesPageToFit={true}
-        scrollEnabled={true}
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-        automaticallyAdjustContentInsets={false}
-        injectedJavaScript={`
-          document.body.style.backgroundColor = 'black';
-          document.querySelector('.bottom-nav-bar')?.remove();
-          true;
-        `}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      {/* WebView Content */}
+      <View style={styles.webviewContainer}>
+        <WebView
+          source={{ uri: "https://luus.com.au/range/professional/" }}
+          style={styles.webview}
+        />
+      </View>
+
+      {/* Fixed Bottom Navigation Bar */}
+      <View style={styles.navbarContainer}>
+        <BottomNavBar navigation={navigation} />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000", // Consistent background color
   },
-  webview: {
+  webviewContainer: {
     flex: 1,
-    backgroundColor: '#000000',
-  }
+    paddingBottom: 70, // Space for BottomNavBar
+  },
+  navbarContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
 });
-
