@@ -33,7 +33,7 @@ export default function HomeScreen({ navigation }) {
     {
       id: "2",
       text: "Another vision for your kitchen. With enhanced facilities, we aim to redefine quality and efficiency for modern catering equipment.",
-      image: require("../assets/images/image19.png"), // Using image19.png
+      image: require("../assets/images/feature2.jpg"), // Using image19.png
     },
   ];
 
@@ -72,8 +72,7 @@ export default function HomeScreen({ navigation }) {
       route: "PastaCooker",
     },
   ];
-  
-QQQQ
+
   // Data for testimonials
   const testimonials = [
     {
@@ -81,14 +80,14 @@ QQQQ
       name: "John Doe",
       feedback:
         "Luus Industries provided us with top-notch equipment that has transformed our kitchen operations.",
-      image: require("../assets/images/image19.png"), // Using image19.png
+      image: require("../assets/images/person.png"), // Using image19.png
     },
     {
       id: "2",
       name: "Jane Smith",
       feedback:
         "Exceptional quality and customer service. Highly recommend Luus for all your catering needs.",
-      image: require("../assets/images/image19.png"), // Using image19.png
+      image: require("../assets/images/person.png"), // Using image19.png
     },
     // Add more testimonials as needed
   ];
@@ -175,7 +174,7 @@ QQQQ
           <View style={styles.welcomeBorder}>
             <View style={styles.welcomeContainer}>
               <Image
-                source={require("../assets/images/image19.png")} // Using image19.png
+                source={require("../assets/images/person.png")} // Using image19.png
                 style={styles.profilePicture}
               />
               <Text style={styles.welcomeText}>Welcome Mobile User</Text>
@@ -207,17 +206,18 @@ QQQQ
             showsHorizontalScrollIndicator={false}
             snapToInterval={ITEM_WIDTH + 10} // Ensures smooth snapping
             decelerationRate="fast"
-            contentContainerStyle={{ paddingHorizontal: 20 }}
+            contentContainerStyle={{ paddingHorizontal: 10 }}
           />
 
           {/* Image Carousel */}
           <View style={styles.imageCarouselContainer}>
             <FlatList
               data={[
-                require("../assets/images/image19.png"),
-                require("../assets/images/image19.png"),
-                require("../assets/images/image19.png"),
-                require("../assets/images/image19.png"),
+                require("../assets/images/products-feature1.jpg"),
+                require("../assets/images/aLCfeature-1.jpg"),
+                require("../assets/images/feature3.jpg"),
+                require("../assets/images/image19-1.png"),
+                require("../assets/images/feature2.jpg"),
               ]} // All image19.png
               renderItem={({ item }) => (
                 <Image source={item} style={styles.imageCarouselItem} />
@@ -225,7 +225,7 @@ QQQQ
               keyExtractor={(item, index) => `image-${index}`}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
               style={{ marginVertical: 20 }} // Add space between carousels
             />
           </View>
@@ -269,7 +269,10 @@ QQQQ
                     <Text style={styles.productDescription}>
                       {product.description}
                     </Text>
-                    <TouchableOpacity style={styles.productButton}>
+                    <TouchableOpacity
+                      style={styles.productButton}
+                      onPress={() => navigation.navigate(product.route)}
+                    >
                       <Text style={styles.productButtonText}>Learn More</Text>
                       <Ionicons name="arrow-forward" size={16} color="#fff" />
                     </TouchableOpacity>
@@ -307,9 +310,7 @@ QQQQ
 
           {/* Call to Action */}
           <View style={styles.ctaContainer}>
-            <Text style={styles.ctaText}>
-              Ready to upgrade your kitchen?
-            </Text>
+            <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
             <TouchableOpacity
               style={styles.ctaButton}
               onPress={() => navigation.navigate("ContactUs")}
