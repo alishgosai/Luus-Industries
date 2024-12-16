@@ -7,79 +7,93 @@ import {
   SafeAreaView,
   Image,
   StatusBar,
+  ScrollView,
+  Linking,
+  Alert,
+  Platform,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const ChatbotScreen = () => {
+  const navigation = useNavigation();
+  const phoneNumber = '+61 0392406822';
+
+  const handleChatWithBot = () => {
+    navigation.navigate('ChatWithBot');
+  };
+
+  const handleCallPress = async () => {
+    const phoneUrl = Platform.select({
+      ios: `telprompt:${phoneNumber}`,
+      android: `tel:${phoneNumber}`
+    });
+
+    const canOpen = await Linking.canOpenURL(phoneUrl);
+    
+    if (canOpen) {
+      await Linking.openURL(phoneUrl);
+    } else {
+      Alert.alert('Error', 'Unable to make phone call');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Hello I'm your Chat Assistant.</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Hello I'm your Chat Assistant.</Text>
+        </View>
 
-      {/* Bot Icon */}
-      <View style={styles.iconContainer}>
-        <Image
-          source={require('./assets/bot-icon.png')}
-          style={styles.botIcon}
-        />
-      </View>
-
-      {/* Help Text */}
-      <Text style={styles.helpText}>How can I Help You Today?</Text>
-
-      {/* Option Buttons */}
-      <View style={styles.optionsContainer}>
-        <TouchableOpacity style={styles.optionButton}>
+        {/* Bot Icon */}
+        <View style={styles.iconContainer}>
           <Image
-            source={require('./assets/chatbot-icon.png')}
-            style={styles.optionIcon}
+            source={require('../assets/images/chatbot.png')}
+            style={styles.botIcon}
           />
-          <Text style={styles.optionTitle}>Chat bot</Text>
-          <Text style={styles.optionSubtitle}>Chat with our help</Text>
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.optionButton}>
-          <Image
-            source={require('./assets/phone-icon.png')}
-            style={styles.optionIcon}
-          />
-          <Text style={styles.optionTitle}>Call us</Text>
-          <Text style={styles.optionSubtitle}>Talk to our executive</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Help Text */}
+        <Text style={styles.helpText}>How can I Help You Today?</Text>
 
-      {/* Action Buttons */}
-      <View style={styles.actionContainer}>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Chat with Bot</Text>
-        </TouchableOpacity>
+        {/* Option Buttons */}
+        <View style={styles.optionsContainer}>
+          <TouchableOpacity style={styles.optionButton} onPress={handleChatWithBot}>
+            <View style={styles.optionIconContainer}>
+              <Image
+                source={require('../assets/images/MessageBot.png')}
+                style={styles.optionIcon}
+              />
+            </View>
+            <Text style={styles.optionTitle}>Chat bot</Text>
+            <Text style={styles.optionSubtitle}>Chat with our Robo</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Chat with Person</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.optionButton} onPress={handleCallPress}>
+            <View style={styles.optionIconContainer}>
+              <Image
+                source={require('../assets/images/Phone.png')}
+                style={styles.optionIcon}
+              />
+            </View>
+            <Text style={styles.optionTitle}>Call us</Text>
+            <Text style={styles.optionSubtitle}>Talk to our executive</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>Browse</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>Scan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>Chat</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>Account</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Action Buttons */}
+        <View style={styles.actionContainer}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleChatWithBot}>
+            <Text style={styles.actionButtonText}>Chat with Bot</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionButton} onPress={handleCallPress}>
+            <Text style={styles.actionButtonText}>Chat with Person</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -89,65 +103,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   header: {
     padding: 20,
     alignItems: 'center',
+    marginTop: 40,
   },
   headerText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
+    textAlign: 'center',
   },
   iconContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 40,
   },
   botIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
+    width: 120,
+    height: 120,
+    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
   },
   helpText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 24,
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+    fontWeight: '500',
   },
   optionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
     padding: 20,
+    gap: 20,
   },
   optionButton: {
     backgroundColor: '#FFFFFF',
     padding: 20,
-    borderRadius: 15,
+    borderRadius: 25,
     alignItems: 'center',
-    width: '40%',
+    width: '42%',
+    aspectRatio: 1,
+  },
+  optionIconContainer: {
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
   },
   optionIcon: {
-    width: 40,
-    height: 40,
-    marginBottom: 10,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
   optionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 5,
+    color: '#000000',
   },
   optionSubtitle: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 14,
+    color: '#666666',
     textAlign: 'center',
   },
   actionContainer: {
     padding: 20,
-    gap: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 15,
+    marginTop: 20,
   },
   actionButton: {
     backgroundColor: '#87CEEB',
     padding: 15,
     borderRadius: 8,
+    flex: 1,
     alignItems: 'center',
   },
   actionButtonText: {
@@ -155,24 +191,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#87CEEB',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingVertical: 10,
-    justifyContent: 'space-around',
-  },
-  navItem: {
-    alignItems: 'center',
-  },
-  navText: {
-    color: '#000000',
-    fontSize: 12,
-    marginTop: 5,
-  },
 });
 
 export default ChatbotScreen;
+

@@ -39,6 +39,8 @@ import FAQsScreen from "./screens/FAQsScreen";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
+import ChatbotScreen from "./screens/ChatBotScreen";
+import ChatWithBot from "./screens/ChatWithBot";
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -56,7 +58,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="MyProfile"
+          initialRouteName="ChatWithBot"
           screenOptions={{ headerShown: false }}
         >
           {/* Authentication Screens */}
@@ -97,6 +99,17 @@ export default function App() {
             name="ServiceForm"
             component={(props) => <ScreenWithNavBar Component={ServiceForm} {...props} />}
           />
+
+<Stack.Screen
+            name="ChatBot"
+            component={(props) => <ScreenWithNavBar Component={ChatbotScreen} {...props} />}
+          />
+
+<Stack.Screen
+            name="ChatWithBot"
+            component={(props) => <ScreenWithNavBar Component={ChatWithBot} {...props} />}
+          />
+
           
           {/* Account and Settings */}
           <Stack.Screen
