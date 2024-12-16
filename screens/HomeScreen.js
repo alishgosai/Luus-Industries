@@ -33,7 +33,7 @@ export default function HomeScreen({ navigation }) {
     {
       id: "2",
       text: "Another vision for your kitchen. With enhanced facilities, we aim to redefine quality and efficiency for modern catering equipment.",
-      image: require("../assets/images/image19.png"), // Using image19.png
+      image: require("../assets/images/feature2.jpg"), // Using image19.png
     },
   ];
 
@@ -41,37 +41,36 @@ export default function HomeScreen({ navigation }) {
   const products = [
     {
       id: "1",
-      title: "Commercial Ovens",
+      title: "Duck Oven",
       description:
-        "High-efficiency ovens designed for commercial kitchens. Reliable and easy to maintain.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "CommercialOvens",
+        "Perfectly designed ovens for preparing roasted duck with precision and consistency.",
+      image: require("../assets/images/duck-oven.jpg"), // duck-oven.jpg
+      route: "DuckOven",
     },
     {
       id: "2",
-      title: "Refrigeration Units",
+      title: "Noodle Cooker",
       description:
-        "State-of-the-art refrigeration solutions to keep your ingredients fresh and safe.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "RefrigerationUnits",
+        "High-performance noodle cookers that ensure quick and efficient cooking for large batches.",
+      image: require("../assets/images/noodlecooker.jpg"), // noodle-cooker.jpg
+      route: "NoodleCooker",
     },
     {
       id: "3",
-      title: "Food Preparation Equipment",
+      title: "Oven Ranges",
       description:
-        "Durable and versatile equipment to streamline your food preparation processes.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "FoodPreparation",
+        "Versatile oven ranges suitable for all your baking and cooking needs in a commercial kitchen.",
+      image: require("../assets/images/Ovenranges.jpg"), // Ovenranges.jpg
+      route: "OvenRanges",
     },
     {
       id: "4",
-      title: "Dishwashers",
+      title: "Pasta Cooker",
       description:
-        "Efficient dishwashing solutions that save time and water without compromising cleanliness.",
-      image: require("../assets/images/image19.png"), // Using image19.png
-      route: "Dishwashers",
+        "Efficient pasta cookers designed to deliver perfectly cooked pasta every time.",
+      image: require("../assets/images/pasta-cooker.jpg"), // pasta-cooker.jpg
+      route: "PastaCooker",
     },
-    // Add more products as needed
   ];
 
   // Data for testimonials
@@ -81,14 +80,14 @@ export default function HomeScreen({ navigation }) {
       name: "John Doe",
       feedback:
         "Luus Industries provided us with top-notch equipment that has transformed our kitchen operations.",
-      image: require("../assets/images/image19.png"), // Using image19.png
+      image: require("../assets/images/person.png"), // Using image19.png
     },
     {
       id: "2",
       name: "Jane Smith",
       feedback:
         "Exceptional quality and customer service. Highly recommend Luus for all your catering needs.",
-      image: require("../assets/images/image19.png"), // Using image19.png
+      image: require("../assets/images/person.png"), // Using image19.png
     },
     // Add more testimonials as needed
   ];
@@ -175,7 +174,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.welcomeBorder}>
             <View style={styles.welcomeContainer}>
               <Image
-                source={require("../assets/images/image19.png")} // Using image19.png
+                source={require("../assets/images/person.png")} // Using image19.png
                 style={styles.profilePicture}
               />
               <Text style={styles.welcomeText}>Welcome Mobile User</Text>
@@ -207,17 +206,18 @@ export default function HomeScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             snapToInterval={ITEM_WIDTH + 10} // Ensures smooth snapping
             decelerationRate="fast"
-            contentContainerStyle={{ paddingHorizontal: 20 }}
+            contentContainerStyle={{ paddingHorizontal: 10 }}
           />
 
           {/* Image Carousel */}
           <View style={styles.imageCarouselContainer}>
             <FlatList
               data={[
-                require("../assets/images/image19.png"),
-                require("../assets/images/image19.png"),
-                require("../assets/images/image19.png"),
-                require("../assets/images/image19.png"),
+                require("../assets/images/products-feature1.jpg"),
+                require("../assets/images/aLCfeature-1.jpg"),
+                require("../assets/images/feature3.jpg"),
+                require("../assets/images/image19-1.png"),
+                require("../assets/images/feature2.jpg"),
               ]} // All image19.png
               renderItem={({ item }) => (
                 <Image source={item} style={styles.imageCarouselItem} />
@@ -225,7 +225,7 @@ export default function HomeScreen({ navigation }) {
               keyExtractor={(item, index) => `image-${index}`}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
               style={{ marginVertical: 20 }} // Add space between carousels
             />
           </View>
@@ -269,7 +269,10 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.productDescription}>
                       {product.description}
                     </Text>
-                    <TouchableOpacity style={styles.productButton}>
+                    <TouchableOpacity
+                      style={styles.productButton}
+                      onPress={() => navigation.navigate(product.route)}
+                    >
                       <Text style={styles.productButtonText}>Learn More</Text>
                       <Ionicons name="arrow-forward" size={16} color="#fff" />
                     </TouchableOpacity>
@@ -307,9 +310,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* Call to Action */}
           <View style={styles.ctaContainer}>
-            <Text style={styles.ctaText}>
-              Ready to upgrade your kitchen?
-            </Text>
+            <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
             <TouchableOpacity
               style={styles.ctaButton}
               onPress={() => navigation.navigate("ContactUs")}

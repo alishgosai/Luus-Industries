@@ -1,20 +1,20 @@
+// components/WebScreen.js
 import React from "react";
 import { View, StyleSheet, SafeAreaView } from "react-native";
 import { WebView } from "react-native-webview";
-import BottomNavBar from "../components/BottomNavBar";
+import BottomNavBar from "./BottomNavBar"; // Import BottomNavBar component
 
-export default function AsianProducts({ navigation }) {
+export default function WebScreen({ route, navigation }) {
+  const { uri } = route.params; // Retrieve the URI passed to this screen
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Main Content */}
+      {/* WebView Content */}
       <View style={styles.webviewContainer}>
-        <WebView
-          source={{ uri: "https://luus.com.au/range/asian/" }}
-          style={styles.webview}
-        />
+        <WebView source={{ uri }} style={styles.webview} />
       </View>
 
-      {/* Bottom Navigation Bar */}
+      {/* Fixed Bottom Navigation Bar */}
       <View style={styles.navbarContainer}>
         <BottomNavBar navigation={navigation} />
       </View>
@@ -25,11 +25,11 @@ export default function AsianProducts({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000", // Consistent background
+    backgroundColor: "#000",
   },
   webviewContainer: {
     flex: 1,
-    paddingBottom: 70, // Ensure space for BottomNavBar
+    paddingBottom: 70, // Space for BottomNavBar
   },
   navbarContainer: {
     position: "absolute",
