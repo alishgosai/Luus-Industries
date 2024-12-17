@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar, View } from "react-native";
 
-// Screens and Components
+// Authentication Screens
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -13,12 +13,23 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetCodeScreen from "./screens/ResetCodeScreen";
 import NewPasswordScreen from "./screens/NewPasswordScreen";
 
+// Main Application Screens
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
+import AsianProducts from "./screens/BrowseAsianProducts";
+import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
+import SpareParts from "./screens/BrowseSpareParts";
 import ProductDetails from "./screens/ProductDetails";
-
 import ServiceForm from "./screens/ServiceForm";
 
+// QR Scan Screens
+import QRScanner from "./screens/QRScanner";
+import QRCodeScanner from "./screens/QR";
+
+// Product Info
+import ProductInfo from "./screens/BeforeProductDetails";
+
+// Account and Settings Screens
 import MyProfileScreen from "./screens/MyProfile";
 import EditPictureScreen from "./screens/EditPictureScreen";
 import AccountInformationScreen from "./screens/AccountInformationScreen";
@@ -27,8 +38,15 @@ import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
 import HelpAndSupportScreen from "./screens/HelpAndSupportScreen";
 import FAQsScreen from "./screens/FAQsScreen";
 
+// Chatbot Screens
+import ChatbotScreen from "./screens/ChatBotScreen";
+import ChatWithBot from "./screens/ChatWithBot";
+
+// Additional Web Screens from Your Code
+import WebScreen from "./components/WebScreen";
+
+// Components
 import BottomNavBar from "./components/BottomNavBar";
-import WebScreen from "./components/WebScreen"; // Reusable WebView Component
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -47,7 +65,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="ScanOrLoginScreen" // Set Home as initial screen
+          initialRouteName="ScanOrLoginScreen" // Choose initial screen based on your preference
           screenOptions={{ headerShown: false }}
         >
           {/* Authentication Screens */}
@@ -58,10 +76,7 @@ export default function App() {
           <Stack.Screen name="Scan" component={ScanScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen
-            name="ForgotPassword"
-            component={ForgotPasswordScreen}
-          />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
           <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
 
@@ -79,6 +94,24 @@ export default function App() {
             )}
           />
           <Stack.Screen
+            name="AsianProducts"
+            component={(props) => (
+              <ScreenWithNavBar Component={AsianProducts} {...props} />
+            )}
+          />
+          <Stack.Screen
+            name="ProfessionalProducts"
+            component={(props) => (
+              <ScreenWithNavBar Component={ProfessionalProducts} {...props} />
+            )}
+          />
+          <Stack.Screen
+            name="SpareParts"
+            component={(props) => (
+              <ScreenWithNavBar Component={SpareParts} {...props} />
+            )}
+          />
+          <Stack.Screen
             name="ProductDetails"
             component={(props) => (
               <ScreenWithNavBar Component={ProductDetails} {...props} />
@@ -91,24 +124,43 @@ export default function App() {
             )}
           />
 
-          {/* WebScreen Reusable Screens */}
+          {/* QR Scan Screens */}
           <Stack.Screen
-            name="AsianProducts"
-            component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/range/asian/" }}
+            name="QR"
+            component={(props) => (
+              <ScreenWithNavBar Component={QRCodeScanner} {...props} />
+            )}
           />
           <Stack.Screen
-            name="ProfessionalProducts"
-            component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/range/professional/" }}
-          />
-          <Stack.Screen
-            name="SpareParts"
-            component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/spareparts/" }}
+            name="QRScanner"
+            component={(props) => (
+              <ScreenWithNavBar Component={QRScanner} {...props} />
+            )}
           />
 
-          {/* Account and Settings */}
+          {/* Product Info */}
+          <Stack.Screen
+            name="BeforeProductDetails"
+            component={(props) => (
+              <ScreenWithNavBar Component={ProductInfo} {...props} />
+            )}
+          />
+
+          {/* Chatbot Screens */}
+          <Stack.Screen
+            name="ChatBot"
+            component={(props) => (
+              <ScreenWithNavBar Component={ChatbotScreen} {...props} />
+            )}
+          />
+          <Stack.Screen
+            name="ChatWithBot"
+            component={(props) => (
+              <ScreenWithNavBar Component={ChatWithBot} {...props} />
+            )}
+          />
+
+          {/* Account and Settings Screens */}
           <Stack.Screen
             name="MyProfile"
             component={(props) => (
@@ -124,28 +176,19 @@ export default function App() {
           <Stack.Screen
             name="AccountInformation"
             component={(props) => (
-              <ScreenWithNavBar
-                Component={AccountInformationScreen}
-                {...props}
-              />
+              <ScreenWithNavBar Component={AccountInformationScreen} {...props} />
             )}
           />
           <Stack.Screen
             name="EditPersonalDetails"
             component={(props) => (
-              <ScreenWithNavBar
-                Component={EditPersonalDetailsScreen}
-                {...props}
-              />
+              <ScreenWithNavBar Component={EditPersonalDetailsScreen} {...props} />
             )}
           />
           <Stack.Screen
             name="WarrantyAndProducts"
             component={(props) => (
-              <ScreenWithNavBar
-                Component={WarrantyAndProductsScreen}
-                {...props}
-              />
+              <ScreenWithNavBar Component={WarrantyAndProductsScreen} {...props} />
             )}
           />
           <Stack.Screen
@@ -161,8 +204,7 @@ export default function App() {
             )}
           />
 
-          {/* EXternal webview screens */}
-          {/* external links for home page. */}
+          {/* External WebView Screens from Your Code */}
           <Stack.Screen
             name="AboutUs"
             component={WebScreen}
