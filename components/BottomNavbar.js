@@ -84,29 +84,30 @@ export default function BottomNavBar({ navigation }) {
         </Text>
       </TouchableOpacity>
 
-      {/* Chat Button */}
-      <TouchableOpacity
-        style={[
-          styles.navItem,
-          isActive("Chat") && styles.activeNavItem,
-        ]}
-        onPress={() => navigation.navigate("Chat")}
-        accessibilityLabel="Chat"
-      >
-        <Ionicons
-          name="chatbubble-outline"
-          size={24}
-          color={isActive("Chat") ? "#ffffff" : "#ffffff"} // Icon color remains white
-        />
-        <Text
-          style={[
-            styles.navText,
-            isActive("Chat") && styles.activeNavText,
-          ]}
-        >
-          Chat
-        </Text>
-      </TouchableOpacity>
+            {/* Chat Button */}
+<TouchableOpacity
+  style={[
+    styles.navItem,
+    isActive("ChatBot") && styles.activeNavItem,
+  ]}
+  onPress={() => navigation.navigate("ChatBot")}
+  accessibilityLabel="Chat"
+>
+  <Ionicons
+    name="chatbubble-outline"
+    size={24}
+    color={isActive("ChatBot") ? "#ffffff" : "#ffffff"} // Icon color remains white
+  />
+  <Text
+    style={[
+      styles.navText,
+      isActive("ChatBot") && styles.activeNavText,
+    ]}
+  >
+    Chat
+  </Text>
+</TouchableOpacity>
+
 
       {/* Account Button */}
       <TouchableOpacity

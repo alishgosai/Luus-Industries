@@ -1,13 +1,66 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView,
+  Linking,
+  Platform,
+  Alert
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const HelpAndSupportScreen = () => {
   const navigation = useNavigation();
+  const phoneNumber = '+61395084409';
 
-  const SupportItem = ({ icon, label, description }) => (
-    <TouchableOpacity style={styles.supportItem}>
+  const handleCallPress = async () => {
+    console.log('Call button pressed');
+    const phoneUrl = Platform.select({
+      ios: `telprompt:${phoneNumber}`,
+      android: `tel:${phoneNumber}`
+    });
+
+    try {
+      const canOpen = await Linking.canOpenURL(phoneUrl);
+      console.log('Can open URL:', canOpen);
+      
+      if (canOpen) {
+        await Linking.openURL(phoneUrl);
+      } else {
+        Alert.alert('Error', 'Unable to make phone call');
+      }
+    } catch (error) {
+      console.error('Error handling call:', error);
+      Alert.alert('Error', 'An error occurred while trying to make the call');
+    }
+  };
+
+  const handleItemPress = (type) => {
+    console.log('Item pressed:', type);
+    switch(type) {
+      case 'chatbot':
+        navigation.navigate('ChatWithBot');
+        break;
+      case 'call':
+        handleCallPress();
+        break;
+      case 'faq':
+        navigation.navigate('FAQs');
+        break;
+      default:
+        console.warn('Unknown item type:', type);
+    }
+  };
+
+  const SupportItem = ({ icon, label, description, type }) => (
+    <TouchableOpacity 
+      style={styles.supportItem}
+      onPress={() => handleItemPress(type)}
+    >
       <View style={styles.supportItemIcon}>
         <Icon name={icon} size={24} color="#000000" />
       </View>
@@ -39,16 +92,19 @@ const HelpAndSupportScreen = () => {
             icon="robot" 
             label="Chat bot" 
             description="Chat with our AI assistant"
+            type="chatbot"
           />
           <SupportItem 
             icon="phone" 
             label="Call us" 
             description="Talk to our customer service"
+            type="call"
           />
           <SupportItem 
             icon="frequently-asked-questions" 
             label="FAQs" 
             description="Browse app information"
+            type="faq"
           />
         </ScrollView>
       </View>
