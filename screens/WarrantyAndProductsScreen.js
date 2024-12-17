@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import BottomNavBar from "../components/BottomNavBar";
 
 const WarrantyAndProductsScreen = () => {
   const navigation = useNavigation();
@@ -33,6 +34,7 @@ const WarrantyAndProductsScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -42,6 +44,8 @@ const WarrantyAndProductsScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Warranty & Products</Text>
       </View>
+      
+      {/* Scrollable Content */}
       <ScrollView 
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -49,7 +53,12 @@ const WarrantyAndProductsScreen = () => {
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
+        {/* Space for BottomNavBar */}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Bottom Navigation Bar */}
+      <BottomNavBar navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -83,7 +92,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 32, // Add padding to prevent overlap with BottomNavBar
   },
   productCard: {
     backgroundColor: '#1E1E1E',
@@ -129,7 +138,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+  bottomSpacer: {
+    height: 70, // Adds spacing for the BottomNavBar
+  },
 });
 
 export default WarrantyAndProductsScreen;
-
