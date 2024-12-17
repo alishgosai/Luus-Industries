@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, TextInput, SafeAreaView, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  SafeAreaView,
+  Alert,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const EditPersonalDetailsScreen = () => {
   const navigation = useNavigation();
@@ -10,7 +20,7 @@ const EditPersonalDetailsScreen = () => {
     dob: "21/09/2000",
     phone: "941234567",
     email: "luususer@luxe.com",
-    password: "********"
+    password: "********",
   });
 
   const InfoItem = ({ icon, label, field, value, isPassword }) => {
@@ -18,9 +28,9 @@ const EditPersonalDetailsScreen = () => {
     const [editedValue, setEditedValue] = useState(value);
 
     const handleEdit = () => {
-      setUserDetails(prev => ({
+      setUserDetails((prev) => ({
         ...prev,
-        [field]: editedValue
+        [field]: editedValue,
       }));
       setIsEditing(false);
     };
@@ -54,8 +64,8 @@ const EditPersonalDetailsScreen = () => {
     try {
       // This is where you would typically make an API call to save the data
       // For now, we'll just simulate an API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       Alert.alert("Success", "Your details have been updated successfully!");
       navigation.goBack();
     } catch (error) {
@@ -67,21 +77,24 @@ const EditPersonalDetailsScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
             <Icon name="chevron-left" size={24} color="#000000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Personal Details</Text>
         </View>
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
         >
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.avatarContainer}
-            onPress={() => navigation.navigate('EditPicture')}
+            onPress={() => navigation.navigate("EditPicture")}
           >
             <Image
-              source={require('../assets/images/person.png')}
+              source={require("../assets/images/person.png")}
               style={styles.avatar}
             />
             <View style={styles.editOverlay}>
@@ -138,15 +151,15 @@ const EditPersonalDetailsScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: "#121212",
   },
   container: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#87CEEB',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#87CEEB",
     margin: 16,
     padding: 12,
     borderRadius: 30,
@@ -155,11 +168,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   headerTitle: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     marginRight: 24,
   },
   content: {
@@ -170,9 +183,9 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   avatarContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 20,
-    position: 'relative',
+    position: "relative",
   },
   avatar: {
     width: 100,
@@ -180,25 +193,25 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   editOverlay: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     bottom: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: "rgba(0,0,0,0.6)",
     borderRadius: 15,
     padding: 5,
   },
   infoContainer: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: "#1E1E1E",
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
   },
   infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   itemIcon: {
     marginRight: 15,
@@ -208,31 +221,30 @@ const styles = StyleSheet.create({
   },
   itemLabel: {
     fontSize: 14,
-    color: '#87CEEB',
+    color: "#87CEEB",
   },
   itemValue: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   itemInput: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: '#87CEEB',
+    borderBottomColor: "#87CEEB",
   },
   saveButton: {
-    backgroundColor: '#87CEEB',
+    backgroundColor: "#87CEEB",
     marginTop: 20,
     padding: 15,
     borderRadius: 25,
-    alignItems: 'center',
+    alignItems: "center",
   },
   saveButtonText: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
 export default EditPersonalDetailsScreen;
-
