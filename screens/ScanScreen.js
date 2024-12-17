@@ -1,166 +1,183 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  Alert,
-} from "react-native";
-import { Camera } from "expo-camera";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { RNCamera } from 'react-native-camera';
+import Icon from 'react-native-vector-icons/Feather';
 
-const { width } = Dimensions.get("window");
-
-export default function ScanScreen({ navigation }) {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [scanned, setScanned] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, []);
+const QRScanner = () => {
+  const [isFlashOn, setIsFlashOn] = useState(false);
+  const [scannedData, setScannedData] = useState('');
 
   const handleBarCodeScanned = ({ data }) => {
-    setScanned(true);
-    Alert.alert("Barcode Scanned", `Data: ${data}`, [
-      { text: "OK", onPress: () => setScanned(false) },
-    ]);
-    // Add further logic here (e.g., navigate or process data)
+    setScannedData(data);
+    // Handle the scanned data as needed
+    console.log('Scanned data:', data);
   };
 
-  if (hasPermission === null) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>Requesting camera permission...</Text>
-      </View>
-    );
-  }
-  if (hasPermission === false) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>
-          No access to camera. Please enable it in settings.
-        </Text>
-      </View>
-    );
-  }
+  const toggleFlash = () => {
+    setIsFlashOn(!isFlashOn);
+  };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-          <Text style={styles.backButtonText}>Go back to Login</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Camera Preview */}
-      <Camera
-        style={styles.camera}
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        type={Camera.Constants.Type.back}
-        barCodeScannerSettings={{
-          barCodeTypes: [
-            Camera.Constants.BarCodeType.ean13,
-            Camera.Constants.BarCodeType.qr,
-          ],
-        }}
+    <SafeAreaView style={styles.container}>
+      <RNCamera
+        style={styles.cameraView}
+        type={RNCamera.Constants.Type.back}
+        flashMode={isFlashOn ? RNCamera.Constants.FlashMode.torch : RNCamera.Constants.FlashMode.off}
+        onBarCodeRead={handleBarCodeScanned}
+        captureAudio={false}
       >
-        {/* Scan Overlay */}
-        <View style={styles.scanOverlay}>
-          <Text style={styles.scanText}>Scan Here</Text>
-          <Text style={styles.scanInstruction}>
-            Please point the camera at the barcode.
-          </Text>
-          <View style={styles.scanBox}></View>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => {/* Handle back navigation */}}>
+            <Icon name="arrow-left" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Amazon lens</Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={toggleFlash} style={styles.iconButton}>
+              <Icon name="zap" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="help-circle" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </Camera>
 
-      {/* Capture Button */}
-      <View style={styles.captureButtonContainer}>
-        <TouchableOpacity
-          style={styles.captureButton}
-          onPress={() => setScanned(false)} // Reset scanning
-        ></TouchableOpacity>
-      </View>
-    </View>
+        {/* Scan Frame */}
+        <View style={styles.scanFrame}>
+          <View style={styles.cornerTL} />
+          <View style={styles.cornerTR} />
+          <View style={styles.cornerBL} />
+          <View style={styles.cornerBR} />
+        </View>
+
+        {/* Bottom Controls */}
+        <View style={styles.bottomControls}>
+          <TouchableOpacity style={styles.controlButton}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.iconText}>🔍</Text>
+            </View>
+            <Text style={styles.buttonText}>Search</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.controlButton, styles.activeButton]}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.iconText}>📱</Text>
+            </View>
+            <Text style={[styles.buttonText, styles.activeText]}>Barcode</Text>
+          </TouchableOpacity>
+        </View>
+      </RNCamera>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: 'black',
+  },
+  cameraView: {
+    flex: 1,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0078D7",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
+  headerTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
   },
-  backButtonText: {
-    color: "#fff",
-    marginLeft: 5,
-    fontSize: 16,
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
   },
-  camera: {
+  iconButton: {
+    padding: 8,
+  },
+  scanFrame: {
     flex: 1,
-    width: "100%",
+    margin: 50,
+    position: 'relative',
   },
-  scanOverlay: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  cornerTL: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    borderLeftWidth: 3,
+    borderTopWidth: 3,
+    borderColor: 'white',
+    width: 20,
+    height: 20,
   },
-  scanText: {
-    color: "#fff",
+  cornerTR: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    borderRightWidth: 3,
+    borderTopWidth: 3,
+    borderColor: 'white',
+    width: 20,
+    height: 20,
+  },
+  cornerBL: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    borderLeftWidth: 3,
+    borderBottomWidth: 3,
+    borderColor: 'white',
+    width: 20,
+    height: 20,
+  },
+  cornerBR: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    borderRightWidth: 3,
+    borderBottomWidth: 3,
+    borderColor: 'white',
+    width: 20,
+    height: 20,
+  },
+  bottomControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 20,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  controlButton: {
+    alignItems: 'center',
+    opacity: 0.6,
+  },
+  activeButton: {
+    opacity: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  iconText: {
     fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
   },
-  scanInstruction: {
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 20,
+  buttonText: {
+    color: '#666',
+    fontSize: 14,
   },
-  scanBox: {
-    width: width * 0.8,
-    height: width * 0.5,
-    borderWidth: 2,
-    borderColor: "#00bfff",
-    borderRadius: 8,
-    backgroundColor: "transparent",
-  },
-  captureButtonContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
-  },
-  captureButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#00bfff",
-    borderWidth: 4,
-    borderColor: "#fff",
-  },
-  permissionContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#000",
-  },
-  permissionText: {
-    color: "#fff",
-    fontSize: 16,
+  activeText: {
+    color: '#000',
+    fontWeight: '500',
   },
 });
+
+export default QRScanner;
+

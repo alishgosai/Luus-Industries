@@ -27,7 +27,7 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 
 //QR Scan
-import QRScanner from "./screens/QRScanner";  
+//import QRScanner from "./screens/QRScanner";  
 import QRCodeScanner from "./screens/QR";  
 
 import ProductInfo from "./screens/BeforeProductDetails";
@@ -64,7 +64,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="ChatWithBot"
+          initialRouteName="QR"
           screenOptions={{ headerShown: false }}
         >
           {/* Authentication Screens */}

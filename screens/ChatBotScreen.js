@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 const ChatbotScreen = () => {
   const navigation = useNavigation();
@@ -37,13 +38,24 @@ const ChatbotScreen = () => {
     }
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.headerButton}>
+          <Ionicons name="chevron-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Chat</Text>
+       
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
+        <View style={styles.content}>
           <Text style={styles.headerText}>Hello I'm your Chat Assistant.</Text>
         </View>
 
@@ -79,7 +91,7 @@ const ChatbotScreen = () => {
               />
             </View>
             <Text style={styles.optionTitle}>Call us</Text>
-            <Text style={styles.optionSubtitle}>Talk to our executive</Text>
+            <Text style={styles.optionSubtitle}>Talk to our team</Text>
           </TouchableOpacity>
         </View>
 
@@ -103,14 +115,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
   header: {
-    padding: 20,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 40,
+    backgroundColor: '#87CEEB',
+    margin: 16,
+    padding: 12,
+    borderRadius: 30,
+  },
+  backButton: {
+    marginRight: 8,
+  },
+  headerTitle: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24,
+  },
+  content: {
+    flex: 1,
   },
   headerText: {
     color: '#FFFFFF',

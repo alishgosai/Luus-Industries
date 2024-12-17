@@ -144,29 +144,7 @@ export default function ServiceForm() {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="home-outline" size={24} color="#000" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="search-outline" size={24} color="#000" />
-          <Text style={styles.navText}>Browse</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="scan-outline" size={24} color="#000" />
-          <Text style={styles.navText}>Scan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="chatbubble-outline" size={24} color="#000" />
-          <Text style={styles.navText}>Chat</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="person-outline" size={24} color="#000" />
-          <Text style={styles.navText}>Account</Text>
-        </TouchableOpacity>
-      </View>
+      
     </SafeAreaView>
   );
 }
