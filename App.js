@@ -24,6 +24,8 @@ import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
 import SpareParts from "./screens/BrowseSpareParts";
 import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
+import EquipmentSales from "./screens/EquipmentSales";
+import TechnicalSupport from "./screens/TechnicalSupport";
 
 // QR Scan Screens
 import QRScanner from "./screens/QRScanner";
@@ -127,6 +129,19 @@ export default function App() {
               <ScreenWithNavBar Component={ServiceForm} {...props} />
             )}
           />
+          <Stack.Screen
+            name="EquipmentSales"
+            component={(props) => (
+              <ScreenWithNavBar Component={EquipmentSales} {...props} />
+            )}
+          />
+          <Stack.Screen
+            name="TechnicalSupport"
+            component={(props) => (
+              <ScreenWithNavBar Component={TechnicalSupport} {...props} />
+            )}
+          />
+
 
           {/* QR Scan Screens */}
           <Stack.Screen

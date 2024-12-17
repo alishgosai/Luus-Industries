@@ -159,7 +159,7 @@ export default function HomeScreen({ navigation }) {
           />
           <TouchableOpacity
             style={styles.serviceButton}
-            onPress={() => navigation.navigate("ServiceBooking")}
+            onPress={() => navigation.navigate("ServiceForm")}
           >
             <Text style={styles.serviceButtonText}>Book a Service</Text>
           </TouchableOpacity>
