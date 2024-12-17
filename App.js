@@ -8,14 +8,17 @@ import { StatusBar, View } from "react-native";
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
-import RegisterScreen from "./screens/RegisterScreen";
-import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
-import ResetCodeScreen from "./screens/ResetCodeScreen";
-import NewPasswordScreen from "./screens/NewPasswordScreen";
+// ..............Not used these screens in app but might need later................... 
+
+// import RegisterScreen from "./screens/RegisterScreen";
+// import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+// import ResetCodeScreen from "./screens/ResetCodeScreen";
+// import NewPasswordScreen from "./screens/NewPasswordScreen";
 
 // Main Application Screens
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
+// .............Browse screen parts..............
 import AsianProducts from "./screens/BrowseAsianProducts";
 import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
 import SpareParts from "./screens/BrowseSpareParts";
@@ -75,10 +78,11 @@ export default function App() {
           />
           <Stack.Screen name="Scan" component={ScanScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
+          {/* ...............Might need these screens later...................... */}
+          {/* <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
-          <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
+          <Stack.Screen name="NewPassword" component={NewPasswordScreen} /> */}
 
           {/* Main Application Screens */}
           <Stack.Screen
