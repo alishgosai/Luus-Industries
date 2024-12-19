@@ -14,19 +14,19 @@ export default function BrowseScreen({ navigation }) {
   const products = [
     {
       title: "Asian Products",
-      description: "Product description.",
+      description: "Click for more details.",
       route: "AsianProducts",
       icon: require("../assets/images/orange-theme.png"),
     },
     {
       title: "Professional Products",
-      description: "Product description.",
+      description: "Click for more details.",
       route: "ProfessionalProducts",
       icon: require("../assets/images/white-theme.png"),
     },
     {
       title: "Spare Parts",
-      description: "Product description.",
+      description: "Click for more details.",
       route: "SpareParts",
       icon: require("../assets/images/blue-theme.png"),
     },
@@ -44,9 +44,7 @@ export default function BrowseScreen({ navigation }) {
             <Ionicons name="chevron-back" size={24} color="#000000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Browse Products</Text>
-          <TouchableOpacity style={styles.searchButton}>
-            <Ionicons name="search-outline" size={24} color="#000000" />
-          </TouchableOpacity>
+          
         </View>
 
         {/* Scrollable Product List */}

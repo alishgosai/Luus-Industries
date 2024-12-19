@@ -24,7 +24,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="home-outline"
           size={24}
-          color={isActive("Home") ? "#ffffff" : "#ffffff"} // Icon color remains white
+          color={isActive("Home") ? "#ffffff" : "#111111"} // Icon color remains white
         />
         <Text
           style={[
@@ -48,7 +48,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="search-outline"
           size={24}
-          color={isActive("Browse") ? "#ffffff" : "#ffffff"} // Icon color remains white
+          color={isActive("Browse") ? "#ffffff" : "#111111"} // Icon color remains white
         />
         <Text
           style={[
@@ -72,7 +72,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="scan-outline"
           size={24}
-          color={isActive("QR") ? "#ffffff" : "#ffffff"} // Icon color remains white
+          color={isActive("QR") ? "#ffffff" : "#111111"} // Icon color remains white
         />
         <Text
           style={[
@@ -96,7 +96,8 @@ export default function BottomNavBar({ navigation }) {
   <Ionicons
     name="chatbubble-outline"
     size={24}
-    color={isActive("ChatBot") ? "#ffffff" : "#ffffff"} // Icon color remains white
+    color={isActive("ChatBot") ? "#ffffff" : "#111111"} // Icon color remains white'
+   
   />
   <Text
     style={[
@@ -121,7 +122,8 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="person-outline"
           size={24}
-          color={isActive("MyProfile") ? "#ffffff" : "#ffffff"}
+          color={isActive("MyProfile") ?  "#ffffff" : "#111111"}
+          
         />
         <Text
           style={[
@@ -143,7 +145,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 70,
-    backgroundColor: "#0078D7", // Blue background
+    backgroundColor: '#87CEEB', // Blue background
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
@@ -163,8 +165,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#00aaff", // Active background color matching the blue button
   },
   navText: {
-    color: "#ffffff",
+    color: "#111111",
     fontSize: 12,
+    fontWeight: "bold",
     marginTop: 4,
   },
   activeNavText: {

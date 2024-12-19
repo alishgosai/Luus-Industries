@@ -166,9 +166,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FF3B30',
     borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
+    paddingVertical: 8, // Consistent padding with 'exploreButton'
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    marginTop: 10,
   },
+  
   signOutText: {
     color: '#FFFFFF',
     fontSize: 18,
