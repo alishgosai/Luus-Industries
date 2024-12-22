@@ -1,11 +1,9 @@
-// components/WebScreen.js
 import React from "react";
 import { View, StyleSheet, SafeAreaView } from "react-native";
 import { WebView } from "react-native-webview";
-import BottomNavBar from "./BottomNavBar"; // Import BottomNavBar component
-
+import BottomNavBar from "./BottomNavBar"; 
 export default function WebScreen({ route, navigation }) {
-  const { uri } = route.params; // Retrieve the URI passed to this screen
+  const { uri } = route.params; // ro retrive the link to open the screeen 
 
   return (
     <SafeAreaView style={styles.container}>
@@ -14,7 +12,7 @@ export default function WebScreen({ route, navigation }) {
         <WebView source={{ uri }} style={styles.webview} />
       </View>
 
-      {/* Fixed Bottom Navigation Bar */}
+      {/* Bottom Navigation Bar */}
       <View style={styles.navbarContainer}>
         <BottomNavBar navigation={navigation} />
       </View>
