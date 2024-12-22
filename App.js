@@ -29,7 +29,6 @@ import TechnicalSupport from "./screens/TechnicalSupport";
 
 // QR Scan Screens
 import QRScanner from "./screens/QRScanner";
-import QRCodeScanner from "./screens/QR";
 //QR Scan
 //import QRScanner from "./screens/QRScanner";  
 import QRCodeScanner from "./screens/QR";  
@@ -74,7 +73,6 @@ export default function App() {
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
           initialRouteName="ScanOrLoginScreen" // Choose initial screen based on your preference
-          initialRouteName="QR"
           screenOptions={{ headerShown: false }}
         >
           {/* Authentication Screens */}
