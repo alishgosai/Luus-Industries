@@ -24,7 +24,7 @@ export default function ScanOrLoginScreen({ navigation }) {
       {/* Scan Button */}
       <TouchableOpacity
         style={styles.scanButton}
-        onPress={() => navigation.navigate("Scan")} // Navigate to ScanScreen
+        onPress={() => navigation.navigate("ScannerQR")  } // Navigate to ScanScreen
       >
         <Ionicons name="scan-outline" size={40} color="#00bfff" />
         <Text style={styles.scanButtonText}>Scan</Text>
@@ -33,7 +33,7 @@ export default function ScanOrLoginScreen({ navigation }) {
       {/* Scan Products Button */}
       <TouchableOpacity
         style={styles.primaryButton}
-        onPress={() => navigation.navigate("Scan")} // Navigate to ScanScreen
+        onPress={() => navigation.navigate("ScannerQR")} // Navigate to ScanScreen
       >
         <Text style={styles.primaryButtonText}>Scan Products</Text>
       </TouchableOpacity>

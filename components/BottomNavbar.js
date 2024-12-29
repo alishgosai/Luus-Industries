@@ -64,20 +64,20 @@ export default function BottomNavBar({ navigation }) {
       <TouchableOpacity
         style={[
           styles.navItem,
-          isActive("QR") && styles.activeNavItem,
+          isActive("HomeQR") && styles.activeNavItem,
         ]}
-        onPress={() => navigation.navigate("QR")}
+        onPress={() => navigation.navigate("HomeQR")}
         accessibilityLabel="Scan"
       >
         <Ionicons
           name="scan-outline"
           size={24}
-          color={isActive("QR") ? "#ffffff" : "#111111"} // Icon color remains white
+          color={isActive("HomeQR") ? "#ffffff" : "#111111"} // Icon color remains white
         />
         <Text
           style={[
             styles.navText,
-            isActive("QR") && styles.activeNavText,
+            isActive("HomeQR") && styles.activeNavText,
           ]}
         >
           Scan
