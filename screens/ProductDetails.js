@@ -1,8 +1,14 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function ProductDetails({ navigation }) {
+    const [clickedLinks, setClickedLinks] = useState({}); // Track clicked links
+
+    const handleLinkClick = (link) => {
+        setClickedLinks((prev) => ({ ...prev, [link]: true }));
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -53,23 +59,64 @@ export default function ProductDetails({ navigation }) {
                     {/* Links */}
                     <View style={styles.linksGrid}>
                         <View style={styles.linksRow}>
-                            <TouchableOpacity style={styles.link}>
-                                <Text style={styles.linkText}>View Specification</Text>
+                            <TouchableOpacity
+                                style={styles.link}
+                                onPress={() => handleLinkClick('View Specification')}
+                            >
+                                <Text
+                                    style={[
+                                        styles.linkText,
+                                        clickedLinks['View Specification'] && styles.linkTextClicked,
+                                    ]}
+                                >
+                                    View Specification
+                                </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.link}>
-                                <Text style={styles.linkText}>Download CAD Drawing</Text>
+                            <TouchableOpacity
+                                style={styles.link}
+                                onPress={() => handleLinkClick('Download CAD Drawing')}
+                            >
+                                <Text
+                                    style={[
+                                        styles.linkText,
+                                        clickedLinks['Download CAD Drawing'] && styles.linkTextClicked,
+                                    ]}
+                                >
+                                    Download CAD Drawing
+                                </Text>
                             </TouchableOpacity>
                         </View>
                         <View style={styles.linksRow}>
-                            <TouchableOpacity style={styles.link}>
-                                <Text style={styles.linkText}>Revit Files RS-48</Text>
+                            <TouchableOpacity
+                                style={styles.link}
+                                onPress={() => handleLinkClick('Revit Files RS-48')}
+                            >
+                                <Text
+                                    style={[
+                                        styles.linkText,
+                                        clickedLinks['Revit Files RS-48'] && styles.linkTextClicked,
+                                    ]}
+                                >
+                                    Revit Files RS-48
+                                </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.link}>
-                                <Text style={styles.linkText}>Revit Files RS-6P</Text>
+                            <TouchableOpacity
+                                style={styles.link}
+                                onPress={() => handleLinkClick('Revit Files RS-6P')}
+                            >
+                                <Text
+                                    style={[
+                                        styles.linkText,
+                                        clickedLinks['Revit Files RS-6P'] && styles.linkTextClicked,
+                                    ]}
+                                >
+                                    Revit Files RS-6P
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </ScrollView>
+                <View style={styles.navbarSpacer} />
             </View>
         </View>
     );
@@ -95,7 +142,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#87CEEB',
         marginHorizontal: 16,
-        marginTop: 55,
+        marginTop: 10,
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 30,
@@ -113,21 +160,19 @@ const styles = StyleSheet.create({
     },
     mainContent: {
         flex: 1,
-        marginTop: 10, 
     },
     content: {
         flex: 1,
-        paddingTop: 16, 
+        paddingTop: 16,
     },
     imageContainer: {
         backgroundColor: '#000000',
         marginHorizontal: 16,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#333333',
-        padding: 20,
-        aspectRatio: 4/3, 
-        height: '40%', 
+        borderWidth: 0.2,
+        borderColor: '#FFFFFF', // White border for image
+        padding: 16,
+        height: 250, // Fixed image size
     },
     productImage: {
         width: '100%',
@@ -137,7 +182,7 @@ const styles = StyleSheet.create({
     productTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: '#87CEEB',
         marginTop: 16,
         marginHorizontal: 16,
     },
@@ -155,18 +200,22 @@ const styles = StyleSheet.create({
     specRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingVertical: 8,
+        paddingVertical: 12, // More padding for better separation
+        backgroundColor: '#00000',
+        borderRadius: 8,
+        marginBottom: 8,
+        paddingHorizontal: 10,
     },
     specTitle: {
         fontSize: 14,
         color: '#FFFFFF',
+        flex: 1,
     },
     specValue: {
         fontSize: 14,
         color: '#FFFFFF',
         flex: 1,
-        textAlign: 'center',
-        marginLeft: 130,
+        textAlign: 'right',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -202,13 +251,12 @@ const styles = StyleSheet.create({
     linksGrid: {
         marginTop: 24,
         marginHorizontal: 16,
-        marginBottom: 32,
+        marginBottom: 16,
     },
     linksRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 16,
-        marginLeft: 25,
     },
     link: {
         flex: 1,
@@ -217,6 +265,11 @@ const styles = StyleSheet.create({
     linkText: {
         color: '#87CEEB',
         fontSize: 14,
-    }
+    },
+    linkTextClicked: {
+        textDecorationLine: 'underline',
+    },
+    navbarSpacer: {
+        height: 80, // Extra space for navbar
+    },
 });
-

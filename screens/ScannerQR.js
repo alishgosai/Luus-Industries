@@ -80,7 +80,7 @@ export default function QRScanner() {
             </CameraView>
             <View style={styles.buttonContainer}>
                 
-<TouchableOpacity style={styles.shutterButton} onPress={()  => navigation.navigate('ProductDetails')}
+<TouchableOpacity style={styles.shutterButton} onPress={()  => navigation.navigate('BeforeProductDetails')}
                 >
                     <View style={styles.shutterButtonInner} />
                 </TouchableOpacity>

@@ -1,85 +1,87 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function ProductInfo() {
+export default function ProductInfo({ navigation }) {
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Text style={styles.backButton}>←</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="chevron-left" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>PRODUCT INFO</Text>
+        <Text style={styles.headerTitle}>Product Info</Text>
       </View>
 
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: '/placeholder.svg?height=300&width=300' }}
-          style={styles.productImage}
-          resizeMode="contain"
-        />
+      {/* Main Content */}
+      <View style={styles.mainContent}>
+        <ScrollView style={styles.content}>
+          {/* Product Image */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('../assets/images/oven.jpg')}
+              style={styles.productImage}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* Product Title and Description */}
+          <Text style={styles.productTitle}>RS 600MM Oven</Text>
+          <Text style={styles.description}>
+            Compact 600mm wide static oven range with a number of burner/griddle/chargrills configurations available. Flat bottom oven design for even heat distribution.
+          </Text>
+
+          {/* Specifications */}
+          <View style={styles.specContainer}>
+            <SpecRow title="Dimensions" value="600w x 800d x 1100h" />
+            <SpecRow title="Internal Oven" value="440w x 550d x 300h" />
+            <SpecRow title="Oven Doors" value="Left hinged swing door" />
+            <SpecRow title="Cleaning" value="Dishwasher safe spillage bowls" />
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.primaryButton}>
+              <Text style={styles.buttonText}>Enquire Now</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Links */}
+          <View style={styles.linksGrid}>
+            <View style={styles.linksRow}>
+              <TouchableOpacity style={styles.link}>
+                <Text style={styles.linkText}>View Specification</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link}>
+                <Text style={styles.linkText}>Download CAD Drawing</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.linksRow}>
+              <TouchableOpacity style={styles.link}>
+                <Text style={styles.linkText}>Revit Files RS-48</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link}>
+                <Text style={styles.linkText}>Revit Files RS-6P</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
       </View>
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.productTitle}>RS 600MM Oven</Text>
-
-        <Text style={styles.description}>
-          Compact 600mm wide static oven range with a number of burner/griddle/chargrills configurations available. 
-          Flat bottom oven design for even heat distribution.
-        </Text>
-
-        <View style={styles.specificationRow}>
-          <Text style={styles.specLabel}>Dimensions</Text>
-          <Text style={styles.specValue}>600w x 800d x 1100h</Text>
-        </View>
-
-        <View style={styles.specificationRow}>
-          <Text style={styles.specLabel}>Internal Oven</Text>
-          <Text style={styles.specValue}>440w x 550d x 300h</Text>
-        </View>
-
-        <View style={styles.specificationRow}>
-          <Text style={styles.specLabel}>Oven Doors</Text>
-          <Text style={styles.specValue}>Left hinged swing door</Text>
-        </View>
-
-        <View style={styles.specificationRow}>
-          <Text style={styles.specLabel}>Cleaning</Text>
-          <Text style={styles.specValue}>Dishwasher safe spillage bowls</Text>
-        </View>
-
-        <TouchableOpacity style={styles.enquireButton}>
-          <Text style={styles.enquireButtonText}>Enquire Now</Text>
-        </TouchableOpacity>
-
-        <View style={styles.linksContainer}>
-          <TouchableOpacity style={styles.link}>
-            <Text style={styles.linkText}>View Specification</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.link}>
-            <Text style={styles.linkText}>Download CAD Drawing</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.downloadLinks}>
-          <TouchableOpacity style={styles.downloadLink}>
-            <Text style={styles.downloadLinkText}>Revit Files RS-48</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.downloadLink}>
-            <Text style={styles.downloadLinkText}>Revit Files RS-6P</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+    </View>
   );
 }
 
+// Component for displaying specifications
+function SpecRow({ title, value }) {
+  return (
+    <View style={styles.specRow}>
+      <Text style={styles.specTitle}>{title}</Text>
+      <Text style={styles.specValue}>{value}</Text>
+    </View>
+  );
+}
+
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -88,89 +90,105 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
     backgroundColor: '#87CEEB',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 10,
+    borderRadius: 30,
+    marginHorizontal: 16,
   },
   backButton: {
-    fontSize: 24,
-    marginRight: 16,
-    color: '#000',
+    marginRight: 8,
   },
   headerTitle: {
+    flex: 1,
+    textAlign: 'center',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000',
   },
+  mainContent: {
+    flex: 1,
+  },
+  content: {
+    paddingTop: 16,
+  },
   imageContainer: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#000',
+    marginHorizontal: 16,
+    backgroundColor: '#333',
+    borderRadius: 12,
+    padding: 16,
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
   },
   productImage: {
-    width: '80%',
-    height: '80%',
-  },
-  infoContainer: {
-    padding: 16,
+    width: '100%',
+    height: '100%',
   },
   productTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
   },
   description: {
-    color: '#fff',
-    marginBottom: 16,
+    fontSize: 14,
+    color: '#ccc',
+    marginHorizontal: 16,
+    marginTop: 8,
     lineHeight: 20,
   },
-  specificationRow: {
+  specContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  specRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    paddingVertical: 8,
   },
-  specLabel: {
+  specTitle: {
+    fontSize: 14,
     color: '#fff',
-    flex: 1,
   },
   specValue: {
+    fontSize: 14,
     color: '#fff',
-    flex: 2,
+    textAlign: 'right',
   },
-  enquireButton: {
+  buttonContainer: {
+    marginTop: 24,
+    marginHorizontal: 16,
+  },
+  primaryButton: {
     backgroundColor: '#87CEEB',
-    padding: 16,
-    borderRadius: 4,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    marginVertical: 16,
   },
-  enquireButtonText: {
+  buttonText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#000',
-    fontWeight: 'bold',
   },
-  linksContainer: {
+  linksGrid: {
+    marginTop: 24,
+    marginHorizontal: 16,
+  },
+  linksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   link: {
-    marginBottom: 8,
-  },
-  linkText: {
-    color: '#87CEEB',
-    textDecorationLine: 'underline',
-  },
-  downloadLinks: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  downloadLink: {
     flex: 1,
     marginHorizontal: 4,
   },
-  downloadLinkText: {
+  linkText: {
     color: '#87CEEB',
+    fontSize: 14,
     textDecorationLine: 'underline',
-    fontSize: 12,
   },
 });

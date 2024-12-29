@@ -107,6 +107,7 @@ const ChatbotScreen = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
+    
   );
 };
 
