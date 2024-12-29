@@ -25,7 +25,7 @@ const WarrantyAndProductsScreen = () => {
         <Text style={styles.productName}>{product.name}</Text>
         <Text style={styles.productDate}>Date Bought: {product.date}</Text>
         <Text style={styles.productWarranty}>Warranty End Date: {product.warranty}</Text>
-        <TouchableOpacity style={styles.detailsButton}>
+        <TouchableOpacity style={styles.detailsButton} onPress={()  => navigation.navigate('WarrantyInformation')}  >
           <Text style={styles.detailsButtonText}>View Warranty Details</Text>
         </TouchableOpacity>
       </View>

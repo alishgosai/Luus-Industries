@@ -28,14 +28,19 @@ import EquipmentSales from "./screens/EquipmentSales";
 import TechnicalSupport from "./screens/TechnicalSupport";
 
 // QR Scan Screens
-import QRScanner from "./screens/QRScanner";
+//import QRScanner from "./screens/QRScanner";
+
 
 //QR Scan
 //import QRScanner from "./screens/QRScanner";  
-import QRCodeScanner from "./screens/QR";  
+import QRScanner from "./screens/ScannerQR";  
+import HomeQR from "./screens/HomeQR";
+
 
 // Product Info
 import ProductInfo from "./screens/BeforeProductDetails";
+import SparePartsScreen from "./screens/SparePart";
+import WarrantyInformation from "./screens/WarrantyInformation";
 
 // Account and Settings Screens
 import MyProfileScreen from "./screens/MyProfile";
@@ -55,6 +60,7 @@ import WebScreen from "./components/WebScreen";
 
 // Components
 import BottomNavBar from "./components/BottomNavBar";
+
 
 // Stack Navigator
 const Stack = createStackNavigator();
@@ -114,12 +120,7 @@ export default function App() {
               <ScreenWithNavBar Component={ProfessionalProducts} {...props} />
             )}
           />
-          <Stack.Screen
-            name="SpareParts"
-            component={(props) => (
-              <ScreenWithNavBar Component={SpareParts} {...props} />
-            )}
-          />
+          
           <Stack.Screen
             name="ProductDetails"
             component={(props) => (
@@ -148,17 +149,21 @@ export default function App() {
 
           {/* QR Scan Screens */}
           <Stack.Screen
-            name="QR"
-            component={(props) => (
-              <ScreenWithNavBar Component={QRCodeScanner} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="QRScanner"
+            name="ScannerQR"
             component={(props) => (
               <ScreenWithNavBar Component={QRScanner} {...props} />
             )}
           />
+          
+
+          <Stack.Screen
+          name="HomeQR"
+          component={(props) => (
+            <ScreenWithNavBar Component={HomeQR} {...props} />
+          )}
+        />
+
+
 
           {/* Product Info */}
           <Stack.Screen
@@ -225,6 +230,21 @@ export default function App() {
               <ScreenWithNavBar Component={FAQsScreen} {...props} />
             )}
           />
+
+<Stack.Screen
+            name="WarrantyInformation"
+            component={(props) => (
+              <ScreenWithNavBar Component={WarrantyInformation} {...props} />
+            )}
+          />
+
+<Stack.Screen
+            name="SparePart"
+            component={(props) => (
+              <ScreenWithNavBar Component={SparePartsScreen} {...props} />
+            )}
+          />
+
 
           {/* External WebView Screens from Your Code */}
           <Stack.Screen
