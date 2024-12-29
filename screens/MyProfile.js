@@ -67,7 +67,7 @@ const MyProfileScreen = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.signOutButton}>
+          <TouchableOpacity style={styles.signOutButton} onPress={() => navigation.navigate('ScanOrLoginScreen')}  >
             <Icon name="logout" size={24} color="#FFFFFF" />
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
