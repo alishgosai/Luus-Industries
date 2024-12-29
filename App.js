@@ -8,7 +8,7 @@ import { StatusBar, View } from "react-native";
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
-// ..............Not used these screens in app but might need later................... 
+// ..............Not used these screens in app but might need later...................
 
 // import RegisterScreen from "./screens/RegisterScreen";
 // import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
@@ -27,14 +27,10 @@ import ServiceForm from "./screens/ServiceForm";
 import EquipmentSales from "./screens/EquipmentSales";
 import TechnicalSupport from "./screens/TechnicalSupport";
 
-// QR Scan Screens
-//import QRScanner from "./screens/QRScanner";
-//import QRCodeScanner from "./screens/QR";
 //QR Scan
-//import QRScanner from "./screens/QRScanner";  
-import QRScanner from "./screens/ScannerQR";  
+//import QRScanner from "./screens/QRScanner";
+import QRScanner from "./screens/ScannerQR";
 import HomeQR from "./screens/HomeQR";
-
 
 // Product Info
 import ProductInfo from "./screens/BeforeProductDetails";
@@ -60,7 +56,6 @@ import WebScreen from "./components/WebScreen";
 // Components
 import BottomNavBar from "./components/BottomNavBar";
 
-
 // Stack Navigator
 const Stack = createStackNavigator();
 
@@ -81,20 +76,23 @@ export default function App() {
           initialRouteName="ScanOrLoginScreen" // Choose initial screen based on your preference
           screenOptions={{ headerShown: false }}
         >
-          {/* Authentication Screens */}
+          {/* Authentication Screens // these screens do not have nagivation bbars. */}
           <Stack.Screen
             name="ScanOrLoginScreen"
             component={ScanOrLoginScreen}
           />
           <Stack.Screen name="Scan" component={ScanScreen} />
+          <Stack.Screen name="ScannerQR" component={QRScanner} />
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="BeforeProductDetails" component={ProductInfo} />
+
           {/* ...............Might need these screens later...................... */}
           {/* <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
           <Stack.Screen name="NewPassword" component={NewPasswordScreen} /> */}
 
-          {/* Main Application Screens */}
+          {/* Main Application Screens these screen has navigation bar */}
           <Stack.Screen
             name="Home"
             component={(props) => (
@@ -119,7 +117,7 @@ export default function App() {
               <ScreenWithNavBar Component={ProfessionalProducts} {...props} />
             )}
           />
-          
+
           <Stack.Screen
             name="ProductDetails"
             component={(props) => (
@@ -145,30 +143,10 @@ export default function App() {
             )}
           />
 
-
-          {/* QR Scan Screens */}
           <Stack.Screen
-            name="ScannerQR"
+            name="HomeQR"
             component={(props) => (
-              <ScreenWithNavBar Component={QRScanner} {...props} />
-            )}
-          />
-          
-
-          <Stack.Screen
-          name="HomeQR"
-          component={(props) => (
-            <ScreenWithNavBar Component={HomeQR} {...props} />
-          )}
-        />
-
-
-
-          {/* Product Info */}
-          <Stack.Screen
-            name="BeforeProductDetails"
-            component={(props) => (
-              <ScreenWithNavBar Component={ProductInfo} {...props} />
+              <ScreenWithNavBar Component={HomeQR} {...props} />
             )}
           />
 
@@ -202,19 +180,28 @@ export default function App() {
           <Stack.Screen
             name="AccountInformation"
             component={(props) => (
-              <ScreenWithNavBar Component={AccountInformationScreen} {...props} />
+              <ScreenWithNavBar
+                Component={AccountInformationScreen}
+                {...props}
+              />
             )}
           />
           <Stack.Screen
             name="EditPersonalDetails"
             component={(props) => (
-              <ScreenWithNavBar Component={EditPersonalDetailsScreen} {...props} />
+              <ScreenWithNavBar
+                Component={EditPersonalDetailsScreen}
+                {...props}
+              />
             )}
           />
           <Stack.Screen
             name="WarrantyAndProducts"
             component={(props) => (
-              <ScreenWithNavBar Component={WarrantyAndProductsScreen} {...props} />
+              <ScreenWithNavBar
+                Component={WarrantyAndProductsScreen}
+                {...props}
+              />
             )}
           />
           <Stack.Screen
@@ -230,20 +217,19 @@ export default function App() {
             )}
           />
 
-<Stack.Screen
+          <Stack.Screen
             name="WarrantyInformation"
             component={(props) => (
               <ScreenWithNavBar Component={WarrantyInformation} {...props} />
             )}
           />
 
-<Stack.Screen
+          <Stack.Screen
             name="SparePart"
             component={(props) => (
               <ScreenWithNavBar Component={SparePartsScreen} {...props} />
             )}
           />
-
 
           {/* External WebView Screens from Your Code */}
           <Stack.Screen
@@ -254,22 +240,30 @@ export default function App() {
           <Stack.Screen
             name="DuckOven"
             component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/range/asian/duck-ovens/" }}
+            initialParams={{
+              uri: "https://luus.com.au/range/asian/duck-ovens/",
+            }}
           />
           <Stack.Screen
             name="NoodleCooker"
             component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/range/asian/noodle-cookers/" }}
+            initialParams={{
+              uri: "https://luus.com.au/range/asian/noodle-cookers/",
+            }}
           />
           <Stack.Screen
             name="OvenRanges"
             component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/range/professional/oven-ranges/" }}
+            initialParams={{
+              uri: "https://luus.com.au/range/professional/oven-ranges/",
+            }}
           />
           <Stack.Screen
             name="PastaCooker"
             component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/range/asian/pasta-cookers/" }}
+            initialParams={{
+              uri: "https://luus.com.au/range/asian/pasta-cookers/",
+            }}
           />
         </Stack.Navigator>
       </SafeAreaProvider>

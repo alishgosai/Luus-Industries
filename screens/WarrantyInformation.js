@@ -7,7 +7,7 @@ export default function WarrantyInformation({ navigation }) {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
@@ -32,17 +32,17 @@ export default function WarrantyInformation({ navigation }) {
                 {/* Warranty Details */}
                 <View style={styles.warrantyContainer}>
                     <WarrantyRow title="Date Purchased:" value="10 December 2023" />
-                    <WarrantyRow title="Warranty type:" value="5 Years" />
+                    <WarrantyRow title="Warranty Type:" value="5 Years" />
                     <WarrantyRow title="Warranty End Date:" value="10 December 2028" />
-                    <WarrantyRow title="Additional info" value="Additional Info" />
+                    <WarrantyRow title="Additional Info:" value="Includes coverage for manufacturing defects." />
                 </View>
 
                 {/* Action Buttons */}
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.button} onPress={()  => navigation.navigate('SparePart')}  >
+                    <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('SparePart')}>
                         <Text style={styles.buttonText}>Spare Parts</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.button} onPress={()  => navigation.navigate('ServiceForm')}  >
+                    <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('ServiceForm')}>
                         <Text style={styles.buttonText}>Book a Service</Text>
                     </TouchableOpacity>
                 </View>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#87CEEB',
         marginHorizontal: 16,
-        marginTop: 55,
+        marginTop: 10,
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 30,
@@ -95,11 +95,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#000000',
         marginHorizontal: 16,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#333333',
-        padding: 20,
-        aspectRatio: 4/3, 
-        height: '50%', 
+        borderWidth: 0.2,
+        borderColor: '#FFFFFF', // Consistent white border
+        padding: 16,
+        height: 250,
     },
     productImage: {
         width: '100%',
@@ -109,28 +108,31 @@ const styles = StyleSheet.create({
     productTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: '#87CEEB',
         marginTop: 16,
         marginHorizontal: 16,
-        marginBottom: 16,
     },
     warrantyContainer: {
         marginHorizontal: 16,
+        marginTop: 16,
     },
     warrantyRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingVertical: 8,
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#333333',
     },
     warrantyTitle: {
-        fontSize: 15,
+        fontSize: 14,
         color: '#FFFFFF',
-        
+        flex: 1,
     },
     warrantyValue: {
-        fontSize: 15,
+        fontSize: 14,
         color: '#FFFFFF',
-        textAlign: 'left',
+        flex: 1,
+        textAlign: 'right',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -140,7 +142,14 @@ const styles = StyleSheet.create({
         gap: 12,
         marginBottom: 32,
     },
-    button: {
+    primaryButton: {
+        flex: 1,
+        backgroundColor: '#87CEEB',
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    secondaryButton: {
         flex: 1,
         backgroundColor: '#87CEEB',
         paddingVertical: 12,
