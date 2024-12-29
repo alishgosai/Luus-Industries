@@ -126,7 +126,9 @@ const ChatWithBot = ({ navigation }) => {
           </View>
         </View>
       </KeyboardAvoidingView>
+      <View style={styles.navbarSpacer} />
     </SafeAreaView>
+    
   );
 };
 
@@ -248,6 +250,9 @@ const styles = StyleSheet.create({
   bottomNavBar: {
     marginTop: 10, // Add this line
   },
+  navbarSpacer: {
+    height: 40, // Extra space for navbar
+},
 });
 
 export default ChatWithBot;
