@@ -141,7 +141,7 @@ export default function BottomNavBar({ navigation }) {
 const styles = StyleSheet.create({
   navBar: {
     position: "absolute",
-    bottom: 0,
+    bottom: 15,
     left: 0,
     right: 0,
     height: 70,
