@@ -313,15 +313,15 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
             <TouchableOpacity
               style={styles.ctaButton}
-              onPress={() => navigation.navigate("ContactUs")}
+              onPress={() => navigation.navigate("")}
             >
-              <Text style={styles.ctaButtonText}>Contact Us</Text>
+              <Text style={styles.ctaButtonText}>ChatBot</Text>
               <Ionicons name="arrow-forward" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
 
           {/* Add extra padding at the bottom to prevent overlap with navigation bar */}
-          <View style={{ height: 60 }} />
+          <View style={{ height: 0 }} />
         </ScrollView>
       </View>
     </SafeAreaView>

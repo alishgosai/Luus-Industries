@@ -69,7 +69,10 @@ export default function ServiceForm() {
         {/* Render the selected form */}
         {renderForm()}
       </ScrollView>
+      <View style={[styles.navbarSpacer, { height: 40 }]} />
+
     </SafeAreaView>
+    
   );
 }
 

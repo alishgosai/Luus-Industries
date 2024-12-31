@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaVi
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const API_URL = 'http://192.168.0.23:3000'; // Replace with your actual IP address
+const API_URL = 'http://192.168.1.3:3000'; // Replace with your actual IP address
 
 const MyProfileScreen = () => {
   const navigation = useNavigation();
