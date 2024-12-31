@@ -1,35 +1,37 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   ScrollView,
   SafeAreaView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import EquipmentSalesForm from '../components/EquipmentSalesForm';
+import WarrantyServiceForm from '../components/WarrantyServiceForm';
+import TechnicalSupportForm from '../components/TechnicalSupport';
+
 
 export default function ServiceForm() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    businessName: '',
-    location: '',
-    message: ''
-  });
+  const [selectedCategory, setSelectedCategory] = useState('Warranty Service');
+
+  
+    // { key: 'Service/Warranty', component: <WarrantyForm /> },
+    // { key: 'Technical Support', component: <TechnicalSupportForm /> },
 
   const categories = [
-    'Service/Warranty',
-    'Technical Support',
-    'Equipment Sales',
-    'Care'
+    { key: 'Warranty Service', component: <WarrantyServiceForm /> },
+    { key: 'Equipment Sales', component: <EquipmentSalesForm /> },
+    { key: 'Technical Support', component: <TechnicalSupportForm /> }
   ];
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    // Add your form submission logic here
+    
+ 
+
+  const renderForm = () => {
+    const selected = categories.find(cat => cat.key === selectedCategory);
+    return selected ? selected.component : null;
   };
 
   return (
@@ -46,105 +48,27 @@ export default function ServiceForm() {
         {/* Categories */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
           {categories.map((category, index) => (
-            <TouchableOpacity key={index} style={styles.categoryPill}>
-              <Text style={styles.categoryText}>{category}</Text>
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.categoryPill,
+                selectedCategory === category.key && styles.selectedCategoryPill
+              ]}
+              onPress={() => setSelectedCategory(category.key)}
+            >
+              <Text style={[
+                styles.categoryText,
+                selectedCategory === category.key && styles.selectedCategoryText
+              ]}>
+                {category.key}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Form Fields */}
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="First/Surname"
-              placeholderTextColor="#666"
-              value={formData.name}
-              onChangeText={(text) => setFormData({...formData, name: text})}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="example@email"
-              placeholderTextColor="#666"
-              keyboardType="email-address"
-              value={formData.email}
-              onChangeText={(text) => setFormData({...formData, email: text})}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone Number*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Mobile/Landline"
-              placeholderTextColor="#666"
-              keyboardType="phone-pad"
-              value={formData.phone}
-              onChangeText={(text) => setFormData({...formData, phone: text})}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Business Name*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Business Name"
-              placeholderTextColor="#666"
-              value={formData.businessName}
-              onChangeText={(text) => setFormData({...formData, businessName: text})}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="City/Postcode"
-              placeholderTextColor="#666"
-              value={formData.location}
-              onChangeText={(text) => setFormData({...formData, location: text})}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Message*</Text>
-            <TextInput
-              style={[styles.input, styles.messageInput]}
-              placeholder="Describe your problem here!"
-              placeholderTextColor="#666"
-              multiline
-              numberOfLines={4}
-              value={formData.message}
-              onChangeText={(text) => setFormData({...formData, message: text})}
-            />
-          </View>
-
-          {/* Image Attachment Options */}
-          <Text style={styles.label}>Attach Image</Text>
-          <View style={styles.attachmentOptions}>
-            <TouchableOpacity style={styles.attachmentButton}>
-              <Icon name="camera-outline" size={24} color="#87CEEB" />
-              <Text style={styles.attachmentText}>Take Photo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.attachmentButton}>
-              <Icon name="document-outline" size={24} color="#87CEEB" />
-              <Text style={styles.attachmentText}>Import from Files</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Submit Button */}
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitText}>Submit</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Render the selected form */}
+        {renderForm()}
       </ScrollView>
-
-      
     </SafeAreaView>
   );
 }
@@ -179,65 +103,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 8,
   },
+  selectedCategoryPill: {
+    backgroundColor: '#87CEEB',
+  },
   categoryText: {
     color: '#FFF',
   },
-  form: {
-    padding: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    color: '#FFF',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#1C1C1C',
-    borderRadius: 4,
-    padding: 12,
-    color: '#FFF',
-  },
-  messageInput: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  attachmentOptions: {
-    flexDirection: 'column',
-    gap: 12,
-    marginTop: 8,
-  },
-  attachmentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  attachmentText: {
-    color: '#87CEEB',
-  },
-  submitButton: {
-    backgroundColor: '#87CEEB',
-    padding: 16,
-    borderRadius: 4,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  submitText: {
-    color: '#000',
-    fontWeight: '500',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#87CEEB',
-    paddingVertical: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  navText: {
-    fontSize: 12,
-    marginTop: 4,
+  selectedCategoryText: {
     color: '#000',
   },
 });
