@@ -141,23 +141,22 @@ export default function BottomNavBar({ navigation }) {
 const styles = StyleSheet.create({
   navBar: {
     position: "absolute",
-    bottom: 15,
+    bottom: 4.5,
     left: 0,
     right: 0,
-    height: 70,
+    height: 80,
     backgroundColor: '#87CEEB', // Blue background
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#005bb5", // Slightly darker blue for border
+    borderTopWidth: 0,
     zIndex: 10,
   },
   navItem: {
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
-    paddingVertical: 10, // Added padding for better touch area
+    paddingVertical: 15, // Added padding for better touch area
     borderRadius: 10, // Rounded corners
     margin: 5, // Space around each navItem
   },
@@ -172,6 +171,7 @@ const styles = StyleSheet.create({
   },
   activeNavText: {
     fontWeight: "bold",
-    color: "#ffffff", // Active text color set to white for contrast
+    color: "#ffffff",
+     // Active text color set to white for contrast
   },
 });

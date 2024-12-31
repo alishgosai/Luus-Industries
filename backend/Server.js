@@ -3,6 +3,10 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -52,6 +56,7 @@ app.get('/api/user-profile', (req, res) => {
 });
 
 app.get('/api/account-information', (req, res) => {
+  console.log('Account information requested');
   res.json({
     name: userData.name,
     avatar: userData.avatar,

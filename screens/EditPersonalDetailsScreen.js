@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,16 +12,41 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import API_URL from '../backend/config/api';
 
 const EditPersonalDetailsScreen = () => {
   const navigation = useNavigation();
   const [userDetails, setUserDetails] = useState({
-    name: "Luus User",
-    dob: "21/09/2000",
-    phone: "941234567",
-    email: "luususer@luxe.com",
+    name: "",
+    dateOfBirth: "",
+    phoneNumber: "",
+    email: "",
     password: "********",
   });
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/account-information`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user details');
+      }
+      const data = await response.json();
+      setUserDetails({
+        name: data.name,
+        dateOfBirth: data.dateOfBirth,
+        phoneNumber: data.phoneNumber,
+        email: data.email,
+        password: "********",
+      });
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      Alert.alert('Error', 'Failed to load user details. Please try again.');
+    }
+  };
 
   const InfoItem = ({ icon, label, field, value, isPassword }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -62,13 +87,27 @@ const EditPersonalDetailsScreen = () => {
 
   const handleSaveChanges = async () => {
     try {
-      // This is where you would typically make an API call to save the data
-      // For now, we'll just simulate an API call with a timeout
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(`${API_URL}/api/update-user-details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userDetails),
+      });
 
-      Alert.alert("Success", "Your details have been updated successfully!");
-      navigation.goBack();
+      if (!response.ok) {
+        throw new Error('Failed to update user details');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        Alert.alert("Success", "Your details have been updated successfully!");
+        navigation.goBack();
+      } else {
+        throw new Error(data.message || 'Failed to update user details');
+      }
     } catch (error) {
+      console.error('Error updating user details:', error);
       Alert.alert("Error", "Failed to update details. Please try again.");
     }
   };
@@ -94,7 +133,7 @@ const EditPersonalDetailsScreen = () => {
             onPress={() => navigation.navigate("EditPicture")}
           >
             <Image
-              source={require("../assets/images/person.png")}
+              source={userDetails.avatar ? { uri: userDetails.avatar } : require("../assets/images/person.png")}
               style={styles.avatar}
             />
             <View style={styles.editOverlay}>
@@ -112,14 +151,14 @@ const EditPersonalDetailsScreen = () => {
             <InfoItem
               icon="calendar"
               label="Date of Birth"
-              field="dob"
-              value={userDetails.dob}
+              field="dateOfBirth"
+              value={userDetails.dateOfBirth}
             />
             <InfoItem
               icon="phone"
               label="Phone Number"
-              field="phone"
-              value={userDetails.phone}
+              field="phoneNumber"
+              value={userDetails.phoneNumber}
             />
             <InfoItem
               icon="email"
@@ -248,3 +287,4 @@ const styles = StyleSheet.create({
 });
 
 export default EditPersonalDetailsScreen;
+
