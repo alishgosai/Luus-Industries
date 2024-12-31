@@ -1,16 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Platform } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-const API_URL = 'http://192.168.0.23:3000'; // Replace with your actual IP address
-
+ 
+const API_URL = 'http://192.168.1.3:3000'; // Replace with your actual IP address
+ 
 const AccountInformationScreen = () => {
   const navigation = useNavigation();
   const [accountData, setAccountData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+ 
   const fetchAccountData = useCallback(async () => {
     try {
       console.log('Fetching account data...');
@@ -29,13 +29,13 @@ const AccountInformationScreen = () => {
       setLoading(false);
     }
   }, []);
-
+ 
   useFocusEffect(
     useCallback(() => {
       fetchAccountData();
     }, [fetchAccountData])
   );
-
+ 
   const InfoItem = ({ icon, label, value }) => (
     <View style={styles.infoItem}>
       <Icon name={icon} size={24} color="#87CEEB" />
@@ -43,7 +43,7 @@ const AccountInformationScreen = () => {
       <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
-
+ 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -51,7 +51,7 @@ const AccountInformationScreen = () => {
       </View>
     );
   }
-
+ 
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -62,12 +62,12 @@ const AccountInformationScreen = () => {
       </View>
     );
   }
-
+ 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
@@ -75,8 +75,8 @@ const AccountInformationScreen = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Account Information</Text>
         </View>
-
-        <ScrollView 
+ 
+        <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
         >
@@ -86,7 +86,7 @@ const AccountInformationScreen = () => {
               style={styles.avatar}
             />
           </View>
-
+ 
           <View style={styles.infoContainer}>
             <InfoItem icon="account" label="Name" value={accountData ? accountData.name : ''} />
             <InfoItem icon="calendar" label="Date of Birth" value={accountData ? accountData.dateOfBirth : ''} />
@@ -94,7 +94,7 @@ const AccountInformationScreen = () => {
             <InfoItem icon="email" label="Email" value={accountData ? accountData.email : ''} />
             <InfoItem icon="lock" label="Password" value="********" />
           </View>
-
+ 
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => navigation.navigate('EditPersonalDetails')}
@@ -106,7 +106,7 @@ const AccountInformationScreen = () => {
     </SafeAreaView>
   );
 };
-
+ 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -215,6 +215,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
+ 
 export default AccountInformationScreen;
-

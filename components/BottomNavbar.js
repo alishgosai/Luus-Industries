@@ -84,30 +84,30 @@ export default function BottomNavBar({ navigation }) {
         </Text>
       </TouchableOpacity>
 
-            {/* Chat Button */}
-<TouchableOpacity
-  style={[
-    styles.navItem,
-    isActive("ChatBot") && styles.activeNavItem,
-  ]}
-  onPress={() => navigation.navigate("ChatBot")}
-  accessibilityLabel="Chat"
->
-  <Ionicons
-    name="chatbubble-outline"
-    size={24}
-    color={isActive("ChatBot") ? "#ffffff" : "#111111"} // Icon color remains white'
-   
-  />
-  <Text
-    style={[
-      styles.navText,
-      isActive("ChatBot") && styles.activeNavText,
-    ]}
-  >
-    Chat
-  </Text>
-</TouchableOpacity>
+      {/* Chat Button */}
+      <TouchableOpacity
+        style={[
+          styles.navItem,
+          isActive("ChatBot") && styles.activeNavItem,
+        ]}
+        onPress={() => navigation.navigate("ChatBot")}
+        accessibilityLabel="Chat"
+      >
+        <Ionicons
+          name="chatbubble-outline"
+          size={24}
+          color={isActive("ChatBot") ? "#ffffff" : "#111111"} // Icon color remains white'
+
+        />
+        <Text
+          style={[
+            styles.navText,
+            isActive("ChatBot") && styles.activeNavText,
+          ]}
+        >
+          Chat
+        </Text>
+      </TouchableOpacity>
 
 
       {/* Account Button */}
@@ -122,8 +122,8 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="person-outline"
           size={24}
-          color={isActive("MyProfile") ?  "#ffffff" : "#111111"}
-          
+          color={isActive("MyProfile") ? "#ffffff" : "#111111"}
+
         />
         <Text
           style={[
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     bottom: 15,
     left: 0,
     right: 0,
-    height: 70,
+    height: 80,
     backgroundColor: '#87CEEB', // Blue background
     flexDirection: "row",
     justifyContent: "space-around",
