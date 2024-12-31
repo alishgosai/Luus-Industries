@@ -3,8 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, SafeAreaView, S
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
-
-const API_URL = 'http://192.168.1.3:3000'; // Replace with your actual IP address
+import API_URL from '../backend/config/api';
 
 const EditPictureScreen = () => {
   const navigation = useNavigation();

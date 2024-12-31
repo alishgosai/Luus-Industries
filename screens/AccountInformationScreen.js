@@ -2,9 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Platform } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
- 
-const API_URL = 'http://192.168.1.3:3000'; // Replace with your actual IP address
- 
+import API_URL from '../backend/config/api';
+
+
 const AccountInformationScreen = () => {
   const navigation = useNavigation();
   const [accountData, setAccountData] = useState(null);
