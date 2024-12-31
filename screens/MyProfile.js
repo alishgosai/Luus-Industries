@@ -1,10 +1,40 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const API_URL = 'http://192.168.0.23:3000'; // Replace with your actual IP address
 
 const MyProfileScreen = () => {
   const navigation = useNavigation();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      console.log('Fetching user data...');
+      setLoading(true);
+      const response = await fetch(`${API_URL}/api/user-profile`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log('Received data:', data);
+      setUserData(data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching user data:', err.message);
+      setError('Failed to fetch user data');
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [fetchUserData])
+  );
 
   const ProfileItem = ({ icon, label, onPress }) => (
     <TouchableOpacity style={styles.profileItem} onPress={onPress}>
@@ -13,6 +43,25 @@ const MyProfileScreen = () => {
       <Icon name="chevron-right" size={24} color="#87CEEB" />
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#87CEEB" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -32,10 +81,10 @@ const MyProfileScreen = () => {
         >
           <View style={styles.profileHeader}>
             <Image
-              source={require('../assets/images/person.png')}
+              source={userData && userData.avatar ? { uri: userData.avatar } : require('../assets/images/person.png')}
               style={styles.avatar}
             />
-            <Text style={styles.userName}>Luxe Customer/User</Text>
+            <Text style={styles.userName}>{userData ? userData.name : 'Luxe Customer/User'}</Text>
             <TouchableOpacity 
               style={styles.editButton}
               onPress={() => navigation.navigate('EditPicture')}
@@ -48,12 +97,12 @@ const MyProfileScreen = () => {
             <ProfileItem 
               icon="account" 
               label="Account Information" 
-              onPress={() => navigation.navigate('AccountInformation')}
+              onPress={() => navigation.navigate('AccountInformation', { accountInfo: userData.accountInfo })}
             />
             <ProfileItem 
               icon="shield-check" 
               label="Warranty & Products" 
-              onPress={() => navigation.navigate('WarrantyAndProducts')}
+              onPress={() => navigation.navigate('WarrantyAndProducts', { warrantyProducts: userData.warrantyProducts })}
             />
             <ProfileItem 
               icon="help-circle" 
@@ -67,7 +116,7 @@ const MyProfileScreen = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.signOutButton} onPress={() => navigation.navigate('ScanOrLoginScreen')}  >
+          <TouchableOpacity style={styles.signOutButton} onPress={() => navigation.navigate('ScanOrLoginScreen')}>
             <Icon name="logout" size={24} color="#FFFFFF" />
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
@@ -166,17 +215,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FF3B30',
     borderRadius: 12,
-    paddingVertical: 8, // Consistent padding with 'exploreButton'
+    paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 8,
     marginTop: 10,
   },
-  
   signOutText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#87CEEB',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

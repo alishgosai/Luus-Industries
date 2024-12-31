@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 
+const API_URL = 'http://192.168.0.23:3000'; // Replace with your actual IP address
+
 const EditPictureScreen = () => {
   const navigation = useNavigation();
   const [image, setImage] = useState(null);
 
+  useEffect(() => {
+    fetchProfilePicture();
+  }, []);
+
+  const fetchProfilePicture = async () => {
+    try {
+      console.log('Fetching profile picture...');
+      const response = await fetch(`${API_URL}/api/user-profile`);
+      const data = await response.json();
+      console.log('Fetched user data:', data);
+      if (data.avatar) {
+        setImage(data.avatar);
+        console.log('Profile picture set:', data.avatar);
+      }
+    } catch (error) {
+      console.error('Error fetching profile picture:', error);
+      Alert.alert('Error', 'Failed to fetch profile picture');
+    }
+  };
+
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Sorry, we need camera roll permissions to make this work!');
+      Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
       return false;
     }
     return true;
@@ -22,29 +44,96 @@ const EditPictureScreen = () => {
     if (!permissionGranted) return;
 
     let result;
-    if (type === 'library') {
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-    } else if (type === 'camera') {
-      result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-    }
+    try {
+      if (type === 'library') {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
+        });
+      } else if (type === 'camera') {
+        result = await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
+        });
+      }
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      console.log('Image picker result:', result);
+
+      if (!result.canceled) {
+        await uploadImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', 'Failed to select image');
     }
   };
 
-  const handleRemovePhoto = () => {
-    setImage(null);
-    Alert.alert("Photo Removed", "Your profile picture has been removed.");
+  const uploadImage = async (uri) => {
+    console.log('Uploading image:', uri);
+    const formData = new FormData();
+    formData.append('image', {
+      uri,
+      type: 'image/jpeg',
+      name: 'profile_picture.jpg',
+    });
+
+    try {
+      console.log('Sending request to:', `${API_URL}/api/update-profile-picture`);
+      const response = await fetch(`${API_URL}/api/update-profile-picture`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+      }
+
+      const data = JSON.parse(responseText);
+      console.log('Parsed response data:', data);
+
+      if (data.success) {
+        setImage(data.imageUrl);
+        console.log('Image updated successfully:', data.imageUrl);
+        Alert.alert('Success', 'Profile picture updated successfully');
+      } else {
+        console.error('Failed to update profile picture:', data.message);
+        Alert.alert('Error', 'Failed to update profile picture');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'Failed to upload image: ' + error.message);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    try {
+      console.log('Removing profile picture...');
+      const response = await fetch(`${API_URL}/api/remove-profile-picture`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      console.log('Remove photo response:', data);
+      if (data.success) {
+        setImage(null);
+        console.log('Profile picture removed successfully');
+        Alert.alert("Photo Removed", "Your profile picture has been removed.");
+      } else {
+        console.error('Failed to remove profile picture:', data.message);
+        Alert.alert('Error', 'Failed to remove profile picture');
+      }
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      Alert.alert('Error', 'Failed to remove profile picture: ' + error.message);
+    }
   };
 
   return (

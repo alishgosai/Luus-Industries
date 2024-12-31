@@ -1,10 +1,40 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const API_URL = 'http://192.168.0.23:3000'; // Replace with your actual IP address
 
 const AccountInformationScreen = () => {
   const navigation = useNavigation();
+  const [accountData, setAccountData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchAccountData = useCallback(async () => {
+    try {
+      console.log('Fetching account data...');
+      setLoading(true);
+      const response = await fetch(`${API_URL}/api/account-information`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log('Received account data:', data);
+      setAccountData(data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching account data:', err.message);
+      setError('Failed to fetch account data');
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAccountData();
+    }, [fetchAccountData])
+  );
 
   const InfoItem = ({ icon, label, value }) => (
     <View style={styles.infoItem}>
@@ -13,6 +43,25 @@ const AccountInformationScreen = () => {
       <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#87CEEB" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchAccountData}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -33,16 +82,16 @@ const AccountInformationScreen = () => {
         >
           <View style={styles.avatarContainer}>
             <Image
-              source={require('../assets/images/person.png')}
+              source={accountData && accountData.avatar ? { uri: accountData.avatar } : require('../assets/images/person.png')}
               style={styles.avatar}
             />
           </View>
 
           <View style={styles.infoContainer}>
-            <InfoItem icon="account" label="Name" value="Luxe User" />
-            <InfoItem icon="calendar" label="Date of Birth" value="21/09/2000" />
-            <InfoItem icon="phone" label="Phone Number" value="941234567" />
-            <InfoItem icon="email" label="Email" value="luxeuser@luxe.com" />
+            <InfoItem icon="account" label="Name" value={accountData ? accountData.name : ''} />
+            <InfoItem icon="calendar" label="Date of Birth" value={accountData ? accountData.dateOfBirth : ''} />
+            <InfoItem icon="phone" label="Phone Number" value={accountData ? accountData.phoneNumber : ''} />
+            <InfoItem icon="email" label="Email" value={accountData ? accountData.email : ''} />
             <InfoItem icon="lock" label="Password" value="********" />
           </View>
 
@@ -133,6 +182,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#121212',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#121212',
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#87CEEB',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  retryButtonText: {
     color: '#000000',
     fontSize: 16,
     fontWeight: '600',
