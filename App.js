@@ -73,7 +73,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="ScanOrLoginScreen" // Choose initial screen based on your preference
+          initialRouteName="MyProfile" // Choose initial screen based on your preference
           screenOptions={{ headerShown: false }}
         >
           {/* Authentication Screens // these screens do not have nagivation bbars. */}

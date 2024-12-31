@@ -35,6 +35,11 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Backend specific
+backend/node_modules
+backend/.env
+
 =======
 >>>>>>> 5d681b2bcf514671fad146600c64a23320f71c19
 node_modules
