@@ -69,7 +69,10 @@ export default function ServiceForm() {
         {/* Render the selected form */}
         {renderForm()}
       </ScrollView>
+      <View style={[styles.navbarSpacer, { height: 40 }]} />
+
     </SafeAreaView>
+    
   );
 }
 
@@ -81,8 +84,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 30,
+    padding: 10,
+    borderRadius: 50,
     backgroundColor: '#87CEEB',
   },
   headerTitle: {

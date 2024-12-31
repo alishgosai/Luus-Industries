@@ -16,8 +16,8 @@ app.use(express.json());
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)){
-    fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Set up multer for handling file uploads
@@ -89,7 +89,7 @@ app.delete('/api/remove-profile-picture', (req, res) => {
     if (userData.avatar && userData.avatar.startsWith(`http://192.168.0.23:${port}/uploads/`)) {
       const filename = userData.avatar.split('/').pop();
       const filePath = path.join(uploadsDir, filename);
-      
+
       fs.unlink(filePath, (err) => {
         if (err) {
           console.error('Error deleting file:', err);
@@ -98,7 +98,7 @@ app.delete('/api/remove-profile-picture', (req, res) => {
         }
       });
     }
-    
+
     userData.avatar = null;
     console.log('Profile picture removed');
     res.json({ success: true });
@@ -116,4 +116,3 @@ app.use((err, req, res, next) => {
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${port}`);
 });
-

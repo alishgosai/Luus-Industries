@@ -74,8 +74,12 @@ export default function SparePartsScreen({ navigation }) {
                         </View>
                     ))}
                 </ScrollView>
+                
             </View>
+            <View style={[styles.navbarSpacer, { height: 40 }]} />
+
         </SafeAreaView>
+        
     );
 }
 
