@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "773731271005",
+    "project_id": "luus-industries",
+    "storage_bucket": "luus-industries.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:773731271005:android:19dc463592f999fa97e8b4",
+        "android_client_info": {
+          "package_name": "com.luusindustries"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNZS-1VC2YMtJun6ceaLB4J6IbcYiTkMg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

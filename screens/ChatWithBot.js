@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Linking,
   KeyboardAvoidingView,
   StatusBar,
 } from 'react-native';
@@ -16,6 +17,23 @@ import { Ionicons } from '@expo/vector-icons';
 
 const ChatWithBot = ({ navigation }) => {
   const [message, setMessage] = useState('');
+  const phoneNumber = '+61 0392406822';
+
+  const handleCallPress = async () => {
+    const phoneUrl = Platform.select({
+      ios: `telprompt:${phoneNumber}`,
+      android: `tel:${phoneNumber}`
+    });
+
+    const canOpen = await Linking.canOpenURL(phoneUrl);
+    
+    if (canOpen) {
+      await Linking.openURL(phoneUrl);
+    } else {
+      Alert.alert('Error', 'Unable to make phone call');
+    }
+  };
+
   
   const messages = [
     {
@@ -93,7 +111,7 @@ const ChatWithBot = ({ navigation }) => {
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ChatBot</Text>
-        <TouchableOpacity style={styles.headerButton}>
+        <TouchableOpacity style={styles.headerButton} onPress={handleCallPress}>
           <Ionicons name="call-outline" size={24} color="#000" />
         </TouchableOpacity>
       </View>
