@@ -4,8 +4,6 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import API_URL from '../backend/config/api';
 
-
-
 const MyProfileScreen = () => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
@@ -16,7 +14,7 @@ const MyProfileScreen = () => {
     try {
       console.log('Fetching user data...');
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/user-profile`);
+      const response = await fetch(`${API_URL}/user/user-profile`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }

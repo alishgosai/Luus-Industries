@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, TextInput, SafeAreaView } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, TextInput, SafeAreaView, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const sparePartsData = [
@@ -23,7 +23,13 @@ const sparePartsData = [
     }
 ];
 
+
+
 export default function SparePartsScreen({ navigation }) {
+    const openWebsite = () => {
+        Linking.openURL('https://luus.com.au/spareparts/');
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -39,7 +45,7 @@ export default function SparePartsScreen({ navigation }) {
 
             {/* Search Bar */}
             <View style={styles.searchContainer}>
-                <Icon name="menu" size={24} color="#FFFFFF" style={styles.menuIcon} />
+                
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search items"
@@ -64,7 +70,7 @@ export default function SparePartsScreen({ navigation }) {
                                 <Text style={styles.compatibility}>
                                     Compatibility: {part.compatibility}
                                 </Text>
-                                <TouchableOpacity style={styles.purchaseButton}>
+                                <TouchableOpacity style={styles.purchaseButton} onPress={openWebsite}>
                                     <Text style={styles.purchaseButtonText}>
                                         Purchase on Website
                                     </Text>
@@ -74,12 +80,9 @@ export default function SparePartsScreen({ navigation }) {
                         </View>
                     ))}
                 </ScrollView>
-                
             </View>
             <View style={[styles.navbarSpacer, { height: 40 }]} />
-
         </SafeAreaView>
-        
     );
 }
 
@@ -179,6 +182,9 @@ const styles = StyleSheet.create({
         color: '#000000',
         fontSize: 14,
         fontWeight: '600',
+    },
+    navbarSpacer: {
+        height: 40,
     },
 });
 

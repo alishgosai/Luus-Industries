@@ -15,7 +15,7 @@ const AccountInformationScreen = () => {
     try {
       console.log('Fetching account data...');
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/account-information`);
+      const response = await fetch(`${API_URL}/user/account-information`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }

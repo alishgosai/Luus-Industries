@@ -88,21 +88,21 @@ export default function BottomNavBar({ navigation }) {
       <TouchableOpacity
         style={[
           styles.navItem,
-          isActive("ChatBot") && styles.activeNavItem,
+          isActive("ChatWithBot") && styles.activeNavItem,
         ]}
-        onPress={() => navigation.navigate("ChatBot")}
+        onPress={() => navigation.navigate("ChatWithBot")}
         accessibilityLabel="Chat"
       >
         <Ionicons
           name="chatbubble-outline"
           size={24}
-          color={isActive("ChatBot") ? "#ffffff" : "#111111"} // Icon color remains white'
+          color={isActive("ChatWithBot") ? "#ffffff" : "#111111"} // Icon color remains white'
 
         />
         <Text
           style={[
             styles.navText,
-            isActive("ChatBot") && styles.activeNavText,
+            isActive("ChatWithBot") && styles.activeNavText,
           ]}
         >
           Chat

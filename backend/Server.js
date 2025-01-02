@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import userRoutes from './routes/userRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +13,13 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+// Use a more restrictive CORS policy
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Ensure uploads directory exists
@@ -20,99 +28,38 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Set up multer for handling file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir)
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname))
-  }
-});
-
-const upload = multer({ storage: storage });
-
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
 
-// Mock user data (replace this with a database in a real application)
-let userData = {
-  name: "Luxe User",
-  avatar: "https://example.com/avatar.jpg",
-  accountInfo: {
-    dateOfBirth: "21/09/2000",
-    phoneNumber: "941234567",
-    email: "luxeuser@luxe.com",
-    password: "********"
-  },
-  warrantyProducts: [
-    { id: 1, name: "Product 1", warranty: "1 year" },
-    { id: 2, name: "Product 2", warranty: "2 years" }
-  ]
-};
+// Use the user routes
+app.use('/user', userRoutes);
 
-app.get('/api/user-profile', (req, res) => {
-  res.json(userData);
+// Use the product routes
+app.use('/api/products', productRoutes);
+
+// Catch-all route for debugging
+app.use((req, res, next) => {
+  console.log(`Unmatched route: ${req.method} ${req.url}`);
+  res.status(404).json({ message: 'Route not found' });
 });
 
-app.get('/api/account-information', (req, res) => {
-  console.log('Account information requested');
-  res.json({
-    name: userData.name,
-    avatar: userData.avatar,
-    ...userData.accountInfo
-  });
-});
+// Use the error handling middleware
+app.use(errorHandler);
 
-app.post('/api/update-profile-picture', upload.single('image'), (req, res) => {
-  console.log('Received request to update profile picture');
-  try {
-    if (req.file) {
-      console.log('File received:', req.file);
-      const imageUrl = `http://192.168.0.23:${port}/uploads/${req.file.filename}`;
-      userData.avatar = imageUrl;
-      console.log('Profile picture updated:', imageUrl);
-      res.json({ success: true, imageUrl });
-    } else {
-      console.log('No file received');
-      res.status(400).json({ success: false, message: 'No image file uploaded' });
-    }
-  } catch (error) {
-    console.error('Error in update-profile-picture:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
-  }
-});
-
-app.delete('/api/remove-profile-picture', (req, res) => {
-  console.log('Received request to remove profile picture');
-  try {
-    if (userData.avatar && userData.avatar.startsWith(`http://192.168.0.23:${port}/uploads/`)) {
-      const filename = userData.avatar.split('/').pop();
-      const filePath = path.join(uploadsDir, filename);
-
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error('Error deleting file:', err);
-        } else {
-          console.log('File deleted successfully');
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
+  console.log('Registered routes:');
+  app._router.stack.forEach((r) => {
+    if (r.route && r.route.path) {
+      console.log(`${Object.keys(r.route.methods)} ${r.route.path}`);
+    } else if (r.name === 'router') {
+      r.handle.stack.forEach((nestedRoute) => {
+        if (nestedRoute.route) {
+          const basePath = r.regexp.toString().includes('user') ? '/user' : '/api/products';
+          console.log(`${Object.keys(nestedRoute.route.methods)} ${basePath}${nestedRoute.route.path}`);
         }
       });
     }
-
-    userData.avatar = null;
-    console.log('Profile picture removed');
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error in remove-profile-picture:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
-  }
+  });
 });
 
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ success: false, message: 'Server error', error: err.message });
-});
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${port}`);
-});

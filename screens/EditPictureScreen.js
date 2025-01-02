@@ -16,7 +16,7 @@ const EditPictureScreen = () => {
   const fetchProfilePicture = async () => {
     try {
       console.log('Fetching profile picture...');
-      const response = await fetch(`${API_URL}/api/user-profile`);
+      const response = await fetch(`${API_URL}/user/user-profile`);
       const data = await response.json();
       console.log('Fetched user data:', data);
       if (data.avatar) {
@@ -80,8 +80,8 @@ const EditPictureScreen = () => {
     });
 
     try {
-      console.log('Sending request to:', `${API_URL}/api/update-profile-picture`);
-      const response = await fetch(`${API_URL}/api/update-profile-picture`, {
+      console.log('Sending request to:', `${API_URL}/user/update-profile-picture`);
+      const response = await fetch(`${API_URL}/user/update-profile-picture`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -116,7 +116,7 @@ const EditPictureScreen = () => {
   const handleRemovePhoto = async () => {
     try {
       console.log('Removing profile picture...');
-      const response = await fetch(`${API_URL}/api/remove-profile-picture`, {
+      const response = await fetch(`${API_URL}/user/remove-profile-picture`, {
         method: 'DELETE',
       });
       const data = await response.json();
