@@ -1,49 +1,67 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_URL from '../backend/config/api';
-
 
 const AccountInformationScreen = () => {
   const navigation = useNavigation();
   const [accountData, setAccountData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
- 
+
   const fetchAccountData = useCallback(async () => {
     try {
-      console.log('Fetching account data...');
       setLoading(true);
-      const response = await fetch(`${API_URL}/user/account-information`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      setError(null);
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
       }
+
+      console.log('Fetching account data...');
+      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch account information');
+      }
+
       const data = await response.json();
       console.log('Received account data:', data);
       setAccountData(data);
-      setLoading(false);
     } catch (err) {
       console.error('Error fetching account data:', err.message);
-      setError('Failed to fetch account data');
+      setError(err.message);
+      if (err.message === 'User ID not found') {
+        navigation.replace('Login');
+      }
+    } finally {
       setLoading(false);
     }
-  }, []);
- 
+  }, [navigation]);
+
   useFocusEffect(
     useCallback(() => {
       fetchAccountData();
     }, [fetchAccountData])
   );
- 
+
+  const handleEditPersonalDetails = () => {
+    if (accountData) {
+      navigation.navigate('EditPersonalDetails', { accountInfo: accountData });
+    } else {
+      Alert.alert('Error', 'Unable to edit details. Please try again later.');
+    }
+  };
+
   const InfoItem = ({ icon, label, value }) => (
     <View style={styles.infoItem}>
       <Icon name={icon} size={24} color="#87CEEB" />
       <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={styles.infoValue}>{value || 'Not provided'}</Text>
     </View>
   );
- 
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -51,7 +69,7 @@ const AccountInformationScreen = () => {
       </View>
     );
   }
- 
+
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -62,7 +80,7 @@ const AccountInformationScreen = () => {
       </View>
     );
   }
- 
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -75,7 +93,7 @@ const AccountInformationScreen = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Account Information</Text>
         </View>
- 
+
         <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
@@ -86,18 +104,18 @@ const AccountInformationScreen = () => {
               style={styles.avatar}
             />
           </View>
- 
+
           <View style={styles.infoContainer}>
-            <InfoItem icon="account" label="Name" value={accountData ? accountData.name : ''} />
-            <InfoItem icon="calendar" label="Date of Birth" value={accountData ? accountData.dateOfBirth : ''} />
-            <InfoItem icon="phone" label="Phone Number" value={accountData ? accountData.phoneNumber : ''} />
-            <InfoItem icon="email" label="Email" value={accountData ? accountData.email : ''} />
+            <InfoItem icon="account" label="Name" value={accountData?.name} />
+            <InfoItem icon="calendar" label="Date of Birth" value={accountData?.accountInfo?.dateOfBirth} />
+            <InfoItem icon="phone" label="Phone Number" value={accountData?.accountInfo?.phoneNumber} />
+            <InfoItem icon="email" label="Email" value={accountData?.accountInfo?.email} />
             <InfoItem icon="lock" label="Password" value="********" />
           </View>
- 
+
           <TouchableOpacity
             style={styles.editButton}
-            onPress={() => navigation.navigate('EditPersonalDetails')}
+            onPress={handleEditPersonalDetails}
           >
             <Text style={styles.editButtonText}>Edit Personal Details</Text>
           </TouchableOpacity>
@@ -217,3 +235,4 @@ const styles = StyleSheet.create({
 });
  
 export default AccountInformationScreen;
+

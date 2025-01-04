@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_URL from '../backend/config/api';
 
 const MyProfileScreen = () => {
@@ -12,28 +13,73 @@ const MyProfileScreen = () => {
 
   const fetchUserData = useCallback(async () => {
     try {
-      console.log('Fetching user data...');
       setLoading(true);
-      const response = await fetch(`${API_URL}/user/user-profile`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      setError(null);
+      
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
       }
+
+      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
       const data = await response.json();
-      console.log('Received data:', data);
       setUserData(data);
-      setLoading(false);
+      await AsyncStorage.setItem('userData', JSON.stringify(data));
     } catch (err) {
       console.error('Error fetching user data:', err.message);
-      setError('Failed to fetch user data');
+      setError(err.message);
+      if (err.message === 'User ID not found') {
+        Alert.alert(
+          'Session Expired',
+          'Your session has expired. Please log in again.',
+          [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        );
+      }
+    } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
       fetchUserData();
     }, [fetchUserData])
   );
+
+  const handleSignOut = async () => {
+    try {
+      // Call the backend to invalidate the session
+      const response = await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Include any necessary credentials or tokens
+        // credentials: 'include', // If using cookies
+      });
+
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+
+      // Clear local storage
+      await AsyncStorage.removeItem('userId');
+      await AsyncStorage.removeItem('userData');
+      
+      // Navigate to Login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (err) {
+      console.error('Error signing out:', err.message);
+      Alert.alert('Sign Out Failed', 'Please try again.');
+    }
+  };
 
   const ProfileItem = ({ icon, label, onPress }) => (
     <TouchableOpacity style={styles.profileItem} onPress={onPress}>
@@ -96,12 +142,12 @@ const MyProfileScreen = () => {
             <ProfileItem 
               icon="account" 
               label="Account Information" 
-              onPress={() => navigation.navigate('AccountInformation', { accountInfo: userData.accountInfo })}
+              onPress={() => navigation.navigate('AccountInformation', { accountInfo: userData ? userData.accountInfo : null })}
             />
             <ProfileItem 
               icon="shield-check" 
               label="Warranty & Products" 
-              onPress={() => navigation.navigate('WarrantyAndProducts', { warrantyProducts: userData.warrantyProducts })}
+              onPress={() => navigation.navigate('WarrantyAndProducts', { warrantyProducts: userData ? userData.warrantyProducts : null })}
             />
             <ProfileItem 
               icon="help-circle" 
@@ -115,7 +161,7 @@ const MyProfileScreen = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.signOutButton} onPress={() => navigation.navigate('ScanOrLoginScreen')}>
+          <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
             <Icon name="logout" size={24} color="#FFFFFF" />
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_URL from '../backend/config/api';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment';
@@ -32,15 +33,14 @@ const EditPersonalDetailsScreen = () => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [activeDateField, setActiveDateField] = useState(null);
 
-  useEffect(() => {
-    console.log('EditPersonalDetailsScreen mounted, fetching user details...');
-    fetchUserDetails();
-  }, []);
-
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = useCallback(async () => {
     try {
-      console.log('Fetching user details from:', `${API_URL}/user/account-information`);
-      const response = await fetch(`${API_URL}/user/account-information`);
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+      console.log('Fetching user details from:', `${API_URL}/user/user-profile/${userId}`);
+      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -48,9 +48,9 @@ const EditPersonalDetailsScreen = () => {
       console.log('Received user details:', JSON.stringify(data, null, 2));
       setUserDetails({
         name: data.name || "",
-        dateOfBirth: data.dateOfBirth ? moment(data.dateOfBirth, 'YYYY-MM-DD').format('DD/MM/YYYY') : "",
-        phoneNumber: data.phoneNumber || "",
-        email: data.email || "",
+        dateOfBirth: data.accountInfo?.dateOfBirth ? moment(data.accountInfo.dateOfBirth, 'YYYY-MM-DD').format('DD/MM/YYYY') : "",
+        phoneNumber: data.accountInfo?.phoneNumber || "",
+        email: data.accountInfo?.email || "",
         password: "********",
         avatar: data.avatar || null,
       });
@@ -58,7 +58,13 @@ const EditPersonalDetailsScreen = () => {
       console.error('Error fetching user details:', error);
       Alert.alert('Error', 'Failed to load user details. Please check your internet connection and try again.');
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserDetails();
+    }, [fetchUserDetails])
+  );
 
   const InfoItem = ({ icon, label, field, value, isPassword, keyboardType, isDateOfBirth }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -179,9 +185,14 @@ const EditPersonalDetailsScreen = () => {
     }
 
     try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
       console.log('Sending user details:', JSON.stringify(userDetails, null, 2));
-      const response = await fetch(`${API_URL}/user/update-user-details`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/user/update-details/${userId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -208,13 +219,9 @@ const EditPersonalDetailsScreen = () => {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
-      if (data.success) {
-        console.log('User details updated successfully:', data);
-        Alert.alert("Success", "Your details have been updated successfully!");
-        navigation.goBack();
-      } else {
-        throw new Error(data.message || 'Failed to update user details');
-      }
+      console.log('User details updated successfully:', data);
+      Alert.alert("Success", "Your details have been updated successfully!");
+      navigation.goBack();
     } catch (error) {
       console.error('Error updating user details:', error);
       Alert.alert("Error", `Failed to update details: ${error.message}`);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -8,14 +8,17 @@ import {
   SafeAreaView,
   Linking,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import API_URL from '../backend/config/api';
 
 const HelpAndSupportScreen = () => {
   const navigation = useNavigation();
-  const phoneNumber = '+61395084409';
+  const phoneNumber = '+61 0392406822';
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCallPress = async () => {
     console.log('Call button pressed');
@@ -39,20 +42,30 @@ const HelpAndSupportScreen = () => {
     }
   };
 
-  const handleItemPress = (type) => {
+  const handleItemPress = async (type) => {
     console.log('Item pressed:', type);
-    switch(type) {
-      case 'chatbot':
-        navigation.navigate('ChatWithBot');
-        break;
-      case 'call':
-        handleCallPress();
-        break;
-      case 'faq':
-        navigation.navigate('FAQs');
-        break;
-      default:
-        console.warn('Unknown item type:', type);
+    setIsLoading(true);
+    try {
+      switch(type) {
+        case 'chatbot':
+          await fetch(`${API_URL}/api/support/chat`);
+          navigation.navigate('ChatWithBot');
+          break;
+        case 'call':
+          await handleCallPress();
+          break;
+        case 'faq':
+          await fetch(`${API_URL}/api/support/faq`);
+          navigation.navigate('FAQs');
+          break;
+        default:
+          console.warn('Unknown item type:', type);
+      }
+    } catch (error) {
+      console.error('Error handling item press:', error);
+      Alert.alert('Error', 'An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,6 +121,11 @@ const HelpAndSupportScreen = () => {
           />
         </ScrollView>
       </View>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#87CEEB" />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -175,6 +193,12 @@ const styles = StyleSheet.create({
   supportItemDescription: {
     fontSize: 14,
     color: '#666666',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

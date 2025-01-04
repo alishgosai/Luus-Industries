@@ -1,24 +1,19 @@
-import React from "react";
+import React, { useEffect } from 'react';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar, View } from "react-native";
+import { app, auth } from './FireBase/firebase.config';
+import { getFirestore } from 'firebase/firestore';
+const db = getFirestore(app);
+import Authentication from './components/Authentication';
 
-// Authentication Screens
+// Import all screens
 import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
 import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
-// ..............Not used these screens in app but might need later...................
-
-// import RegisterScreen from "./screens/RegisterScreen";
-// import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
-// import ResetCodeScreen from "./screens/ResetCodeScreen";
-// import NewPasswordScreen from "./screens/NewPasswordScreen";
-
-// Main Application Screens
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
-// .............Browse screen parts..............
 import AsianProducts from "./screens/BrowseAsianProducts";
 import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
 import SpareParts from "./screens/BrowseSpareParts";
@@ -26,18 +21,11 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 import EquipmentSales from "./screens/EquipmentSales";
 import TechnicalSupport from "./screens/TechnicalSupport";
-
-//QR Scan
-//import QRScanner from "./screens/QRScanner";
 import QRScanner from "./screens/ScannerQR";
 import HomeQR from "./screens/HomeQR";
-
-// Product Info
 import ProductInfo from "./screens/BeforeProductDetails";
 import SparePartsScreen from "./screens/SparePart";
 import WarrantyInformation from "./screens/WarrantyInformation";
-
-// Account and Settings Screens
 import MyProfileScreen from "./screens/MyProfile";
 import EditPictureScreen from "./screens/EditPictureScreen";
 import AccountInformationScreen from "./screens/AccountInformationScreen";
@@ -45,228 +33,76 @@ import EditPersonalDetailsScreen from "./screens/EditPersonalDetailsScreen";
 import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
 import HelpAndSupportScreen from "./screens/HelpAndSupportScreen";
 import FAQsScreen from "./screens/FAQsScreen";
-
-// Chatbot Screens
 import ChatbotScreen from "./screens/ChatBotScreen";
 import ChatWithBot from "./screens/ChatWithBot";
-
-// Additional Web Screens from Your Code
 import WebScreen from "./components/WebScreen";
+import DataManagement from './screens/DataManagement';
 
-// Components
 import BottomNavBar from "./components/BottomNavBar";
 
-// Stack Navigator
 const Stack = createStackNavigator();
 
-// Screen with BottomNavBar Wrapper
-const ScreenWithNavBar = ({ Component, ...props }) => (
+const ScreenWithNavBar = ({ children, navigation }) => (
   <View style={{ flex: 1 }}>
-    <Component {...props} />
-    <BottomNavBar navigation={props.navigation} />
+    {children}
+    <BottomNavBar navigation={navigation} />
   </View>
 );
 
+const withNavBar = (Component) => (props) => (
+  <ScreenWithNavBar navigation={props.navigation}>
+    <Component {...props} />
+  </ScreenWithNavBar>
+);
+
 export default function App() {
+  useEffect(() => {
+    console.log("Firebase initialized");
+  }, []);
+
   return (
     <NavigationContainer>
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="MyProfile" // Choose initial screen based on your preference
+          initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
-          {/* Authentication Screens // these screens do not have nagivation bbars. */}
-          <Stack.Screen
-            name="ScanOrLoginScreen"
-            component={ScanOrLoginScreen}
-          />
+          <Stack.Screen name="Auth" component={Authentication} />
+          <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
           <Stack.Screen name="Scan" component={ScanScreen} />
           <Stack.Screen name="ScannerQR" component={QRScanner} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="BeforeProductDetails" component={ProductInfo} />
-
-          {/* ...............Might need these screens later...................... */}
-          {/* <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="ResetCode" component={ResetCodeScreen} />
-          <Stack.Screen name="NewPassword" component={NewPasswordScreen} /> */}
-
-          {/* Main Application Screens these screen has navigation bar */}
-          <Stack.Screen
-            name="Home"
-            component={(props) => (
-              <ScreenWithNavBar Component={HomeScreen} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="Browse"
-            component={(props) => (
-              <ScreenWithNavBar Component={BrowseScreen} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="AsianProducts"
-            component={(props) => (
-              <ScreenWithNavBar Component={AsianProducts} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="ProfessionalProducts"
-            component={(props) => (
-              <ScreenWithNavBar Component={ProfessionalProducts} {...props} />
-            )}
-          />
-
-          <Stack.Screen
-            name="ProductDetails"
-            component={(props) => (
-              <ScreenWithNavBar Component={ProductDetails} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="ServiceForm"
-            component={(props) => (
-              <ScreenWithNavBar Component={ServiceForm} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="EquipmentSales"
-            component={(props) => (
-              <ScreenWithNavBar Component={EquipmentSales} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="TechnicalSupport"
-            component={(props) => (
-              <ScreenWithNavBar Component={TechnicalSupport} {...props} />
-            )}
-          />
-
-          <Stack.Screen
-            name="HomeQR"
-            component={(props) => (
-              <ScreenWithNavBar Component={HomeQR} {...props} />
-            )}
-          />
-
-          {/* Chatbot Screens */}
-          <Stack.Screen
-            name="ChatBot"
-            component={(props) => (
-              <ScreenWithNavBar Component={ChatbotScreen} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="ChatWithBot"
-            component={(props) => (
-              <ScreenWithNavBar Component={ChatWithBot} {...props} />
-            )}
-          />
-
-          {/* Account and Settings Screens */}
-          <Stack.Screen
-            name="MyProfile"
-            component={(props) => (
-              <ScreenWithNavBar Component={MyProfileScreen} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="EditPicture"
-            component={(props) => (
-              <ScreenWithNavBar Component={EditPictureScreen} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="AccountInformation"
-            component={(props) => (
-              <ScreenWithNavBar
-                Component={AccountInformationScreen}
-                {...props}
-              />
-            )}
-          />
-          <Stack.Screen
-            name="EditPersonalDetails"
-            component={(props) => (
-              <ScreenWithNavBar
-                Component={EditPersonalDetailsScreen}
-                {...props}
-              />
-            )}
-          />
-          <Stack.Screen
-            name="WarrantyAndProducts"
-            component={(props) => (
-              <ScreenWithNavBar
-                Component={WarrantyAndProductsScreen}
-                {...props}
-              />
-            )}
-          />
-          <Stack.Screen
-            name="HelpAndSupport"
-            component={(props) => (
-              <ScreenWithNavBar Component={HelpAndSupportScreen} {...props} />
-            )}
-          />
-          <Stack.Screen
-            name="FAQs"
-            component={(props) => (
-              <ScreenWithNavBar Component={FAQsScreen} {...props} />
-            )}
-          />
-
-          <Stack.Screen
-            name="WarrantyInformation"
-            component={(props) => (
-              <ScreenWithNavBar Component={WarrantyInformation} {...props} />
-            )}
-          />
-
-          <Stack.Screen
-            name="SparePart"
-            component={(props) => (
-              <ScreenWithNavBar Component={SparePartsScreen} {...props} />
-            )}
-          />
-
-          {/* External WebView Screens from Your Code */}
-          <Stack.Screen
-            name="AboutUs"
-            component={WebScreen}
-            initialParams={{ uri: "https://luus.com.au/about-us/" }}
-          />
-          <Stack.Screen
-            name="DuckOven"
-            component={WebScreen}
-            initialParams={{
-              uri: "https://luus.com.au/range/asian/duck-ovens/",
-            }}
-          />
-          <Stack.Screen
-            name="NoodleCooker"
-            component={WebScreen}
-            initialParams={{
-              uri: "https://luus.com.au/range/asian/noodle-cookers/",
-            }}
-          />
-          <Stack.Screen
-            name="OvenRanges"
-            component={WebScreen}
-            initialParams={{
-              uri: "https://luus.com.au/range/professional/oven-ranges/",
-            }}
-          />
-          <Stack.Screen
-            name="PastaCooker"
-            component={WebScreen}
-            initialParams={{
-              uri: "https://luus.com.au/range/asian/pasta-cookers/",
-            }}
-          />
+          <Stack.Screen name="Home" component={withNavBar(HomeScreen)} />
+          <Stack.Screen name="Browse" component={withNavBar(BrowseScreen)} />
+          <Stack.Screen name="AsianProducts" component={withNavBar(AsianProducts)} />
+          <Stack.Screen name="ProfessionalProducts" component={withNavBar(ProfessionalProducts)} />
+          <Stack.Screen name="ProductDetails" component={withNavBar(ProductDetails)} />
+          <Stack.Screen name="ServiceForm" component={withNavBar(ServiceForm)} />
+          <Stack.Screen name="EquipmentSales" component={withNavBar(EquipmentSales)} />
+          <Stack.Screen name="TechnicalSupport" component={withNavBar(TechnicalSupport)} />
+          <Stack.Screen name="HomeQR" component={withNavBar(HomeQR)} />
+          <Stack.Screen name="ChatBot" component={withNavBar(ChatbotScreen)} />
+          <Stack.Screen name="ChatWithBot" component={withNavBar(ChatWithBot)} />
+          <Stack.Screen name="MyProfile" component={withNavBar(MyProfileScreen)} />
+          <Stack.Screen name="EditPicture" component={withNavBar(EditPictureScreen)} />
+          <Stack.Screen name="AccountInformation" component={withNavBar(AccountInformationScreen)} />
+          <Stack.Screen name="EditPersonalDetails" component={withNavBar(EditPersonalDetailsScreen)} />
+          <Stack.Screen name="WarrantyAndProducts" component={withNavBar(WarrantyAndProductsScreen)} />
+          <Stack.Screen name="HelpAndSupport" component={withNavBar(HelpAndSupportScreen)} />
+          <Stack.Screen name="FAQs" component={withNavBar(FAQsScreen)} />
+          <Stack.Screen name="WarrantyInformation" component={withNavBar(WarrantyInformation)} />
+          <Stack.Screen name="SparePart" component={withNavBar(SparePartsScreen)} />
+          <Stack.Screen name="AboutUs" component={WebScreen} initialParams={{ uri: "https://luus.com.au/about-us/" }} />
+          <Stack.Screen name="DuckOven" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/asian/duck-ovens/" }} />
+          <Stack.Screen name="NoodleCooker" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/asian/noodle-cookers/" }} />
+          <Stack.Screen name="OvenRanges" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/professional/oven-ranges/" }} />
+          <Stack.Screen name="PastaCooker" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/asian/pasta-cookers/" }} />
+          <Stack.Screen name="DataManagement" component={withNavBar(DataManagement)} />
         </Stack.Navigator>
       </SafeAreaProvider>
     </NavigationContainer>
   );
 }
+
