@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.85; // For carousel cards with part of the next item visible
 const IMAGE_WIDTH = width * 0.75; // For image carousel
@@ -322,6 +323,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* Add extra padding at the bottom to prevent overlap with navigation bar */}
           <View style={{ height: 0 }} />
+          
         </ScrollView>
       </View>
     </SafeAreaView>

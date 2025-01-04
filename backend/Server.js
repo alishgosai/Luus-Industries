@@ -1,11 +1,25 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { 
+  handleChat, 
+  getChatSessionHistory, 
+  getUserProductInterests, 
+  deleteUserChatHistory, 
+  getAllUsers 
+} from './controllers/chatController.js';
+
+// Load environment variables
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,13 +27,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Use a more restrictive CORS policy
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+app.use(cors());
 app.use(express.json());
 
 // Ensure uploads directory exists
@@ -28,22 +36,36 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Serve uploaded files
+// Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(uploadsDir));
 
-// Use the user routes
+// Logging middleware
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  next();
+});
+
+// Existing routes
 app.use('/user', userRoutes);
-
-// Use the product routes
+app.use('/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/service', serviceRoutes);
+app.use('/api', supportRoutes);
 
-// Catch-all route for debugging
+// Chat routes
+app.post('/api/chat', handleChat);
+app.get('/api/chat/history/:userId', getChatSessionHistory);
+app.get('/api/chat/interests/:userId', getUserProductInterests);
+app.delete('/api/chat/history/:userId', deleteUserChatHistory);
+app.get('/api/chat/users', getAllUsers);
+
+// 404 handler for unmatched routes
 app.use((req, res, next) => {
   console.log(`Unmatched route: ${req.method} ${req.url}`);
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Use the error handling middleware
+// Error handler
 app.use(errorHandler);
 
 const server = app.listen(port, '0.0.0.0', () => {
@@ -55,11 +77,13 @@ const server = app.listen(port, '0.0.0.0', () => {
     } else if (r.name === 'router') {
       r.handle.stack.forEach((nestedRoute) => {
         if (nestedRoute.route) {
-          const basePath = r.regexp.toString().includes('user') ? '/user' : '/api/products';
-          console.log(`${Object.keys(nestedRoute.route.methods)} ${basePath}${nestedRoute.route.path}`);
+          const basePath = r.regexp.toString().split('/')[1];
+          console.log(`${Object.keys(nestedRoute.route.methods)} /${basePath}${nestedRoute.route.path}`);
         }
       });
     }
   });
 });
+
+export default server;
 

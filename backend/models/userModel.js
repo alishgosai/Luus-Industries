@@ -1,12 +1,10 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { db } from '../services/firebaseAdmin.js';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 class User {
-  constructor(name, avatar, accountInfo) {
+  constructor(id, name, avatar, accountInfo) {
+    this.id = id || uuidv4();
     this.name = name;
     this.avatar = avatar;
     this.accountInfo = accountInfo;
@@ -22,52 +20,175 @@ class AccountInfo {
   }
 }
 
-let userData = new User(
-  "Luxe User",
-  "https://example.com/avatar.jpg",
-  new AccountInfo("21/09/2000", "941234567", "luxeuser@luxe.com", "********")
-);
-
-export const getUserData = () => {
-  return { ...userData };
-};
-
-export const updateUserData = ({ name, dateOfBirth, phoneNumber, email, password }) => {
-  if (name) userData.name = name;
-  if (dateOfBirth) userData.accountInfo.dateOfBirth = dateOfBirth;
-  if (phoneNumber) userData.accountInfo.phoneNumber = phoneNumber;
-  if (email) userData.accountInfo.email = email;
-  
-  if (password && password !== '********') {
-    userData.accountInfo.password = password;
-  }
-
-  console.log('Updated user data:', JSON.stringify(userData, null, 2));
-  return { ...userData };
-};
-
-export const updateUserAvatar = (imageUrl) => {
-  userData.avatar = imageUrl;
-  return { ...userData };
-};
-
-export const removeUserAvatar = () => {
-  if (userData.avatar && userData.avatar.startsWith(`http://192.168.0.23:${process.env.PORT || 3000}/uploads/`)) {
-    const filename = userData.avatar.split('/').pop();
-    const filePath = path.join(__dirname, '..', 'uploads', filename);
-
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.error('Error deleting file:', err);
-        throw new Error('Failed to delete avatar file');
-      } else {
-        console.log('File deleted successfully');
+export const createUser = async (name, email, password, dateOfBirth, phoneNumber) => {
+  try {
+    const userRef = db.collection('users').doc();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User(
+      userRef.id,
+      name,
+      null,
+      new AccountInfo(dateOfBirth, phoneNumber, email, hashedPassword)
+    );
+    await userRef.set({
+      ...newUser,
+      accountInfo: {
+        ...newUser.accountInfo,
+        password: hashedPassword
       }
     });
+    console.log('User created successfully:', newUser.id);
+    return { ...newUser, accountInfo: { ...newUser.accountInfo, password: undefined } };
+  } catch (error) {
+    console.error('Error in createUser:', error);
+    throw error;
   }
+};
 
-  userData.avatar = null;
-  return { ...userData };
+export const findUserByEmail = async (email) => {
+  try {
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where('accountInfo.email', '==', email).get();
+    if (snapshot.empty) {
+      console.log('No user found with email:', email);
+      return null;
+    }
+    const userData = snapshot.docs[0].data();
+    console.log('User found by email:', userData.id);
+    return new User(
+      userData.id,
+      userData.name,
+      userData.avatar,
+      new AccountInfo(
+        userData.accountInfo.dateOfBirth,
+        userData.accountInfo.phoneNumber,
+        userData.accountInfo.email,
+        userData.accountInfo.password
+      )
+    );
+  } catch (error) {
+    console.error('Error in findUserByEmail:', error);
+    throw error;
+  }
+};
+
+export const findUserById = async (id) => {
+  try {
+    const userRef = db.collection('users').doc(id);
+    const doc = await userRef.get();
+    if (!doc.exists) {
+      console.log('No user found with ID:', id);
+      return null;
+    }
+    const userData = doc.data();
+    console.log('User found by ID:', id);
+    return new User(
+      userData.id,
+      userData.name,
+      userData.avatar,
+      new AccountInfo(
+        userData.accountInfo.dateOfBirth,
+        userData.accountInfo.phoneNumber,
+        userData.accountInfo.email,
+        userData.accountInfo.password
+      )
+    );
+  } catch (error) {
+    console.error('Error in findUserById:', error);
+    throw error;
+  }
+};
+
+export const getUserData = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    const userRef = db.collection('users').doc(userId);
+    const doc = await userRef.get();
+    if (!doc.exists) {
+      console.log('No user found with the given ID:', userId);
+      return null;
+    }
+    const userData = doc.data();
+    console.log('User data retrieved for ID:', userId);
+    return { 
+      id: doc.id, 
+      ...userData, 
+      accountInfo: { ...userData.accountInfo, password: undefined } 
+    };
+  } catch (error) {
+    console.error('Error in getUserData:', error);
+    throw error;
+  }
+};
+
+export const updateUserData = async (userId, { name, dateOfBirth, phoneNumber, email }) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    const userRef = db.collection('users').doc(userId);
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (dateOfBirth) updateData['accountInfo.dateOfBirth'] = dateOfBirth;
+    if (phoneNumber) updateData['accountInfo.phoneNumber'] = phoneNumber;
+    if (email) updateData['accountInfo.email'] = email;
+    await userRef.update(updateData);
+    const updatedDoc = await userRef.get();
+    const updatedData = updatedDoc.data();
+    console.log('User data updated for ID:', userId);
+    return { 
+      id: updatedDoc.id, 
+      ...updatedData, 
+      accountInfo: { ...updatedData.accountInfo, password: undefined } 
+    };
+  } catch (error) {
+    console.error('Error in updateUserData:', error);
+    throw error;
+  }
+};
+
+export const updateUserAvatar = async (userId, imageUrl) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    const userRef = db.collection('users').doc(userId);
+    await userRef.update({ avatar: imageUrl });
+    const updatedDoc = await userRef.get();
+    const updatedData = updatedDoc.data();
+    console.log('User avatar updated for ID:', userId);
+    return { 
+      id: updatedDoc.id, 
+      ...updatedData, 
+      accountInfo: { ...updatedData.accountInfo, password: undefined } 
+    };
+  } catch (error) {
+    console.error('Error in updateUserAvatar:', error);
+    throw error;
+  }
+};
+
+export const removeUserAvatar = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    const userRef = db.collection('users').doc(userId);
+    await userRef.update({ avatar: null });
+    const updatedDoc = await userRef.get();
+    const updatedData = updatedDoc.data();
+    console.log('User avatar removed for ID:', userId);
+    return { 
+      id: updatedDoc.id, 
+      ...updatedData, 
+      accountInfo: { ...updatedData.accountInfo, password: undefined } 
+    };
+  } catch (error) {
+    console.error('Error in removeUserAvatar:', error);
+    throw error;
+  }
 };
 
 export default User;
