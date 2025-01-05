@@ -14,11 +14,37 @@ import TechnicalSupportForm from '../components/TechnicalSupport';
 
 export default function ServiceForm({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState('Warranty Service');
+  const [image, setImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
-    { key: 'Warranty Service', component: <WarrantyServiceForm /> },
-    { key: 'Equipment Sales', component: <EquipmentSalesForm /> },
-    { key: 'Technical Support', component: <TechnicalSupportForm /> }
+    { 
+      key: 'Warranty Service', 
+      component: <WarrantyServiceForm 
+                   image={image} 
+                   isLoading={isLoading} 
+                   onSelectImage={setImage} 
+                   onSetLoading={setIsLoading} 
+                 /> 
+    },
+    { 
+      key: 'Equipment Sales', 
+      component: <EquipmentSalesForm 
+                   image={image} 
+                   isLoading={isLoading} 
+                   onSelectImage={setImage} 
+                   onSetLoading={setIsLoading} 
+                 /> 
+    },
+    { 
+      key: 'Technical Support', 
+      component: <TechnicalSupportForm 
+                   image={image} 
+                   isLoading={isLoading} 
+                   onSelectImage={setImage} 
+                   onSetLoading={setIsLoading} 
+                 /> 
+    },
   ];
 
   const renderForm = () => {
@@ -45,16 +71,10 @@ export default function ServiceForm({ navigation }) {
           {categories.map((category, index) => (
             <TouchableOpacity
               key={index}
-              style={[
-                styles.categoryPill,
-                selectedCategory === category.key && styles.selectedCategoryPill
-              ]}
+              style={[styles.categoryPill, selectedCategory === category.key && styles.selectedCategoryPill]}
               onPress={() => setSelectedCategory(category.key)}
             >
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === category.key && styles.selectedCategoryText
-              ]}>
+              <Text style={[styles.categoryText, selectedCategory === category.key && styles.selectedCategoryText]}>
                 {category.key}
               </Text>
             </TouchableOpacity>
