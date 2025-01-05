@@ -20,57 +20,72 @@ class AccountInfo {
   }
 }
 
-export const createUser = async (name, email, password, dateOfBirth, phoneNumber) => {
+export const findUserByEmail = async (email) => {
   try {
-    const userRef = db.collection('users').doc();
+    console.log('Searching for user with email:', email);
+    const usersRef = db.collection('users');
+    console.log('Users collection reference created');
+    
+    const snapshot = await usersRef.where('accountInfo.email', '==', email).limit(1).get();
+    console.log('Query executed');
+
+    if (snapshot.empty) {
+      console.log('No user found with email:', email);
+      return null;
+    }
+
+    const userData = snapshot.docs[0].data();
+    console.log('User found:', snapshot.docs[0].id);
+    
+    return {
+      id: snapshot.docs[0].id,
+      ...userData
+    };
+  } catch (error) {
+    console.error('Error in findUserByEmail:', error);
+    console.error('Error stack:', error.stack);
+    throw error;
+  }
+};
+
+
+export const createUser = async (name, email, password, dateOfBirth, phoneNumber, firebaseUid) => {
+  try {
+    console.log('Creating new user with email:', email);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User(
-      userRef.id,
+    
+    const userDoc = {
       name,
-      null,
-      new AccountInfo(dateOfBirth, phoneNumber, email, hashedPassword)
-    );
-    await userRef.set({
-      ...newUser,
+      avatar: null,
       accountInfo: {
-        ...newUser.accountInfo,
-        password: hashedPassword
+        email,
+        password: hashedPassword,
+        dateOfBirth,
+        phoneNumber
+      },
+      firebaseUid,
+      createdAt: new Date().toISOString()
+    };
+
+    const userRef = await db.collection('users').add(userDoc);
+    console.log('User created with ID:', userRef.id);
+
+    return {
+      id: userRef.id,
+      ...userDoc,
+      accountInfo: {
+        ...userDoc.accountInfo,
+        password: undefined
       }
-    });
-    console.log('User created successfully:', newUser.id);
-    return { ...newUser, accountInfo: { ...newUser.accountInfo, password: undefined } };
+    };
   } catch (error) {
     console.error('Error in createUser:', error);
     throw error;
   }
 };
 
-export const findUserByEmail = async (email) => {
-  try {
-    const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('accountInfo.email', '==', email).get();
-    if (snapshot.empty) {
-      console.log('No user found with email:', email);
-      return null;
-    }
-    const userData = snapshot.docs[0].data();
-    console.log('User found by email:', userData.id);
-    return new User(
-      userData.id,
-      userData.name,
-      userData.avatar,
-      new AccountInfo(
-        userData.accountInfo.dateOfBirth,
-        userData.accountInfo.phoneNumber,
-        userData.accountInfo.email,
-        userData.accountInfo.password
-      )
-    );
-  } catch (error) {
-    console.error('Error in findUserByEmail:', error);
-    throw error;
-  }
-};
+
+
 
 export const findUserById = async (id) => {
   try {

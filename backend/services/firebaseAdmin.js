@@ -1,23 +1,44 @@
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs/promises';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+console.log('Initializing Firebase Admin...');
+
 if (!admin.apps.length) {
   try {
+    const serviceAccountPath = join(__dirname, 'serviceAccountKey.json');
+    const serviceAccountContent = await fs.readFile(serviceAccountPath, 'utf8');
+    const serviceAccount = JSON.parse(serviceAccountContent);
+
     admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      }),
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: process.env.FIREBASE_DATABASE_URL
     });
-    console.log('Firebase Admin SDK initialized successfully');
+
+    console.log('Firebase Admin initialized successfully');
+    console.log('Project ID:', serviceAccount.project_id);
+    console.log('Client Email:', serviceAccount.client_email);
   } catch (error) {
-    console.error('Error initializing Firebase Admin SDK:', error);
+    console.error('Error initializing Firebase Admin:', error);
+    process.exit(1);
   }
 }
 
 const db = admin.firestore();
+
+// Test the database connection
+try {
+  await db.collection('users').limit(1).get();
+  console.log('Firestore connection successful');
+} catch (error) {
+  console.error('Firestore connection failed:', error);
+}
 
 export { admin, db };

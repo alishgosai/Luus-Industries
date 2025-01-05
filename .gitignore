@@ -39,7 +39,8 @@ yarn-error.*
 backend/node_modules
 backend/.env
 
-# Firebase config
-src/firebaseDb.js
+# Firebase
+**/firebase.config.js
+**/serviceAccountKey.json
 
 node_modules

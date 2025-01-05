@@ -144,14 +144,20 @@ export default function AuthScreen({ navigation }) {
     }
     if (!registerMobileNumber) {
       errors.mobileNumber = "Mobile number is required";
-    } else if (!/^\d{10}$/.test(registerMobileNumber)) {
-      errors.mobileNumber = "Invalid mobile number format";
+    } else if (!isValidPhoneNumber(registerMobileNumber)) {
+      errors.mobileNumber = "Invalid mobile number format. Please enter a valid Australian mobile number (e.g., 0412345678)";
     }
     if (!moment(registerDateOfBirth).isValid()) {
       errors.dateOfBirth = "Invalid date of birth";
     }
     setRegisterErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+  
+  const isValidPhoneNumber = (phoneNumber) => {
+    // Australian mobile number format (starting with '04' and 10 digits long)
+    const australianMobileRegex = /^04\d{8}$/;
+    return australianMobileRegex.test(phoneNumber);
   };
 
   const validateForgotEmail = () => {
@@ -234,18 +240,26 @@ export default function AuthScreen({ navigation }) {
         console.error('Login error:', error);
         let errorMessage = 'An unexpected error occurred. Please try again.';
         
-        if (error.response && error.response.status === 404) {
-          errorMessage = 'User not found. Please check your credentials or sign up.';
-        } else if (error.code === 'auth/invalid-credential') {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-        } else if (error.code === 'auth/user-not-found') {
-          errorMessage = 'No user found with this email. Please check your email or sign up.';
-        } else if (error.code === 'auth/wrong-password') {
-          errorMessage = 'Incorrect password. Please try again.';
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMessage = 'Too many unsuccessful login attempts. Please try again later or reset your password.';
-        } else if (error.code === 'auth/network-request-failed') {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
+        if (error.response && error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.code) {
+          switch (error.code) {
+            case 'auth/invalid-credential':
+              errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+              break;
+            case 'auth/user-not-found':
+              errorMessage = 'No user found with this email. Please check your email or sign up.';
+              break;
+            case 'auth/wrong-password':
+              errorMessage = 'Incorrect password. Please try again.';
+              break;
+            case 'auth/too-many-requests':
+              errorMessage = 'Too many unsuccessful login attempts. Please try again later or reset your password.';
+              break;
+            case 'auth/network-request-failed':
+              errorMessage = 'Network error. Please check your internet connection and try again.';
+              break;
+          }
         }
         
         Alert.alert('Login Failed', errorMessage);
@@ -255,12 +269,10 @@ export default function AuthScreen({ navigation }) {
   };
   
   
+  
   const handleRegister = async () => {
     if (validateRegister()) {
       try {
-        // Firebase authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, registerEmail, registerPassword);
-        
         // Backend registration
         const response = await axios.post(`${API_URL}/auth/register`, {
           name: registerName,
@@ -276,21 +288,36 @@ export default function AuthScreen({ navigation }) {
         if (user && user.id) {
           await AsyncStorage.setItem('userId', user.id);
           await AsyncStorage.setItem('userData', JSON.stringify(user));
+          
+          Alert.alert("Success", "Your account has been created.");
+          setActiveTab("Login");
+          setRegisterErrors({});
         } else {
-          console.error('User data is incomplete:', user);
+          throw new Error('Incomplete user data received from server');
         }
-        
-        // Note: We're not storing a token anymore as it's not provided by the backend
-        
-        Alert.alert("Success", "Your account has been created.");
-        setActiveTab("Login");
-        setRegisterErrors({});
       } catch (error) {
         console.error('Registration error:', error);
-        Alert.alert('Registration Failed', error.message);
+        let errorMessage = 'An unexpected error occurred during registration. Please try again.';
+        
+        if (error.response && error.response.data) {
+          errorMessage = error.response.data.message || errorMessage;
+        }
+        
+        // Handle specific Firebase Auth errors
+        if (error.code === 'auth/email-already-in-use') {
+          errorMessage = 'This email is already in use. Please use a different email or try logging in.';
+        }
+        
+        Alert.alert('Registration Failed', errorMessage);
+        setRegisterErrors({ general: errorMessage });
       }
     }
   };
+  
+
+
+  
+  
 
   const renderForgotPassword = () => {
     if (forgotPasswordStep === "EnterEmail") {
@@ -808,4 +835,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-

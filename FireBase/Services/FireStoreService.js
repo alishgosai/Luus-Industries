@@ -9,14 +9,18 @@ import {
   deleteDoc,
   doc,
   orderBy,
-  limit 
+  limit,
+  serverTimestamp
 } from 'firebase/firestore';
 
 export const firestoreService = {
   // Add a document to a collection
   addDocument: async (collectionName, data) => {
     try {
-      const docRef = await addDoc(collection(db, collectionName), data);
+      const docRef = await addDoc(collection(db, collectionName), {
+        ...data,
+        createdAt: serverTimestamp()
+      });
       return { id: docRef.id, ...data };
     } catch (error) {
       console.error("Error adding document:", error);
@@ -27,7 +31,8 @@ export const firestoreService = {
   // Get all documents from a collection
   getDocuments: async (collectionName) => {
     try {
-      const querySnapshot = await getDocs(collection(db, collectionName));
+      const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -39,19 +44,29 @@ export const firestoreService = {
   },
 
   // Query documents with pagination
-  queryDocuments: async (collectionName, field, operator, value, limitCount = 10) => {
+  queryDocuments: async (collectionName, field, operator, value, lastVisible = null, limitCount = 10) => {
     try {
-      const q = query(
+      let q = query(
         collection(db, collectionName), 
         where(field, operator, value),
         orderBy('createdAt', 'desc'),
         limit(limitCount)
       );
+      
+      if (lastVisible) {
+        q = query(q, startAfter(lastVisible));
+      }
+
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+      return {
+        items: querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })),
+        lastVisible: lastVisibleDoc
+      };
     } catch (error) {
       console.error("Error querying documents:", error);
       throw error;
@@ -62,7 +77,10 @@ export const firestoreService = {
   updateDocument: async (collectionName, documentId, data) => {
     try {
       const docRef = doc(db, collectionName, documentId);
-      await updateDoc(docRef, data);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: serverTimestamp()
+      });
       return { id: documentId, ...data };
     } catch (error) {
       console.error("Error updating document:", error);
@@ -82,4 +100,3 @@ export const firestoreService = {
     }
   }
 };
-
