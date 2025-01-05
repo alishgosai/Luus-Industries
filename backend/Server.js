@@ -27,6 +27,11 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Global unhandled promise rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 app.use(cors());
 app.use(express.json());
 
@@ -39,10 +44,18 @@ if (!fs.existsSync(uploadsDir)) {
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(uploadsDir));
 
-// Logging middleware
+// Logging middleware with more details
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log('Request headers:', req.headers);
+  console.log('Request body:', req.body);
   next();
+});
+
+// Test route
+app.get('/api/test', (req, res) => {
+  console.log('Test route accessed');
+  res.json({ message: 'Backend is connected' });
 });
 
 // Existing routes
@@ -86,4 +99,3 @@ const server = app.listen(port, '0.0.0.0', () => {
 });
 
 export default server;
-

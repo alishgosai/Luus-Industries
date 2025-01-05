@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import { firestoreService } from '../Services/FireStoreService';
-
 
 const Firestore = () => {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
-
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
       const fetchedItems = await firestoreService.getDocuments('items');
       setItems(fetchedItems);
     } catch (error) {
+      console.error('Error fetching items:', error);
       Alert.alert('Error', 'Failed to fetch items');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   const handleAddItem = async () => {
     if (!newItem.trim()) return;
@@ -33,9 +33,10 @@ const Firestore = () => {
         text: newItem,
         createdAt: new Date().toISOString(),
       });
-      setItems([addedItem, ...items]);
+      setItems(prevItems => [addedItem, ...prevItems]);
       setNewItem('');
     } catch (error) {
+      console.error('Error adding item:', error);
       Alert.alert('Error', 'Failed to add item');
     } finally {
       setLoading(false);
@@ -46,8 +47,9 @@ const Firestore = () => {
     try {
       setLoading(true);
       await firestoreService.deleteDocument('items', id);
-      setItems(items.filter(item => item.id !== id));
+      setItems(prevItems => prevItems.filter(item => item.id !== id));
     } catch (error) {
+      console.error('Error deleting item:', error);
       Alert.alert('Error', 'Failed to delete item');
     } finally {
       setLoading(false);
@@ -94,7 +96,6 @@ const Firestore = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

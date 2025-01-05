@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.12",
+    "@google-cloud/firestore": "^6.0.0",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-firebase/app": "^21.6.2",
     "@react-native-firebase/auth": "^21.6.2",
