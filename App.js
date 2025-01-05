@@ -65,7 +65,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="Login"
+          initialRouteName="Home"
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Auth" component={Authentication} />
@@ -78,6 +78,7 @@ export default function App() {
           <Stack.Screen name="Browse" component={withNavBar(BrowseScreen)} />
           <Stack.Screen name="AsianProducts" component={withNavBar(AsianProducts)} />
           <Stack.Screen name="ProfessionalProducts" component={withNavBar(ProfessionalProducts)} />
+          <Stack.Screen name="SpareParts" component={withNavBar(SpareParts)} />
           <Stack.Screen name="ProductDetails" component={withNavBar(ProductDetails)} />
           <Stack.Screen name="ServiceForm" component={withNavBar(ServiceForm)} />
           <Stack.Screen name="EquipmentSales" component={withNavBar(EquipmentSales)} />
