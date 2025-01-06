@@ -314,7 +314,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
             <TouchableOpacity
               style={styles.ctaButton}
-              onPress={() => navigation.navigate("ChatBot")}
+              onPress={() => navigation.navigate("ChatWithBot")}
             >
               <Text style={styles.ctaButtonText}>Contact Us</Text>
               <Ionicons name="arrow-forward" size={16} color="#fff" />
