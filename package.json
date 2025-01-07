@@ -12,8 +12,12 @@
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
     "@expo/vector-icons": "^14.0.2",
+<<<<<<< HEAD
+    "@react-native-async-storage/async-storage": "1.23.1",
+=======
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/checkbox": "^0.5.17",
+>>>>>>> 036fb80f9f1ad0dd4d936b505a021a54cfba3fd6
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-community/netinfo": "^11.4.1",
