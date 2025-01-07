@@ -5,7 +5,8 @@ import {
   getAccountInformation, 
   updateUserDetails, 
   updateProfilePicture, 
-  removeProfilePicture
+  removeProfilePicture,
+
 } from '../controllers/userController.js';
 import { upload } from '../middleware/fileUpload.js';
 //import { authenticateUser } from '../middleware/authMiddleware.js';
@@ -30,6 +31,8 @@ router.get('/account-information', getAccountInformation);
 router.put('/update-details/:id', updateUserDetails);  // Changed this line
 router.post('/update-profile-picture/:id', upload.single('image'), updateProfilePicture);
 router.delete('/remove-profile-picture/:id', removeProfilePicture);
+
+
 
 export default router;
 
