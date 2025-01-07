@@ -1,36 +1,41 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import API_URL from '../backend/config/api';
+import { fetchUserProfile, logoutUser } from '../Services/userApi';
+import NetInfo from "@react-native-community/netinfo";
 
 const MyProfileScreen = () => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const fetchUserData = useCallback(async () => {
+    if (!isConnected) {
+      setError('No internet connection. Please check your network settings.');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-
-      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch user data');
-      }
-
-      const data = await response.json();
+      const data = await fetchUserProfile();
       setUserData(data);
-      await AsyncStorage.setItem('userData', JSON.stringify(data));
+      console.log('User data fetched successfully:', data);
     } catch (err) {
-      console.error('Error fetching user data:', err.message);
+      console.error('Error fetching user data:', err);
       setError(err.message);
       if (err.message === 'User ID not found') {
         Alert.alert(
@@ -42,7 +47,7 @@ const MyProfileScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigation]);
+  }, [navigation, isConnected]);
 
   useFocusEffect(
     useCallback(() => {
@@ -52,31 +57,16 @@ const MyProfileScreen = () => {
 
   const handleSignOut = async () => {
     try {
-      // Call the backend to invalidate the session
-      const response = await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Include any necessary credentials or tokens
-        // credentials: 'include', // If using cookies
-      });
-
-      if (!response.ok) {
-        throw new Error('Logout failed');
-      }
-
-      // Clear local storage
+      await logoutUser();
       await AsyncStorage.removeItem('userId');
       await AsyncStorage.removeItem('userData');
       
-      // Navigate to Login screen
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
       });
     } catch (err) {
-      console.error('Error signing out:', err.message);
+      console.error('Error signing out:', err);
       Alert.alert('Sign Out Failed', 'Please try again.');
     }
   };
@@ -126,7 +116,7 @@ const MyProfileScreen = () => {
         >
           <View style={styles.profileHeader}>
             <Image
-              source={userData && userData.avatar ? { uri: userData.avatar } : require('../assets/images/person.png')}
+              source={userData && userData.avatar ? { uri: userData.avatar } : require("../assets/images/person.png")}
               style={styles.avatar}
             />
             <Text style={styles.userName}>{userData ? userData.name : 'Luxe Customer/User'}</Text>

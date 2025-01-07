@@ -16,11 +16,7 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment';
-import API_URL from "../backend/config/api";
-import { auth } from '../FireBase/firebase.config';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login, register, forgotPassword, resetPassword, handleError, setAuthToken, logout } from "../Services/authApi";
 
 const { width } = Dimensions.get("window");
 
@@ -103,7 +99,6 @@ export default function AuthScreen({ navigation }) {
 
   // Validation functions
   const validateEmail = (email) => {
-    // Simple email regex for validation
     const re = /\S+@\S+\.\S+/;
     return re.test(email);
   };
@@ -155,7 +150,6 @@ export default function AuthScreen({ navigation }) {
   };
   
   const isValidPhoneNumber = (phoneNumber) => {
-    // Australian mobile number format (starting with '04' and 10 digits long)
     const australianMobileRegex = /^04\d{8}$/;
     return australianMobileRegex.test(phoneNumber);
   };
@@ -212,113 +206,40 @@ export default function AuthScreen({ navigation }) {
   const handleLogin = async () => {
     if (validateLogin()) {
       try {
-        // Firebase authentication
-        await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-        
-        // Backend authentication
-        const response = await axios.post(`${API_URL}/auth/login`, {
-          email: loginEmail,
-          password: loginPassword
-        });
-        
-        const { userId, user } = response.data;
-        
-        if (userId) {
-          // Store user ID in AsyncStorage
-          await AsyncStorage.setItem('userId', userId);
-          
-          // Store user data in AsyncStorage
-          await AsyncStorage.setItem('userData', JSON.stringify(user));
-          
-          // Navigate to Home screen
-          navigation.navigate("Home");
-          setLoginErrors({});
-        } else {
-          throw new Error('User ID not received from server');
-        }
+        const user = await login(loginEmail, loginPassword);
+        navigation.navigate("Home");
+        setLoginErrors({});
       } catch (error) {
-        console.error('Login error:', error);
-        let errorMessage = 'An unexpected error occurred. Please try again.';
-        
-        if (error.response && error.response.data && error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.code) {
-          switch (error.code) {
-            case 'auth/invalid-credential':
-              errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-              break;
-            case 'auth/user-not-found':
-              errorMessage = 'No user found with this email. Please check your email or sign up.';
-              break;
-            case 'auth/wrong-password':
-              errorMessage = 'Incorrect password. Please try again.';
-              break;
-            case 'auth/too-many-requests':
-              errorMessage = 'Too many unsuccessful login attempts. Please try again later or reset your password.';
-              break;
-            case 'auth/network-request-failed':
-              errorMessage = 'Network error. Please check your internet connection and try again.';
-              break;
-          }
-        }
-        
-        Alert.alert('Login Failed', errorMessage);
-        setLoginErrors({ general: errorMessage });
+        Alert.alert('Login Failed', error.message);
+        setLoginErrors({ general: error.message });
       }
     }
   };
-  
   
   
   const handleRegister = async () => {
     if (validateRegister()) {
       try {
-        // Backend registration
-        const response = await axios.post(`${API_URL}/auth/register`, {
+        const userData = {
           name: registerName,
           email: registerEmail,
           password: registerPassword,
           dateOfBirth: moment(registerDateOfBirth).format('YYYY-MM-DD'),
           phoneNumber: registerMobileNumber
-        });
-        
-        const { user } = response.data;
-        
-        // Store user data in AsyncStorage
-        if (user && user.id) {
-          await AsyncStorage.setItem('userId', user.id);
-          await AsyncStorage.setItem('userData', JSON.stringify(user));
-          
-          Alert.alert("Success", "Your account has been created.");
-          setActiveTab("Login");
-          setRegisterErrors({});
-        } else {
-          throw new Error('Incomplete user data received from server');
-        }
+        };
+        const user = await register(userData);
+        Alert.alert("Success", "Your account has been created.");
+        setActiveTab("Login");
+        setRegisterErrors({});
       } catch (error) {
-        console.error('Registration error:', error);
-        let errorMessage = 'An unexpected error occurred during registration. Please try again.';
-        
-        if (error.response && error.response.data) {
-          errorMessage = error.response.data.message || errorMessage;
-        }
-        
-        // Handle specific Firebase Auth errors
-        if (error.code === 'auth/email-already-in-use') {
-          errorMessage = 'This email is already in use. Please use a different email or try logging in.';
-        }
-        
-        Alert.alert('Registration Failed', errorMessage);
-        setRegisterErrors({ general: errorMessage });
+        Alert.alert('Registration Failed', error.message);
+        setRegisterErrors({ general: error.message });
       }
     }
   };
   
-
-
   
   
-
   const renderForgotPassword = () => {
     if (forgotPasswordStep === "EnterEmail") {
       return (
@@ -332,10 +253,16 @@ export default function AuthScreen({ navigation }) {
             value={forgotEmail}
             onChangeText={setForgotEmail}
             returnKeyType="done"
-            onSubmitEditing={() => {
+            onSubmitEditing={async () => {
               if (validateForgotEmail()) {
-                setForgotPasswordStep("VerifyCode");
-                setForgotErrors({});
+                try {
+                  await forgotPassword(forgotEmail);
+                  setForgotPasswordStep("VerifyCode");
+                  setForgotErrors({});
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                  setForgotErrors({ email: error.message });
+                }
               }
             }}
           />
@@ -344,10 +271,16 @@ export default function AuthScreen({ navigation }) {
           )}
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => {
+            onPress={async () => {
               if (validateForgotEmail()) {
-                setForgotPasswordStep("VerifyCode");
-                setForgotErrors({});
+                try {
+                  await forgotPassword(forgotEmail);
+                  setForgotPasswordStep("VerifyCode");
+                  setForgotErrors({});
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                  setForgotErrors({ email: error.message });
+                }
               }
             }}
           >
@@ -389,11 +322,16 @@ export default function AuthScreen({ navigation }) {
           </TouchableOpacity>
           <View style={styles.forgotFooterLinks}>
             <TouchableOpacity
-              onPress={() => {
-                Alert.alert(
-                  "Code Resent",
-                  "A new code has been sent to your email."
-                );
+              onPress={async () => {
+                try {
+                  await forgotPassword(forgotEmail);
+                  Alert.alert(
+                    "Code Resent",
+                    "A new code has been sent to your email."
+                  );
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                }
               }}
             >
               <Text style={styles.footerLink}>Send Code Again</Text>
@@ -426,11 +364,17 @@ export default function AuthScreen({ navigation }) {
             value={confirmNewPassword}
             onChangeText={setConfirmNewPassword}
             returnKeyType="done"
-            onSubmitEditing={() => {
+            onSubmitEditing={async () => {
               if (validateNewPassword()) {
-                Alert.alert("Success", "Your password has been reset.");
-                setActiveTab("Login");
-                setForgotErrors({});
+                try {
+                  await resetPassword(forgotEmail, forgotCode, newPassword);
+                  Alert.alert("Success", "Your password has been reset.");
+                  setActiveTab("Login");
+                  setForgotErrors({});
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                  setForgotErrors({ general: error.message });
+                }
               }
             }}
           />
@@ -441,11 +385,17 @@ export default function AuthScreen({ navigation }) {
           )}
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => {
+            onPress={async () => {
               if (validateNewPassword()) {
-                Alert.alert("Success", "Your password has been reset.");
-                setActiveTab("Login");
-                setForgotErrors({});
+                try {
+                  await resetPassword(forgotEmail, forgotCode, newPassword);
+                  Alert.alert("Success", "Your password has been reset.");
+                  setActiveTab("Login");
+                  setForgotErrors({});
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                  setForgotErrors({ general: error.message });
+                }
               }
             }}
           >
@@ -516,7 +466,7 @@ export default function AuthScreen({ navigation }) {
                   onPress={() => handleTabSwitch("Register")}
                   style={[
                     styles.tab,
-                    activeTab=== "Register" && styles.activeTab,
+                    activeTab === "Register" && styles.activeTab,
                   ]}
                 >
                   <Text
@@ -835,3 +785,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+

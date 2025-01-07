@@ -3,10 +3,9 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, SafeAreaView, S
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
-import API_URL from '../backend/config/api';
+import { fetchUserProfile, updateProfilePicture, removeProfilePicture } from '../Services/userApi';
 
 const EditPictureScreen = () => {
   const navigation = useNavigation();
@@ -16,18 +15,8 @@ const EditPictureScreen = () => {
   const fetchProfilePicture = useCallback(async () => {
     try {
       console.log('Fetching profile picture...');
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch user profile');
-      }
-      const data = await response.json();
-      console.log('Fetched user data:', data);
+      const data = await fetchUserProfile();
       if (data.avatar) {
-        // Ensure the avatar URL is absolute and remove any double slashes
         const avatarUrl = data.avatar.startsWith('http') 
           ? data.avatar.replace(/([^:]\/)\/+/g, "$1")
           : `${API_URL}${data.avatar}`.replace(/([^:]\/)\/+/g, "$1");
@@ -118,50 +107,9 @@ const EditPictureScreen = () => {
   const uploadImage = async (uri) => {
     console.log('Uploading image:', uri);
     
-    // Create proper file URI for iOS
-    const fileUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-    
-    const formData = new FormData();
-    formData.append('image', {
-      uri: fileUri,
-      type: 'image/jpeg',
-      name: 'profile_picture.jpg',
-    });
-
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-
-      console.log('Sending request to:', `${API_URL}/user/update-profile-picture/${userId}`);
-      const response = await fetch(`${API_URL}/user/update-profile-picture/${userId}`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('Response status:', response.status);
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (error) {
-        console.error('Error parsing response:', error);
-        throw new Error('Invalid response format from server');
-      }
-
+      const data = await updateProfilePicture(uri);
       if (data.avatar) {
-        // Ensure the avatar URL is absolute and remove any double slashes
         const avatarUrl = data.avatar.startsWith('http') 
           ? data.avatar.replace(/([^:]\/)\/+/g, "$1")
           : `${API_URL}${data.avatar}`.replace(/([^:]\/)\/+/g, "$1");
@@ -181,15 +129,7 @@ const EditPictureScreen = () => {
   const handleRemovePhoto = async () => {
     try {
       console.log('Removing profile picture...');
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-      const response = await fetch(`${API_URL}/user/remove-profile-picture/${userId}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-      console.log('Remove photo response:', data);
+      const data = await removeProfilePicture();
       if (data.success) {
         setImage(null);
         console.log('Profile picture removed successfully');

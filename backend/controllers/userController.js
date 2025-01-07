@@ -36,17 +36,19 @@ export const getUserById = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in getUserById:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
   }
 };
 
 export const getUserProfile = async (req, res) => {
   console.log('User profile requested');
   try {
-    const userId = req.params.id || req.user.id;
+    const userId = req.params.id || req.user?.id;
     if (!userId) {
+      console.log('User ID is missing in the request');
       return res.status(400).json({ message: 'User ID is required' });
     }
+    console.log('Fetching user data for ID:', userId);
     const userData = await userModel.getUserData(userId);
     if (userData) {
       console.log('User profile retrieved for ID:', userId);
@@ -57,16 +59,14 @@ export const getUserProfile = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in getUserProfile:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
   }
 };
 
 export const getAccountInformation = async (req, res) => {
   console.log('Account information requested');
   try {
-    // For testing purposes, we'll use a hardcoded user ID
-    // In production, this should come from the authenticated user's session
-    const userId = req.user ? req.user.id : 'testUserId';
+    const userId = req.user?.id || req.query.userId; // Allow query parameter for testing
     
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
@@ -88,7 +88,7 @@ export const getAccountInformation = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in getAccountInformation:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
   }
 };
 
@@ -99,23 +99,17 @@ export const updateUserDetails = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
     }
-    const { name, email, phoneNumber, dateOfBirth } = req.body;
+    const { name, dateOfBirth, phoneNumber, email } = req.body;
     
-    // Fetch the current user data
-    const currentUser = await userModel.getUserData(userId);
-    if (!currentUser) {
-      console.log('User not found for update, ID:', userId);
-      return res.status(404).json({ message: 'User not found' });
-    }
+    console.log('Updating user details:', { name, dateOfBirth, phoneNumber, email });
 
     // Prepare the update data
     const updateData = {
-      name: name || currentUser.name,
+      name,
       accountInfo: {
-        ...currentUser.accountInfo,
-        email: email || currentUser.accountInfo.email,
-        phoneNumber: phoneNumber || currentUser.accountInfo.phoneNumber,
-        dateOfBirth: dateOfBirth || currentUser.accountInfo.dateOfBirth
+        dateOfBirth,
+        phoneNumber,
+        email
       }
     };
 
@@ -129,6 +123,7 @@ export const updateUserDetails = async (req, res) => {
     res.status(500).json({ message: 'Error updating user details', error: error.message });
   }
 };
+
 
 
 export const updateProfilePicture = async (req, res) => {
@@ -162,11 +157,9 @@ export const updateProfilePicture = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in updateProfilePicture:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
   }
 };
-
-
 
 export const removeProfilePicture = async (req, res) => {
   console.log('Remove profile picture requested');
@@ -192,8 +185,28 @@ export const removeProfilePicture = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Server error', 
-      error: error.message 
+      error: error.message,
+      stack: error.stack
     });
   }
 };
+
+export const handleChangePassword = async (req, res) => {
+  try {
+    const { userId, currentPassword, newPassword } = req.body;
+    
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const result = await changeUserPassword(userId, currentPassword, newPassword);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error in handleChangePassword:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
+
 

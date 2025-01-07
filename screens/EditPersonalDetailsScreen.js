@@ -14,10 +14,9 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import API_URL from '../backend/config/api';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment';
+import { fetchUserProfile, updateUserDetails } from '../Services/userApi';
 
 const EditPersonalDetailsScreen = () => {
   const navigation = useNavigation();
@@ -25,8 +24,6 @@ const EditPersonalDetailsScreen = () => {
     name: "",
     dateOfBirth: "",
     phoneNumber: "",
-    email: "",
-    password: "********",
     avatar: null,
   });
   const [errors, setErrors] = useState({});
@@ -35,23 +32,11 @@ const EditPersonalDetailsScreen = () => {
 
   const fetchUserDetails = useCallback(async () => {
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-      console.log('Fetching user details from:', `${API_URL}/user/user-profile/${userId}`);
-      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('Received user details:', JSON.stringify(data, null, 2));
+      const data = await fetchUserProfile();
       setUserDetails({
         name: data.name || "",
         dateOfBirth: data.accountInfo?.dateOfBirth ? moment(data.accountInfo.dateOfBirth, 'YYYY-MM-DD').format('DD/MM/YYYY') : "",
         phoneNumber: data.accountInfo?.phoneNumber || "",
-        email: data.accountInfo?.email || "",
-        password: "********",
         avatar: data.avatar || null,
       });
     } catch (error) {
@@ -66,10 +51,9 @@ const EditPersonalDetailsScreen = () => {
     }, [fetchUserDetails])
   );
 
-  const InfoItem = ({ icon, label, field, value, isPassword, keyboardType, isDateOfBirth }) => {
+  const InfoItem = ({ icon, label, field, value, isDateOfBirth, keyboardType }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedValue, setEditedValue] = useState(value);
-    const [showPassword, setShowPassword] = useState(false);
 
     const handleEdit = () => {
       if (!isDateOfBirth) {
@@ -94,10 +78,6 @@ const EditPersonalDetailsScreen = () => {
       }
     };
 
-    const togglePasswordVisibility = () => {
-      setShowPassword(!showPassword);
-    };
-
     return (
       <View>
         <TouchableOpacity style={styles.infoItem} onPress={handlePress}>
@@ -105,28 +85,20 @@ const EditPersonalDetailsScreen = () => {
           <View style={styles.itemContent}>
             <Text style={styles.itemLabel}>{label}</Text>
             {isEditing ? (
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.itemInput, isPassword && { flex: 1 }]}
-                  value={editedValue}
-                  onChangeText={setEditedValue}
-                  onBlur={handleEdit}
-                  secureTextEntry={isPassword && !showPassword}
-                  keyboardType={keyboardType}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoFocus
-                  returnKeyType="done"
-                  onSubmitEditing={handleEdit}
-                />
-                {isPassword && (
-                  <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-                    <Icon name={showPassword ? "eye-off" : "eye"} size={20} color="#87CEEB" />
-                  </TouchableOpacity>
-                )}
-              </View>
+              <TextInput
+                style={styles.itemInput}
+                value={editedValue}
+                onChangeText={setEditedValue}
+                onBlur={handleEdit}
+                keyboardType={keyboardType}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleEdit}
+              />
             ) : (
-              <Text style={styles.itemValue}>{isPassword ? '********' : value}</Text>
+              <Text style={styles.itemValue}>{value}</Text>
             )}
           </View>
         </TouchableOpacity>
@@ -151,18 +123,17 @@ const EditPersonalDetailsScreen = () => {
   };
 
   const validateField = (field, value) => {
+    let error = '';
     switch (field) {
-      case 'email':
-        return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? 'Invalid email address' : '';
       case 'phoneNumber':
-        return !/^(?:\+61|0)[2-478](?:[ -]?[0-9]){8}$/.test(value) ? 'Invalid Australian phone number' : '';
-      case 'password':
-        return value.length < 8 ? 'Password must be at least 8 characters long' : '';
+        error = !/^(?:\+61|0)[2-478](?:[ -]?[0-9]){8}$/.test(value) ? 'Invalid Australian phone number' : '';
+        break;
       case 'dateOfBirth':
-        return !moment(value, 'DD/MM/YYYY', true).isValid() ? 'Invalid date format' : '';
-      default:
-        return '';
+        error = !moment(value, 'DD/MM/YYYY', true).isValid() ? 'Invalid date format' : '';
+        break;
     }
+    setErrors(prev => ({ ...prev, [field]: error }));
+    return error;
   };
 
   const handleSaveChanges = async () => {
@@ -185,41 +156,11 @@ const EditPersonalDetailsScreen = () => {
     }
 
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-
-      console.log('Sending user details:', JSON.stringify(userDetails, null, 2));
-      const response = await fetch(`${API_URL}/user/update-details/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...userDetails,
-          dateOfBirth: moment(userDetails.dateOfBirth, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-        }),
-      });
-
-      const responseText = await response.text();
-      console.log('Raw server response:', responseText);
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Error parsing JSON:', parseError);
-        console.error('Response status:', response.status);
-        console.error('Response headers:', JSON.stringify(response.headers, null, 2));
-        throw new Error(`Server responded with invalid JSON. Status: ${response.status}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-
-      console.log('User details updated successfully:', data);
+      const updatedDetails = {
+        ...userDetails,
+        dateOfBirth: moment(userDetails.dateOfBirth, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+      };
+      await updateUserDetails(updatedDetails);
       Alert.alert("Success", "Your details have been updated successfully!");
       navigation.goBack();
     } catch (error) {
@@ -228,11 +169,15 @@ const EditPersonalDetailsScreen = () => {
     }
   };
 
+  const handleChangePassword = () => {
+    navigation.navigate("ChangePassword");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={[styles.container, { backgroundColor: "#121212" }]}
+        style={styles.container}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <View style={styles.header}>
@@ -258,7 +203,6 @@ const EditPersonalDetailsScreen = () => {
               style={styles.avatar}
             />
             <View style={styles.editOverlay}>
-              <Icon name="pencil" size={24} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
 
@@ -284,21 +228,15 @@ const EditPersonalDetailsScreen = () => {
               value={userDetails.phoneNumber}
               keyboardType="phone-pad"
             />
-            <InfoItem
-              icon="email"
-              label="Email"
-              field="email"
-              value={userDetails.email}
-              keyboardType="email-address"
-            />
-            <InfoItem
-              icon="lock"
-              label="Password"
-              field="password"
-              value={userDetails.password}
-              isPassword={true}
-            />
           </View>
+
+          <TouchableOpacity
+            style={styles.changePasswordButton}
+            onPress={handleChangePassword}
+          >
+            <Icon name="lock" size={24} color="#87CEEB" style={styles.changePasswordIcon} />
+            <Text style={styles.changePasswordButtonText}>Change Password</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.saveButton}
@@ -378,7 +316,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
-    marginBottom: 0,
+    marginBottom: 20,
   },
   infoItem: {
     flexDirection: "row",
@@ -401,21 +339,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   itemInput: {
-    flex: 1,
     fontSize: 16,
     color: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#87CEEB",
     paddingVertical: 4,
   },
+  changePasswordButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 15,
+    borderRadius: 25,
+    marginBottom: 20,
+  },
+  changePasswordIcon: {
+    marginRight: 10,
+  },
+  changePasswordButtonText: {
+    color: "#87CEEB",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   saveButton: {
     backgroundColor: "#87CEEB",
-    marginTop: 20,
     padding: 15,
     borderRadius: 25,
     alignItems: "center",
@@ -425,14 +373,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  eyeIcon: {
-    padding: 10,
-  },
   errorText: {
     color: "#FF6B6B",
     fontSize: 12,
     marginTop: 4,
-    marginLeft: 39, // To align with the input text
+    marginLeft: 39,
   },
 });
 

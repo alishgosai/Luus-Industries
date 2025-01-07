@@ -44,10 +44,9 @@ export const findUserByEmail = async (email) => {
   } catch (error) {
     console.error('Error in findUserByEmail:', error);
     console.error('Error stack:', error.stack);
-    throw error;
+    throw new Error(`Failed to find user by email: ${error.message}`);
   }
 };
-
 
 export const createUser = async (name, email, password, dateOfBirth, phoneNumber, firebaseUid) => {
   try {
@@ -80,15 +79,13 @@ export const createUser = async (name, email, password, dateOfBirth, phoneNumber
     };
   } catch (error) {
     console.error('Error in createUser:', error);
-    throw error;
+    throw new Error(`Failed to create user: ${error.message}`);
   }
 };
 
-
-
-
 export const findUserById = async (id) => {
   try {
+    console.log('Searching for user with ID:', id);
     const userRef = db.collection('users').doc(id);
     const doc = await userRef.get();
     if (!doc.exists) {
@@ -98,7 +95,7 @@ export const findUserById = async (id) => {
     const userData = doc.data();
     console.log('User found by ID:', id);
     return new User(
-      userData.id,
+      doc.id,
       userData.name,
       userData.avatar,
       new AccountInfo(
@@ -110,15 +107,17 @@ export const findUserById = async (id) => {
     );
   } catch (error) {
     console.error('Error in findUserById:', error);
-    throw error;
+    throw new Error(`Failed to find user by ID: ${error.message}`);
   }
 };
 
 export const getUserData = async (userId) => {
   try {
     if (!userId) {
+      console.error('getUserData called with no userId');
       throw new Error('User ID is required');
     }
+    console.log('Attempting to fetch user data for ID:', userId);
     const userRef = db.collection('users').doc(userId);
     const doc = await userRef.get();
     if (!doc.exists) {
@@ -134,22 +133,24 @@ export const getUserData = async (userId) => {
     };
   } catch (error) {
     console.error('Error in getUserData:', error);
-    throw error;
+    throw new Error(`Failed to get user data: ${error.message}`);
   }
 };
 
-export const updateUserData = async (userId, { name, dateOfBirth, phoneNumber, email }) => {
+export const updateUserData = async (userId, updateData) => {
   try {
     if (!userId) {
       throw new Error('User ID is required');
     }
+    console.log('Updating user data for ID:', userId);
+    console.log('Update data:', updateData);
     const userRef = db.collection('users').doc(userId);
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (dateOfBirth) updateData['accountInfo.dateOfBirth'] = dateOfBirth;
-    if (phoneNumber) updateData['accountInfo.phoneNumber'] = phoneNumber;
-    if (email) updateData['accountInfo.email'] = email;
-    await userRef.update(updateData);
+    await userRef.update({
+      name: updateData.name,
+      'accountInfo.dateOfBirth': updateData.accountInfo.dateOfBirth,
+      'accountInfo.phoneNumber': updateData.accountInfo.phoneNumber,
+      'accountInfo.email': updateData.accountInfo.email
+    });
     const updatedDoc = await userRef.get();
     const updatedData = updatedDoc.data();
     console.log('User data updated for ID:', userId);
@@ -160,15 +161,18 @@ export const updateUserData = async (userId, { name, dateOfBirth, phoneNumber, e
     };
   } catch (error) {
     console.error('Error in updateUserData:', error);
-    throw error;
+    throw new Error(`Failed to update user data: ${error.message}`);
   }
 };
+
+
 
 export const updateUserAvatar = async (userId, imageUrl) => {
   try {
     if (!userId) {
       throw new Error('User ID is required');
     }
+    console.log('Updating user avatar for ID:', userId);
     const userRef = db.collection('users').doc(userId);
     await userRef.update({ avatar: imageUrl });
     const updatedDoc = await userRef.get();
@@ -181,7 +185,7 @@ export const updateUserAvatar = async (userId, imageUrl) => {
     };
   } catch (error) {
     console.error('Error in updateUserAvatar:', error);
-    throw error;
+    throw new Error(`Failed to update user avatar: ${error.message}`);
   }
 };
 
@@ -190,6 +194,7 @@ export const removeUserAvatar = async (userId) => {
     if (!userId) {
       throw new Error('User ID is required');
     }
+    console.log('Removing user avatar for ID:', userId);
     const userRef = db.collection('users').doc(userId);
     await userRef.update({ avatar: null });
     const updatedDoc = await userRef.get();
@@ -202,7 +207,69 @@ export const removeUserAvatar = async (userId) => {
     };
   } catch (error) {
     console.error('Error in removeUserAvatar:', error);
+    throw new Error(`Failed to remove user avatar: ${error.message}`);
+  }
+};
+
+export const changeUserPassword = async (userId, currentPassword, newPassword) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    console.log('Changing password for user ID:', userId);
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      console.log('User not found for ID:', userId);
+      throw new Error('User not found');
+    }
+
+    const userData = userDoc.data();
+    console.log('User data retrieved:', JSON.stringify(userData, null, 2));
+    console.log('Stored hashed password:', userData.accountInfo.password);
+    console.log('Provided current password:', currentPassword);
+    
+    console.log('Comparing passwords for user:', userId);
+    const isMatch = await bcrypt.compare(currentPassword, userData.accountInfo.password);
+    console.log('Password match result:', isMatch);
+    
+    if (!isMatch) {
+      console.log('Current password is incorrect for user:', userId);
+      throw new Error('Current password is incorrect');
+    }
+
+    console.log('Current password verified, hashing new password');
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await userRef.update({ 'accountInfo.password': hashedNewPassword });
+
+    console.log('Password changed successfully for user ID:', userId);
+    return { message: 'Password changed successfully' };
+  } catch (error) {
+    console.error('Error in changeUserPassword:', error);
     throw error;
+  }
+};
+
+
+
+export const logoutUser = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    console.log('Logging out user with ID:', userId);
+    const userRef = db.collection('users').doc(userId);
+    
+    // Here you might want to clear any session tokens or update the user's status
+    // For this example, we'll just log the logout action
+    await userRef.update({ lastLogout: new Date().toISOString() });
+    
+    console.log('User logged out successfully:', userId);
+    return { message: 'User logged out successfully' };
+  } catch (error) {
+    console.error('Error in logoutUser:', error);
+    throw new Error(`Failed to logout user: ${error.message}`);
   }
 };
 
