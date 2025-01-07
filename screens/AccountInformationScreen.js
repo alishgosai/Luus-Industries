@@ -2,8 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import API_URL from '../backend/config/api';
+import { fetchUserProfile } from '../Services/userApi';
 
 const AccountInformationScreen = () => {
   const navigation = useNavigation();
@@ -15,19 +14,7 @@ const AccountInformationScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-
-      console.log('Fetching account data...');
-      const response = await fetch(`${API_URL}/user/user-profile/${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch account information');
-      }
-
-      const data = await response.json();
-      console.log('Received account data:', data);
+      const data = await fetchUserProfile();
       setAccountData(data);
     } catch (err) {
       console.error('Error fetching account data:', err.message);

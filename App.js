@@ -39,6 +39,7 @@ import WebScreen from "./components/WebScreen";
 import DataManagement from './screens/DataManagement';
 
 import BottomNavBar from "./components/BottomNavBar";
+import ChangePasswordScreen from './screens/ChangePassword';
 
 const Stack = createStackNavigator();
 
@@ -90,6 +91,7 @@ export default function App() {
           <Stack.Screen name="EditPicture" component={withNavBar(EditPictureScreen)} />
           <Stack.Screen name="AccountInformation" component={withNavBar(AccountInformationScreen)} />
           <Stack.Screen name="EditPersonalDetails" component={withNavBar(EditPersonalDetailsScreen)} />
+          <Stack.Screen name="ChangePassword" component={withNavBar(ChangePasswordScreen)} />
           <Stack.Screen name="WarrantyAndProducts" component={withNavBar(WarrantyAndProductsScreen)} />
           <Stack.Screen name="HelpAndSupport" component={withNavBar(HelpAndSupportScreen)} />
           <Stack.Screen name="FAQs" component={withNavBar(FAQsScreen)} />
