@@ -25,7 +25,7 @@ const CLIENT_COUNT = 10;
 const TOTAL_CLIENTS_WIDTH =
   (CLIENT_IMAGE_SIZE + CLIENT_IMAGE_MARGIN_RIGHT) * CLIENT_COUNT;
 
-const ANIMATION_SPEED = 100; // Fixed animation speed in milliseconds
+const ANIMATION_SPEED = 90; // Fixed animation speed in milliseconds
 
 export default function HomeScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
