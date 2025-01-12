@@ -1,6 +1,6 @@
 
 
-const API_URL = 'http://192.168.71.238:3000'; // Make sure this is your correct server IP and port
+const API_URL = 'http://192.168.10.238:3000'; // Make sure this is your correct server IP and port
 
 
 
