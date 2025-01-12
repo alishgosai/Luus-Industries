@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import API_URL from '../backend/config/api';
+import { fetchChatHistory, sendChatMessage } from '../Services/chatApi';
 
 const AIChatComponent = ({ userId, initialMessage }) => {
   const [messages, setMessages] = useState(initialMessage ? [initialMessage] : []);
@@ -10,21 +10,16 @@ const AIChatComponent = ({ userId, initialMessage }) => {
 
   useEffect(() => {
     if (!initialMessage) {
-      fetchChatHistory();
+      fetchHistory();
     }
   }, [initialMessage]);
 
-  const fetchChatHistory = async () => {
+  const fetchHistory = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/chat/history/${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch chat history');
-      }
-      const data = await response.json();
+      const data = await fetchChatHistory(userId);
       if (data.length > 0) {
         setMessages(data);
       }
-      // If there's no chat history, we keep the initial welcome message (if any)
     } catch (error) {
       console.error('Error fetching chat history:', error);
       Alert.alert('Error', 'Failed to load chat history. Please try again.');
@@ -37,26 +32,17 @@ const AIChatComponent = ({ userId, initialMessage }) => {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          messages: [...messages, userMessage],
-          userId: userId
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      console.log('Sending message:', messageText);
+      const data = await sendChatMessage([...messages, userMessage], userId);
+      console.log('Received response:', data);
+      if (data && data.response) {
+        setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: data.response }]);
+      } else {
+        throw new Error('Invalid response from server');
       }
-
-      const data = await response.json();
-      setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: data.response }]);
     } catch (err) {
-      console.error('Error sending message:', err);
-      Alert.alert('Error', 'Failed to send message. Please try again.');
+      console.error('Error in sendMessage:', err);
+      Alert.alert('Error', `Failed to send message. Error: ${err.message}`);
     } finally {
       setIsTyping(false);
       setInput('');

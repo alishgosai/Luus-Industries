@@ -9,8 +9,8 @@ const db = getFirestore(app);
 import Authentication from './components/Authentication';
 
 // Import all screens
-import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
-import ScanScreen from "./screens/ScanScreen";
+//import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
+
 import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
@@ -21,7 +21,6 @@ import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 import EquipmentSales from "./screens/EquipmentSales";
 import TechnicalSupport from "./screens/TechnicalSupport";
-import QRScanner from "./screens/ScannerQR";
 import HomeQR from "./screens/HomeQR";
 import ProductInfo from "./screens/BeforeProductDetails";
 import SparePartsScreen from "./screens/SparePart";
@@ -61,6 +60,7 @@ export default function App() {
     console.log("Firebase initialized");
   }, []);
 
+
   return (
     <NavigationContainer>
       <SafeAreaProvider>
@@ -70,9 +70,8 @@ export default function App() {
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Auth" component={Authentication} />
-          <Stack.Screen name="ScanOrLoginScreen" component={ScanOrLoginScreen} />
-          <Stack.Screen name="Scan" component={ScanScreen} />
-          <Stack.Screen name="ScannerQR" component={QRScanner} />
+        
+        
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="BeforeProductDetails" component={ProductInfo} />
           <Stack.Screen name="Home" component={withNavBar(HomeScreen)} />

@@ -24,8 +24,8 @@
     "web": {
       "favicon": "./assets/images/favicon.png"
     },
-    "expo": {
     "plugins": [
+      "expo-router",
       [
         "expo-camera",
         {
@@ -38,7 +38,7 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
         }
       ]
-    ]
-  }
+    ],
+    "sdkVersion": "52.0.0"
   }
 }

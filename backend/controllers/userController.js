@@ -106,12 +106,13 @@ export const updateUserDetails = async (req, res) => {
     // Prepare the update data
     const updateData = {
       name,
-      accountInfo: {
-        dateOfBirth,
-        phoneNumber,
-        email
-      }
+      accountInfo: {}
     };
+
+    // Only include fields that are not undefined
+    if (dateOfBirth !== undefined) updateData.accountInfo.dateOfBirth = dateOfBirth;
+    if (phoneNumber !== undefined) updateData.accountInfo.phoneNumber = phoneNumber;
+    if (email !== undefined) updateData.accountInfo.email = email;
 
     // Update the user data
     const updatedUser = await userModel.updateUserData(userId, updateData);

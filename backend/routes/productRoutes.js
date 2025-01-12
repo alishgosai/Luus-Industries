@@ -1,14 +1,14 @@
 import express from 'express';
-import { 
-  getWarrantyProducts,
-  getWarrantyProductById,
-  handleQRCodeScan,
-} from '../controllers/productController.js';
+import ProductController from '../controllers/productController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/warranty-products', getWarrantyProducts);
-router.get('/warranty-products/:id', getWarrantyProductById);
-router.post('/qr-scan', handleQRCodeScan);
+router.use(authMiddleware);
+
+router.post('/scan-and-register', ProductController.scanAndRegisterProduct);
+router.get('/:productId', ProductController.getProductDetails);
+router.get('/user-products', ProductController.getUserProducts);
 
 export default router;
+

@@ -138,15 +138,19 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, phoneNumber, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+    if ((!email && !phoneNumber) || !password) {
+      return res.status(400).json({ message: 'Email/Phone and password are required' });
     }
 
     let user;
     try {
-      user = await userModel.findUserByEmail(email);
+      if (email) {
+        user = await userModel.findUserByEmail(email);
+      } else {
+        user = await userModel.findUserByPhoneNumber(phoneNumber);
+      }
     } catch (error) {
       console.error('Error finding user:', error);
       return res.status(500).json({ message: 'Error finding user', error: error.message });
@@ -171,6 +175,10 @@ export const login = async (req, res, next) => {
     res.status(500).json({ message: 'Error during login', error: error.message });
   }
 };
+
+
+
+
 
 export const changePassword = async (req, res) => {
   try {
@@ -200,7 +208,36 @@ export const changePassword = async (req, res) => {
   }
 };
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    // Implement forgot password logic here
+    // This might include:
+    // 1. Checking if the email exists in the database
+    // 2. Generating a password reset token
+    // 3. Sending an email with the reset link/token
 
+    res.status(200).json({ message: 'Password reset email sent successfully' });
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    res.status(500).json({ message: 'Error processing forgot password request', error: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    // Implement reset password logic here
+    // This might include:
+    // 1. Verifying the reset token/code
+    // 2. Updating the user's password in the database
+
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Error in resetPassword:', error);
+    res.status(500).json({ message: 'Error resetting password', error: error.message });
+  }
+};
 
 
 export const logoutUser = async (req, res, next) => {
