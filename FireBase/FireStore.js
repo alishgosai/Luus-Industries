@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-import { firestoreService } from '../Services/FireStoreService';
+import { firestoreService } from './FireStoreService.js';
 
 const Firestore = () => {
   const [items, setItems] = useState([]);

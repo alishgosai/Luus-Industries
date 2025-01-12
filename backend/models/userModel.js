@@ -48,6 +48,34 @@ export const findUserByEmail = async (email) => {
   }
 };
 
+export const findUserByPhoneNumber = async (phoneNumber) => {
+  try {
+    console.log('Searching for user with phone number:', phoneNumber);
+    const usersRef = db.collection('users');
+    
+    const snapshot = await usersRef.where('accountInfo.phoneNumber', '==', phoneNumber).limit(1).get();
+
+    if (snapshot.empty) {
+      console.log('No user found with phone number:', phoneNumber);
+      return null;
+    }
+
+    const userData = snapshot.docs[0].data();
+    console.log('User found:', snapshot.docs[0].id);
+    
+    return {
+      id: snapshot.docs[0].id,
+      ...userData
+    };
+  } catch (error) {
+    console.error('Error in findUserByPhoneNumber:', error);
+    throw new Error(`Failed to find user by phone number: ${error.message}`);
+  }
+};
+
+
+
+
 export const createUser = async (name, email, password, dateOfBirth, phoneNumber, firebaseUid) => {
   try {
     console.log('Creating new user with email:', email);
@@ -145,12 +173,18 @@ export const updateUserData = async (userId, updateData) => {
     console.log('Updating user data for ID:', userId);
     console.log('Update data:', updateData);
     const userRef = db.collection('users').doc(userId);
-    await userRef.update({
-      name: updateData.name,
-      'accountInfo.dateOfBirth': updateData.accountInfo.dateOfBirth,
-      'accountInfo.phoneNumber': updateData.accountInfo.phoneNumber,
-      'accountInfo.email': updateData.accountInfo.email
-    });
+    
+    const updateObject = { name: updateData.name };
+    
+    // Only update accountInfo fields that are provided
+    if (Object.keys(updateData.accountInfo).length > 0) {
+      Object.keys(updateData.accountInfo).forEach(key => {
+        updateObject[`accountInfo.${key}`] = updateData.accountInfo[key];
+      });
+    }
+    
+    await userRef.update(updateObject);
+    
     const updatedDoc = await userRef.get();
     const updatedData = updatedDoc.data();
     console.log('User data updated for ID:', userId);
@@ -164,6 +198,7 @@ export const updateUserData = async (userId, updateData) => {
     throw new Error(`Failed to update user data: ${error.message}`);
   }
 };
+
 
 
 

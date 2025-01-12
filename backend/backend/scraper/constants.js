@@ -15,6 +15,5 @@ export const PRODUCT_STRUCTURE = {
   dimensions: '',
   category: '',
   subcategory: '',
-  scrapedAt: ''
 };
 
