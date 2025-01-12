@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 110,
+    bottom: 40,
     alignSelf: 'center',
   },
   shutterButtonInner: {
