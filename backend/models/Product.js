@@ -1,104 +1,129 @@
-class Product {
-    constructor(id, name, date, warranty, details, serialNumber, purchaseLocation, coverageDetails, termsAndConditions) {
-      this.id = id;
-      this.name = name;
-      this.date = date;
-      this.warranty = warranty;
-      this.details = details;
-      this.serialNumber = serialNumber;
-      this.purchaseLocation = purchaseLocation;
-      this.coverageDetails = coverageDetails;
-      this.termsAndConditions = termsAndConditions;
-    }
+import { db } from '../services/firebaseAdmin.js';
+
+const PRODUCTS_COLLECTION = 'products';
+const USER_PRODUCTS_COLLECTION = 'userProducts';
+const USERS_COLLECTION = 'users';
+
+export async function scanAndRegisterProduct(productData, userId) {
+  console.log(`Attempting to scan and register product. Product Data: ${JSON.stringify(productData)}, User ID: ${userId}`);
+
+  if (!productData || !userId) {
+    throw new Error('Invalid product data or user ID');
   }
-  
-  const warrantyProducts = [
-    new Product(
-      1, 
-      'RS 600MM Oven', 
-      '10 December 2023', 
-      '10 Dec 2028', 
-      'Includes coverage for manufacturing defects.',
-      'RS600-123456',
-      'Luxe Appliances Store, Sydney',
-      [
-        'Full replacement for first 2 years',
-        'Parts and labor covered for 5 years',
-        'Extended warranty available for purchase'
-      ],
-      'Warranty void if product is misused or modified.'
-    ),
-    new Product(
-      2, 
-      'SCM-120 Steam Cabinet', 
-      '10 December 2023', 
-      '10 Dec 2028', 
-      'Includes coverage for manufacturing defects.',
-      'SCM120-789012',
-      'Luxe Appliances Store, Melbourne',
-      [
-        'Full replacement for first year',
-        'Parts and labor covered for 5 years',
-        'Steam generator warranty: 2 years'
-      ],
-      'Regular maintenance required to maintain warranty validity.'
-    ),
-    new Product(
-      3, 
-      'SCM-60 Steam Cabinet', 
-      '10 December 2023', 
-      '10 Dec 2028', 
-      'Includes coverage for manufacturing defects.',
-      'SCM60-345678',
-      'Luxe Appliances Store, Brisbane',
-      [
-        'Full replacement for first year',
-        'Parts and labor covered for 5 years',
-        'Steam generator warranty: 2 years'
-      ],
-      'Warranty valid only with proof of annual professional servicing.'
-    ),
-    new Product(
-      4, 
-      'YC 750mm Yum Cha Steamers', 
-      '10 December 2023', 
-      '10 Dec 2028', 
-      'Includes coverage for manufacturing defects.',
-      'YC750-901234',
-      'Luxe Appliances Store, Perth',
-      [
-        'Full replacement for first 18 months',
-        'Parts and labor covered for 5 years',
-        'Steamer baskets warranty: 1 year'
-      ],
-      'Commercial use may affect warranty terms.'
-    ),
-    new Product(
-      5, 
-      'RC 450mm Rice Roll Steamers', 
-      '10 December 2023', 
-      '10 Dec 2028', 
-      'Includes coverage for manufacturing defects.',
-      'RC450-567890',
-      'Luxe Appliances Store, Adelaide',
-      [
-        'Full replacement for first year',
-        'Parts and labor covered for 5 years',
-        'Steamer trays warranty: 6 months'
-      ],
-      'Warranty does not cover damage from improper cleaning methods.'
-    ),
-  ];
-  
-  export const getWarrantyProductsData = () => {
-    return [...warrantyProducts];
-  };
-  
-  export const getWarrantyProductData = (id) => {
-    const product = warrantyProducts.find(product => product.id === id);
-    return product ? { ...product } : null;
-  };
-  
-  export default Product;
-  
-  
+
+  let productId, model;
+
+  if (typeof productData === 'string' && productData.startsWith('PROD_')) {
+    productId = productData;
+    model = null; // We'll need to fetch the model from the database
+  } else if (typeof productData === 'object' && productData.product_id && productData.model) {
+    productId = productData.product_id;
+    model = productData.model;
+  } else {
+    throw new Error('Invalid product data format');
+  }
+
+  try {
+    // Find the product (read-only operation, allowed by rules)
+    let productQuery = db.collection(PRODUCTS_COLLECTION).where('product_id', '==', productId);
+    
+    if (model) {
+      productQuery = productQuery.where('model', '==', model);
+    }
+
+    const productSnapshot = await productQuery.limit(1).get();
+
+    if (productSnapshot.empty) {
+      throw new Error(`Scanned product does not exist in the database. Product ID: ${productId}`);
+    }
+
+    const productDoc = productSnapshot.docs[0];
+    const productData = productDoc.data();
+
+    // Check if user exists
+    const userDoc = await db.collection(USERS_COLLECTION).doc(userId).get();
+    if (!userDoc.exists) {
+      throw new Error('User not found');
+    }
+
+    // Check if the product is already registered to the user
+    const existingUserProductQuery = await db.collection(USER_PRODUCTS_COLLECTION)
+      .where('userId', '==', userId)
+      .where('productId', '==', productDoc.id)
+      .limit(1)
+      .get();
+
+    if (!existingUserProductQuery.empty) {
+      throw new Error('Product already registered to this user');
+    }
+
+    // Create a new document in the userProducts collection (allowed by rules)
+    const userProductRef = db.collection(USER_PRODUCTS_COLLECTION).doc();
+    await userProductRef.set({
+      userId: userId,
+      productId: productDoc.id,
+      registeredAt: new Date(),
+      productName: productData.name,
+      productModel: productData.model,
+    });
+
+    console.log(`Product registered to user. User Product ID: ${userProductRef.id}, User ID: ${userId}`);
+
+    return {
+      id: userProductRef.id,
+      productId: productDoc.id,
+      ...productData,
+      registeredBy: userId,
+      registeredAt: new Date()
+    };
+
+  } catch (error) {
+    console.error('Error in scanAndRegisterProduct:', error);
+    throw error;
+  }
+}
+
+export async function getProductDetails(productId) {
+  try {
+    const productDoc = await db.collection(PRODUCTS_COLLECTION).doc(productId).get();
+    if (!productDoc.exists) {
+      throw new Error('Product not found');
+    }
+    return { id: productDoc.id, ...productDoc.data() };
+  } catch (error) {
+    console.error('Error in getProductDetails:', error);
+    throw error;
+  }
+}
+
+export async function getUserProducts(userId) {
+  try {
+    const userProductsQuery = db.collection(USER_PRODUCTS_COLLECTION)
+      .where('userId', '==', userId);
+    const userProductsSnapshot = await userProductsQuery.get();
+
+    const userProducts = [];
+    for (const doc of userProductsSnapshot.docs) {
+      const userProductData = doc.data();
+      const productDoc = await db.collection(PRODUCTS_COLLECTION).doc(userProductData.productId).get();
+      if (productDoc.exists) {
+        userProducts.push({
+          userProductId: doc.id,
+          ...userProductData,
+          productDetails: productDoc.data()
+        });
+      }
+    }
+
+    return userProducts;
+  } catch (error) {
+    console.error('Error in getUserProducts:', error);
+    throw error;
+  }
+}
+
+export default {
+  scanAndRegisterProduct,
+  getProductDetails,
+  getUserProducts
+};

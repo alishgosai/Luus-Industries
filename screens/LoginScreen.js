@@ -16,7 +16,8 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment';
-import { login, register, forgotPassword, resetPassword, handleError, setAuthToken, logout } from "../Services/authApi";
+import { Feather } from '@expo/vector-icons';
+import { login, register, forgotPassword, resetPassword } from "../Services/authApi";
 
 const { width } = Dimensions.get("window");
 
@@ -25,7 +26,7 @@ export default function AuthScreen({ navigation }) {
   const [forgotPasswordStep, setForgotPasswordStep] = useState("EnterEmail");
 
   // Input states for Login
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginErrors, setLoginErrors] = useState({});
 
@@ -38,8 +39,8 @@ export default function AuthScreen({ navigation }) {
   const [registerErrors, setRegisterErrors] = useState({});
 
   // Date picker states
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [registerDateOfBirth, setRegisterDateOfBirth] = useState(new Date());
+  const [registerDateOfBirth, setRegisterDateOfBirth] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
   // Input states for Forgot Password
   const [forgotEmail, setForgotEmail] = useState("");
@@ -48,14 +49,18 @@ export default function AuthScreen({ navigation }) {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [forgotErrors, setForgotErrors] = useState({});
 
+  // Password visibility state
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   // Refs for TextInput components
-  const emailInput = useRef(null);
+  const identifierInput = useRef(null);
   const passwordInput = useRef(null);
   const nameInput = useRef(null);
   const mobileNumberInput = useRef(null);
   const registerEmailInput = useRef(null);
   const registerPasswordInput = useRef(null);
   const registerConfirmPasswordInput = useRef(null);
+  const confirmNewPasswordInput = useRef(null);
 
   // Reset forgotPasswordStep when switching to ForgotPassword tab
   useEffect(() => {
@@ -105,10 +110,8 @@ export default function AuthScreen({ navigation }) {
 
   const validateLogin = () => {
     const errors = {};
-    if (!loginEmail) {
-      errors.email = "Email is required";
-    } else if (!validateEmail(loginEmail)) {
-      errors.email = "Invalid email format";
+    if (!loginIdentifier) {
+      errors.identifier = "Email or Mobile Number is required";
     }
     if (!loginPassword) {
       errors.password = "Password is required";
@@ -142,13 +145,15 @@ export default function AuthScreen({ navigation }) {
     } else if (!isValidPhoneNumber(registerMobileNumber)) {
       errors.mobileNumber = "Invalid mobile number format. Please enter a valid Australian mobile number (e.g., 0412345678)";
     }
-    if (!moment(registerDateOfBirth).isValid()) {
+    if (!registerDateOfBirth) {
+      errors.dateOfBirth = "Date of birth is required";
+    } else if (!moment(registerDateOfBirth).isValid()) {
       errors.dateOfBirth = "Invalid date of birth";
     }
     setRegisterErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
+
   const isValidPhoneNumber = (phoneNumber) => {
     const australianMobileRegex = /^04\d{8}$/;
     return australianMobileRegex.test(phoneNumber);
@@ -191,11 +196,11 @@ export default function AuthScreen({ navigation }) {
   };
 
   const showDatePicker = () => {
-    setDatePickerVisibility(true);
+    setDatePickerVisible(true);
   };
 
   const hideDatePicker = () => {
-    setDatePickerVisibility(false);
+    setDatePickerVisible(false);
   };
 
   const handleConfirm = (date) => {
@@ -206,7 +211,7 @@ export default function AuthScreen({ navigation }) {
   const handleLogin = async () => {
     if (validateLogin()) {
       try {
-        const user = await login(loginEmail, loginPassword);
+        const user = await login(loginIdentifier, loginPassword);
         navigation.navigate("Home");
         setLoginErrors({});
       } catch (error) {
@@ -215,8 +220,7 @@ export default function AuthScreen({ navigation }) {
       }
     }
   };
-  
-  
+
   const handleRegister = async () => {
     if (validateRegister()) {
       try {
@@ -237,13 +241,12 @@ export default function AuthScreen({ navigation }) {
       }
     }
   };
-  
-  
-  
+
   const renderForgotPassword = () => {
     if (forgotPasswordStep === "EnterEmail") {
       return (
         <>
+          <Text style={styles.forgotPasswordTitle}>Forgot Password</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter Email"
@@ -286,11 +289,17 @@ export default function AuthScreen({ navigation }) {
           >
             <Text style={styles.actionButtonText}>Send Code</Text>
           </TouchableOpacity>
+          <View style={styles.forgotFooterLinks}>
+            <TouchableOpacity onPress={() => setActiveTab("Login")}>
+              <Text style={styles.footerLink}>Back to Login</Text>
+            </TouchableOpacity>
+          </View>
         </>
       );
     } else if (forgotPasswordStep === "VerifyCode") {
       return (
         <>
+          <Text style={styles.forgotPasswordTitle}>Verify Code</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter Code"
@@ -342,6 +351,7 @@ export default function AuthScreen({ navigation }) {
     } else if (forgotPasswordStep === "SetNewPassword") {
       return (
         <>
+          <Text style={styles.forgotPasswordTitle}>Set New Password</Text>
           <TextInput
             style={styles.input}
             placeholder="New Password"
@@ -355,29 +365,37 @@ export default function AuthScreen({ navigation }) {
           {forgotErrors.newPassword && (
             <Text style={styles.errorText}>{forgotErrors.newPassword}</Text>
           )}
-          <TextInput
-            ref={confirmNewPasswordInput}
-            style={styles.input}
-            placeholder="Confirm Password"
-            placeholderTextColor="#888"
-            secureTextEntry
-            value={confirmNewPassword}
-            onChangeText={setConfirmNewPassword}
-            returnKeyType="done"
-            onSubmitEditing={async () => {
-              if (validateNewPassword()) {
-                try {
-                  await resetPassword(forgotEmail, forgotCode, newPassword);
-                  Alert.alert("Success", "Your password has been reset.");
-                  setActiveTab("Login");
-                  setForgotErrors({});
-                } catch (error) {
-                  Alert.alert('Error', error.message);
-                  setForgotErrors({ general: error.message });
+          <View style={styles.passwordContainer}>
+            <TextInput
+              ref={confirmNewPasswordInput}
+              style={styles.passwordInput}
+              placeholder="Confirm New Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmNewPassword}
+              onChangeText={setConfirmNewPassword}
+              returnKeyType="done"
+              onSubmitEditing={async () => {
+                if (validateNewPassword()) {
+                  try {
+                    await resetPassword(forgotEmail, forgotCode, newPassword);
+                    Alert.alert("Success", "Your password has been reset.");
+                    setActiveTab("Login");
+                    setForgotErrors({});
+                  } catch (error) {
+                    Alert.alert('Error', error.message);
+                    setForgotErrors({ general: error.message });
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <Feather name={showConfirmPassword ? "eye" : "eye-off"} size={24} color="#888" />
+            </TouchableOpacity>
+          </View>
           {forgotErrors.confirmNewPassword && (
             <Text style={styles.errorText}>
               {forgotErrors.confirmNewPassword}
@@ -401,15 +419,6 @@ export default function AuthScreen({ navigation }) {
           >
             <Text style={styles.actionButtonText}>Submit</Text>
           </TouchableOpacity>
-          <View style={styles.forgotFooterLinks}>
-            <TouchableOpacity
-              onPress={() => {
-                setActiveTab("Login");
-              }}
-            >
-              <Text style={styles.footerLink}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
         </>
       );
     }
@@ -486,20 +495,20 @@ export default function AuthScreen({ navigation }) {
               {activeTab === "Login" && (
                 <>
                   <TextInput
-                    ref={emailInput}
+                    ref={identifierInput}
                     style={styles.input}
-                    placeholder="Email"
+                    placeholder="Email or Mobile Number"
                     placeholderTextColor="#888"
-                    keyboardType="email-address"
+                    keyboardType="default"
                     autoCapitalize="none"
-                    value={loginEmail}
-                    onChangeText={setLoginEmail}
+                    value={loginIdentifier}
+                    onChangeText={setLoginIdentifier}
                     returnKeyType="next"
                     onSubmitEditing={() => passwordInput.current.focus()}
                     blurOnSubmit={false}
                   />
-                  {loginErrors.email && (
-                    <Text style={styles.errorText}>{loginErrors.email}</Text>
+                  {loginErrors.identifier && (
+                    <Text style={styles.errorText}>{loginErrors.identifier}</Text>
                   )}
                   <TextInput
                     ref={passwordInput}
@@ -591,8 +600,8 @@ export default function AuthScreen({ navigation }) {
                     style={styles.input}
                     onPress={showDatePicker}
                   >
-                    <Text style={styles.datePickerText}>
-                      {moment(registerDateOfBirth).format('DD/MM/YYYY')}
+                    <Text style={[styles.datePickerText, !registerDateOfBirth && styles.placeholderText]}>
+                      {registerDateOfBirth ? moment(registerDateOfBirth).format('DD/MM/YYYY') : 'Date of Birth'}
                     </Text>
                   </TouchableOpacity>
                   <DateTimePickerModal
@@ -601,6 +610,7 @@ export default function AuthScreen({ navigation }) {
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                     maximumDate={new Date()}
+                    date={new Date()}
                   />
                   {registerErrors.dateOfBirth && (
                     <Text style={styles.errorText}>{registerErrors.dateOfBirth}</Text>
@@ -622,17 +632,25 @@ export default function AuthScreen({ navigation }) {
                       {registerErrors.password}
                     </Text>
                   )}
-                  <TextInput
-                    ref={registerConfirmPasswordInput}
-                    style={styles.input}
-                    placeholder="Confirm Password"
-                    placeholderTextColor="#888"
-                    secureTextEntry
-                    value={registerConfirmPassword}
-                    onChangeText={setRegisterConfirmPassword}
-                    returnKeyType="done"
-                    onSubmitEditing={handleRegister}
-                  />
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      ref={registerConfirmPasswordInput}
+                      style={styles.passwordInput}
+                      placeholder="Confirm Password"
+                      placeholderTextColor="#888"
+                      secureTextEntry={!showConfirmPassword}
+                      value={registerConfirmPassword}
+                      onChangeText={setRegisterConfirmPassword}
+                      returnKeyType="done"
+                      onSubmitEditing={handleRegister}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeIcon}
+                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      <Feather name={showConfirmPassword ? "eye" : "eye-off"} size={24} color="#888" />
+                    </TouchableOpacity>
+                  </View>
                   {registerErrors.confirmPassword && (
                     <Text style={styles.errorText}>
                       {registerErrors.confirmPassword}
@@ -783,6 +801,35 @@ const styles = StyleSheet.create({
   datePickerText: {
     color: '#fff',
     fontSize: 16,
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#888',
+  },
+  forgotPasswordTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#00bfff",
+    marginBottom: 20,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: "#888",
+    borderRadius: 8,
+    marginBottom: 15,
+    backgroundColor: "#111",
+  },
+  passwordInput: {
+    flex: 1,
+    color: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+  },
+  eyeIcon: {
+    padding: 10,
   },
 });
 

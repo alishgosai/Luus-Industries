@@ -1,56 +1,120 @@
-import { getWarrantyProductsData, getWarrantyProductData } from '../models/Product.js';
+import { scanAndRegisterProduct, getProductDetails, getUserProducts } from '../models/Product.js';
 
-export const getWarrantyProducts = (req, res) => {
-  console.log('Warranty products requested');
-  try {
-    const warrantyProducts = getWarrantyProductsData();
-    res.json(warrantyProducts);
-  } catch (error) {
-    console.error('Error in get-warranty-products:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
-  }
-};
+const ProductController = {
+  scanAndRegisterProduct: async (req, res) => {
+    console.log('Raw request body:', req.body);
+    try {
+      const { qrCodeData } = req.body;
+      
+      if (!qrCodeData) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid QR code data. Please try scanning again.',
+          scannedCode: req.body.qrCodeData
+        });
+      }
 
-export const getWarrantyProductById = (req, res) => {
-  console.log('Warranty product requested by ID:', req.params.id);
-  try {
-    const productId = parseInt(req.params.id);
-    if (isNaN(productId)) {
-      console.error('Invalid product ID:', req.params.id);
-      return res.status(400).json({ success: false, message: 'Invalid product ID' });
-    }
-    const product = getWarrantyProductData(productId);
-    if (product) {
-      console.log('Product found:', product);
-      res.json(product);
-    } else {
-      console.error('Product not found for ID:', productId);
-      res.status(404).json({ success: false, message: 'Product not found' });
-    }
-  } catch (error) {
-    console.error('Error in get-warranty-product-by-id:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
-  }
-};
+      const userId = req.user.id;
+      console.log('Processing scan request:', { qrCodeData, userId: userId });
 
-export const handleQRCodeScan = (req, res) => {
-  console.log('QR code scan received:', req.body.qrData);
-  try {
-    const productId = parseInt(req.body.qrData);
-    if (isNaN(productId)) {
-      console.error('Invalid QR code data:', req.body.qrData);
-      return res.status(400).json({ success: false, message: 'Invalid QR code data' });
+      const result = await scanAndRegisterProduct(qrCodeData, userId);
+      console.log('Scan and register result:', result);
+      
+      res.json({ 
+        success: true, 
+        product: result,
+        message: 'Product successfully registered',
+        scannedCode: qrCodeData
+      });
+    } catch (error) {
+      console.error('Error in scanAndRegisterProduct:', error);
+      let errorMessage = 'An unexpected error occurred';
+      let statusCode = 500;
+
+      if (error.message.startsWith('Scanned product does not exist in the database')) {
+        errorMessage = `Product not found in the database. Please check the QR code and try again. (Scanned: ${req.body.qrCodeData})`;
+        statusCode = 404;
+      } else if (error.message === 'User ID is required') {
+        errorMessage = 'User ID is required.';
+        statusCode = 400;
+      } else if (error.message === 'User not found') {
+        errorMessage = 'User not found. Please log in again.';
+        statusCode = 404;
+      } else if (error.message === 'Product already registered to this user') {
+        errorMessage = 'This product is already registered to your account.';
+        statusCode = 409;
+      } else if (error.message === 'Invalid product data format') {
+        errorMessage = 'Invalid QR code format. Please try scanning again.';
+        statusCode = 400;
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage,
+        details: error.stack,
+        scannedCode: req.body.qrCodeData
+      });
     }
-    const product = getWarrantyProductData(productId);
-    if (product) {
-      console.log('Product found for QR code:', product);
+  },
+
+  getProductDetails: async (req, res) => {
+    console.log('Received request for product details:', req.params);
+    try {
+      const { productId } = req.params;
+      if (!productId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Product ID is required'
+        });
+      }
+      console.log('Fetching product details for productId:', productId);
+      const product = await getProductDetails(productId);
+      console.log('Product details retrieved:', JSON.stringify(product, null, 2));
       res.json({ success: true, product });
-    } else {
-      console.error('Product not found for QR code:', productId);
-      res.status(404).json({ success: false, message: 'Product not found for this QR code' });
+    } catch (error) {
+      console.error('Error in getProductDetails:', error);
+      let statusCode = 500;
+      let errorMessage = 'An unexpected error occurred';
+
+      if (error.message === 'Product not found') {
+        statusCode = 404;
+        errorMessage = 'Product not found in the database';
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
     }
-  } catch (error) {
-    console.error('Error in handle-qr-code-scan:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  },
+
+  getUserProducts: async (req, res) => {
+    console.log('Received request for user products');
+    try {
+      const userId = req.user.id;
+      const products = await getUserProducts(userId);
+      res.json({ 
+        success: true, 
+        products,
+        count: products.length
+      });
+    } catch (error) {
+      console.error('Error in getUserProducts:', error);
+      let statusCode = 500;
+      let errorMessage = 'An unexpected error occurred';
+
+      if (error.message === 'User not found') {
+        statusCode = 404;
+        errorMessage = 'User not found. Please log in again.';
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
+    }
   }
 };
+
+export default ProductController;
+

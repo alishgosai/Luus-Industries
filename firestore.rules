@@ -2,7 +2,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
+    }
+
+    // Products collection
+    match /products/{productId} {
+      // Allow read access to authenticated users
+      allow read: if isAuthenticated();
+      // Optionally, you can add a write rule if needed
+      // allow write: if isAuthenticated() && <additional conditions>;
+    }
+
+    // User Products collection
+    match /userProducts/{userProductId} {
+      // Allow read access to authenticated users, but only for their own products
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      // Allow creation of new user product registrations
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+       allow create: if isAuthenticated() 
+                && request.auth.uid == request.resource.data.userId
+                && !exists(/databases/$(database)/documents/userProducts/$(request.resource.data.productId + '_' + request.auth.uid));
     }
   }
 }

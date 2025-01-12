@@ -12,8 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { sendChatOpenEvent } from '../Services/chatApi';
 import AIChatComponent from '../components/AIChatComponent';
-import API_URL from '../backend/config/api';
 
 const ChatWithBot = ({ navigation }) => {
   const phoneNumber = '+61 0392406822';
@@ -22,27 +22,12 @@ const ChatWithBot = ({ navigation }) => {
   const [initialMessage, setInitialMessage] = useState(null);
 
   useEffect(() => {
-    sendChatOpenEvent();
+    initializeChat();
   }, []);
 
-  const sendChatOpenEvent = async () => {
+  const initializeChat = async () => {
     try {
-      console.log('Sending chat open event to:', `${API_URL}/api/chat`);
-      const response = await fetch(`${API_URL}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId, messages: [], isOpenEvent: true }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to send chat open event to backend: ${response.status} ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('Chat open event sent successfully:', data);
+      const data = await sendChatOpenEvent(userId);
       setInitialMessage({
         role: 'assistant',
         content: data.response,
@@ -56,7 +41,6 @@ const ChatWithBot = ({ navigation }) => {
       });
       setIsInitialized(true);
     } catch (error) {
-      console.error('Error sending chat open event:', error);
       Alert.alert('Error', 'Failed to initialize chat. Please try again.');
     }
   };
@@ -88,7 +72,7 @@ const ChatWithBot = ({ navigation }) => {
         >
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>LuusBot Assistant</Text>
+        <Text style={styles.headerTitle}>LuusBot</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleCallPress}>
           <Ionicons name="call-outline" size={24} color="#000" />
         </TouchableOpacity>
@@ -154,3 +138,4 @@ const styles = StyleSheet.create({
 });
 
 export default ChatWithBot;
+

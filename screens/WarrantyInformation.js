@@ -1,59 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, SafeAreaView } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import API_URL from '../backend/config/api';
+import { fetchProductDetails } from '../Services/productApi';
+import { useRoute } from '@react-navigation/native';
 
-export default function WarrantyInformation({ navigation, route }) {
-    const { productId } = route.params;
+export default function WarrantyInformation({ navigation }) {
+    const route = useRoute();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        const productId = route.params?.productId;
         if (productId) {
-            fetchProductDetails();
+            console.log('Fetching product details for ID:', productId);
+            fetchProductData(productId);
         } else {
             console.error('Product ID is undefined');
             setError('Invalid product ID. Please go back and try again.');
             setLoading(false);
+            //Alert.alert('Error', 'Invalid product ID. Please go back and try again.');
         }
-    }, [productId]);
+    }, [route.params?.productId]);
 
-    const fetchProductDetails = async () => {
+    const fetchProductData = async (productId) => {
         try {
             setLoading(true);
-            console.log('Fetching product details for ID:', productId);
-            const response = await fetch(`${API_URL}/api/products/warranty-products/${productId}`);
-            console.log('Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch product details. Status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log('Fetched product details:', data);
-            setProduct(data);
             setError(null);
+            const data = await fetchProductDetails(productId);
+            if (data) {
+                setProduct(data);
+            } else {
+                throw new Error('Product not found');
+            }
         } catch (err) {
             console.error('Error fetching product details:', err);
             setError(err.message || 'Failed to load product details. Please try again.');
+            //Alert.alert('Error', err.message || 'Failed to load product details. Please try again.');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const getProductImage = (id) => {
-        switch (id) {
-            case 1:
-                return require('../assets/images/oven.jpg');
-            case 2:
-                return require('../assets/images/SCM-120.png');
-            case 3:
-                return require('../assets/images/SCM-60.png');
-            case 4:
-                return require('../assets/images/YC-750mm.jpg');
-            case 5:
-                return require('../assets/images/RC-450mm.jpg');
-            default:
-                return null;
         }
     };
 
@@ -65,27 +50,19 @@ export default function WarrantyInformation({ navigation, route }) {
         );
     }
 
-    if (error) {
+    if (error || !product) {
         return (
             <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={fetchProductDetails}>
-                    <Text style={styles.retryButtonText}>Retry</Text>
+                <Text style={styles.errorText}>{error || 'Product not found'}</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={() => navigation.goBack()}>
+                    <Text style={styles.retryButtonText}>Go Back</Text>
                 </TouchableOpacity>
             </View>
         );
     }
 
-    if (!product) {
-        return (
-            <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>Product not found</Text>
-            </View>
-        );
-    }
-
     return (
-        <SafeAreaView style={[styles.container, { paddingBottom: 20 }]}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -99,7 +76,7 @@ export default function WarrantyInformation({ navigation, route }) {
             <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
                 <View style={styles.imageContainer}>
                     <Image
-                        source={getProductImage(product.id)}
+                        source={{ uri: product.imageUrl }}
                         style={styles.productImage}
                         resizeMode="contain"
                     />
@@ -108,28 +85,36 @@ export default function WarrantyInformation({ navigation, route }) {
                 <Text style={styles.productTitle}>{product.name}</Text>
 
                 <View style={styles.warrantyContainer}>
-                    <WarrantyRow title="Date Purchased:" value={product.date} />
-                    <WarrantyRow title="Warranty Type:" value="5 Years" />
-                    <WarrantyRow title="Warranty End Date:" value={product.warranty} />
-                    <WarrantyRow title="Serial Number:" value={product.serialNumber} />
-                    <WarrantyRow title="Purchase Location:" value={product.purchaseLocation} />
-                    <WarrantyRow title="Additional Info:" value={product.details} />
+                    <WarrantyRow title="Product Name:" value={product.name} />
+                    <WarrantyRow title="Description:" value={product.description} />
+                    <WarrantyRow title="Key Features:" value={product.keyFeatures.join(', ')} />
+                    <WarrantyRow title="Dimensions:" value={product.dimensions} />
+                    <WarrantyRow title="Category:" value={product.productCategory} />
+                    <WarrantyRow title="Specifications:" value={product.specifications} />
+                    {product.warranty && (
+                        <>
+                            <WarrantyRow title="Warranty Start Date:" value={product.warranty.startDate} />
+                            <WarrantyRow title="Warranty End Date:" value={product.warranty.expireDate} />
+                            <WarrantyRow title="Warranty Type:" value={product.warranty.warrantyType} />
+                            <WarrantyRow title="Warranty Status:" value={product.warranty.status} />
+                        </>
+                    )}
                 </View>
 
-                <View style={styles.coverageContainer}>
+                {/* <View style={styles.coverageContainer}>
                     <Text style={styles.coverageTitle}>Coverage Details:</Text>
                     {product.coverageDetails.map((detail, index) => (
                         <Text key={index} style={styles.coverageItem}>• {detail}</Text>
                     ))}
-                </View>
+                </View> */}
 
-                <View style={styles.termsContainer}>
+                {/* <View style={styles.termsContainer}>
                     <Text style={styles.termsTitle}>Terms and Conditions:</Text>
                     <Text style={styles.termsText}>{product.termsAndConditions}</Text>
-                </View>
+                </View> */}
 
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('SparePart', { productId: product.id })}>
+                    <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('Sparepart', { productId: product.id })}>
                         <Text style={styles.buttonText}>Spare Parts</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('ServiceForm', { productId: product.id })}>
@@ -181,7 +166,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     contentContainer: {
-        paddingBottom: 40, // Increase bottom padding
+        paddingBottom: 40,
     },
     imageContainer: {
         backgroundColor: '#000000',
@@ -261,7 +246,7 @@ const styles = StyleSheet.create({
         marginTop: 24,
         marginHorizontal: 16,
         gap: 12,
-        paddingBottom: 20, // Add padding to the bottom of the button container
+        paddingBottom: 20,
     },
     primaryButton: {
         flex: 1,
@@ -313,4 +298,3 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
-
