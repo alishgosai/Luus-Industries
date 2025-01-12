@@ -38,11 +38,8 @@ process.on('unhandledRejection', (reason, promise) => {
 // Updated CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-<<<<<<< HEAD
     const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://192.168.0.23:3000'];
-=======
-    const allowedOrigins = [process.env.FRONTEND_URL, 'http://192.168.10.238:3000'];
->>>>>>> e4ca1a97719f10eb7840139acb0d93634d6e7b50
+
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
