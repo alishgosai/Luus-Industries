@@ -12,7 +12,7 @@ export default function EquipmentSalesForm() {
     return (
         <View style={styles.form}>
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>Namefffffff*</Text>
+                <Text style={styles.label}>Name*</Text>
                 <TextInput
                     style={styles.input}
                     placeholder="First/Surname"
