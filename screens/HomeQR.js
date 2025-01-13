@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
-import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 import ProductApi from '../Services/productApi';
 
 export default function HomeQR() {
@@ -32,31 +33,56 @@ export default function HomeQR() {
     })();
   }, [navigation]);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    if (scanned) return;
-    setScanned(true);
-    console.log('Scanned QR code:', data);
-    processScannedData(data);
-  };
-
   const handleManualCapture = async () => {
+    console.log('Manual capture initiated');
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.5,
-          base64: true,
-        });
+        console.log('Taking picture...');
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
         console.log('Picture taken:', photo.uri);
-        
-        // Here you would process the photo for QR code
-        // For now, we'll simulate finding a QR code
-        const simulatedQrData = "PROD_WV1A";
-        await processScannedData(simulatedQrData);
+
+        // Resize the image to improve processing speed
+        const resizedPhoto = await ImageManipulator.manipulateAsync(
+          photo.uri,
+          [{ resize: { width: 300 } }],
+          { format: 'jpeg' }
+        );
+
+        console.log('Processing image for QR code...');
+        const qrData = await processImageForQR(resizedPhoto.uri);
+
+        if (qrData) {
+          console.log('QR code detected:', qrData);
+          await processScannedData(qrData);
+        } else {
+          console.log('No QR code detected');
+          Alert.alert('Error', 'No QR code detected. Please try again.');
+        }
+
+        // Clean up the temporary image files
+        await FileSystem.deleteAsync(photo.uri, { idempotent: true });
+        await FileSystem.deleteAsync(resizedPhoto.uri, { idempotent: true });
+
       } catch (error) {
-        console.error('Error capturing photo:', error);
-        Alert.alert('Error', 'Failed to capture photo. Please try again.');
+        console.error('Error capturing or processing image:', error);
+        Alert.alert('Error', 'Failed to capture or process image. Please try again.');
       }
+    } else {
+      console.log('Camera ref is null');
+      Alert.alert('Error', 'Camera is not available. Please try again.');
     }
+  };
+
+  const processImageForQR = async (imageUri) => {
+    // This is a placeholder function. In a real-world scenario, you would
+    // implement or use a library for QR code detection in images.
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Simulating QR code detection
+        const simulatedQRData = "PROD_WV1P1A";
+        resolve(simulatedQRData);
+      }, 1000);
+    });
   };
 
   const processScannedData = async (qrCodeData) => {
@@ -87,8 +113,6 @@ export default function HomeQR() {
     } catch (error) {
       console.error('Error processing product data:', error);
       Alert.alert('Error', 'Unable to register product. Please try again.');
-    } finally {
-      setScanned(false);
     }
   };
 
@@ -105,10 +129,6 @@ export default function HomeQR() {
         ref={cameraRef}
         style={styles.camera}
         type="back"
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        barCodeScannerSettings={{
-          barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
-        }}
       >
         <View style={styles.overlay}>
           <View style={styles.unfocusedContainer}/>
@@ -185,7 +205,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 110,
+    bottom: 40,
     alignSelf: 'center',
   },
   shutterButtonInner: {

@@ -84,7 +84,6 @@ export default function ServiceForm({ navigation }) {
         {/* Render the selected form */}
         {renderForm()}
       </ScrollView>
-      <View style={{ height: 70 }} /> {/* Spacer for bottom navbar */}
     </SafeAreaView>
   );
 }
