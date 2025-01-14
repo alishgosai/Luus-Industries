@@ -1,14 +1,39 @@
-import React from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, TouchableOpacity, Text, StyleSheet, Keyboard, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigationState } from "@react-navigation/native";
 
 export default function BottomNavBar({ navigation }) {
   const state = useNavigationState((state) => state);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
 
   const isActive = (routeName) => {
     return state?.routes[state.index]?.name === routeName;
   };
+
+  if (isKeyboardVisible) {
+    return null;
+  }
 
   return (
     <View style={styles.navBar}>
@@ -24,7 +49,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="home-outline"
           size={24}
-          color={isActive("Home") ? "#ffffff" : "#111111"} // Icon color remains white
+          color={isActive("Home") ? "#ffffff" : "#111111"}
         />
         <Text
           style={[
@@ -48,7 +73,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="search-outline"
           size={24}
-          color={isActive("Browse") ? "#ffffff" : "#111111"} // Icon color remains white
+          color={isActive("Browse") ? "#ffffff" : "#111111"}
         />
         <Text
           style={[
@@ -72,7 +97,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="scan-outline"
           size={24}
-          color={isActive("HomeQR") ? "#ffffff" : "#111111"} // Icon color remains white
+          color={isActive("HomeQR") ? "#ffffff" : "#111111"}
         />
         <Text
           style={[
@@ -96,8 +121,7 @@ export default function BottomNavBar({ navigation }) {
         <Ionicons
           name="chatbubble-outline"
           size={24}
-          color={isActive("ChatWithBot") ? "#ffffff" : "#111111"} // Icon color remains white'
-
+          color={isActive("ChatWithBot") ? "#ffffff" : "#111111"}
         />
         <Text
           style={[
@@ -108,7 +132,6 @@ export default function BottomNavBar({ navigation }) {
           Chat
         </Text>
       </TouchableOpacity>
-
 
       {/* Account Button */}
       <TouchableOpacity
@@ -123,7 +146,6 @@ export default function BottomNavBar({ navigation }) {
           name="person-outline"
           size={24}
           color={isActive("MyProfile") ? "#ffffff" : "#111111"}
-
         />
         <Text
           style={[
@@ -140,28 +162,27 @@ export default function BottomNavBar({ navigation }) {
 
 const styles = StyleSheet.create({
   navBar: {
-    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: 80,
-    backgroundColor: '#87CEEB', // Blue background
+    backgroundColor: '#87CEEB',
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     borderTopWidth: 0,
-    zIndex: 10,
+    position: 'relative', // Changed from absolute to relative
   },
   navItem: {
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
-    paddingVertical: 15, // Added padding for better touch area
-    borderRadius: 10, // Rounded corners
-    margin: 5, // Space around each navItem
+    paddingVertical: 15,
+    borderRadius: 10,
+    margin: 5,
   },
   activeNavItem: {
-    backgroundColor: "#00aaff", // Active background color matching the blue button
+    backgroundColor: "#00aaff",
   },
   navText: {
     color: "#111111",
@@ -172,6 +193,6 @@ const styles = StyleSheet.create({
   activeNavText: {
     fontWeight: "bold",
     color: "#ffffff",
-     // Active text color set to white for contrast
   },
 });
+

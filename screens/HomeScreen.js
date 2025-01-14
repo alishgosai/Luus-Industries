@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from '@react-navigation/native';
+import { Animated } from "react-native";
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.85;
@@ -25,7 +26,9 @@ const CLIENT_COUNT = 10;
 const TOTAL_CLIENTS_WIDTH =
   (CLIENT_IMAGE_SIZE + CLIENT_IMAGE_MARGIN_RIGHT) * CLIENT_COUNT;
 
-const ANIMATION_SPEED = 100; // Fixed animation speed in milliseconds
+const ANIMATION_SPEED = 90; // Fixed animation speed in milliseconds
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export default function HomeScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
@@ -33,6 +36,7 @@ export default function HomeScreen({ navigation }) {
   const [typedText, setTypedText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showAnimation, setShowAnimation] = useState(true);
+  const [scrollY] = useState(new Animated.Value(0));
 
   const cards = [
     {
@@ -185,10 +189,33 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Image
+        <Animated.View style={[
+          styles.header,
+          {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            zIndex: 1000,
+            height: scrollY.interpolate({
+              inputRange: [0, 50],
+              outputRange: [100, 60],
+              extrapolate: 'clamp',
+            }),
+          },
+        ]}>
+          <Animated.Image
             source={require("../assets/images/logo.png")}
-            style={styles.logo}
+            style={[
+              styles.logo,
+              {
+                height: scrollY.interpolate({
+                  inputRange: [0, 50],
+                  outputRange: [90, 50],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ]}
             resizeMode="contain"
           />
           <TouchableOpacity
@@ -197,11 +224,16 @@ export default function HomeScreen({ navigation }) {
           >
             <Text style={styles.serviceButtonText}>Book a Service</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
-        <ScrollView
+        <AnimatedScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: 100 }]}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
         >
           {userData && (
             <View style={styles.welcomeBorder}>
@@ -351,8 +383,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <View style={{ height: 40 }} />
-        </ScrollView>
+        </AnimatedScrollView>
       </View>
     </SafeAreaView>
   );
@@ -383,7 +414,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 120,
-    height: 90,
   },
   serviceButton: {
     backgroundColor: "#00aaff",
@@ -652,4 +682,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
 });
+
 

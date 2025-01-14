@@ -68,13 +68,13 @@ const ChatWithBot = ({ navigation }) => {
       <View style={styles.header}>
         <TouchableOpacity 
           onPress={() => navigation.goBack()}
-          style={styles.headerButton}
+          style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>LuusBot</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={handleCallPress}>
-          <Ionicons name="call-outline" size={24} color="#000" />
+        <TouchableOpacity style={styles.callButton} onPress={handleCallPress}>
+          <Ionicons name="call-outline" size={24} color="#000000" />
         </TouchableOpacity>
       </View>
 
@@ -90,7 +90,6 @@ const ChatWithBot = ({ navigation }) => {
           </View>
         )}
       </KeyboardAvoidingView>
-      <View style={styles.navbarSpacer} />
     </SafeAreaView>
   );
 };
@@ -101,30 +100,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#87CEEB',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#87CEEB",
     margin: 16,
     padding: 12,
     borderRadius: 30,
   },
-  headerButton: {
-    padding: 8,
+  backButton: {
+    marginRight: 8,
+  },
+  callButton: {
+    marginLeft: 8,
   },
   headerTitle: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     marginRight: 24,
   },
   keyboardAvoidingView: {
     flex: 1,
-    marginBottom: Platform.OS === 'ios' ? 25 : 30,
-  },
-  navbarSpacer: {
-    height: 40,
+    marginBottom: Platform.OS === 'ios' ? 35 : 10,
   },
   loadingContainer: {
     flex: 1,

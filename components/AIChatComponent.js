@@ -27,9 +27,12 @@ const AIChatComponent = ({ userId, initialMessage }) => {
   };
 
   const sendMessage = useCallback(async (messageText) => {
+    if (!messageText.trim()) return;
+
     const userMessage = { role: 'user', content: messageText };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setIsTyping(true);
+    setInput(''); // Clear input field after sending message
 
     try {
       console.log('Sending message:', messageText);
@@ -38,16 +41,28 @@ const AIChatComponent = ({ userId, initialMessage }) => {
       if (data && data.response) {
         setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: data.response }]);
       } else {
-        throw new Error('Invalid response from server');
+        const defaultResponse = getDefaultResponse(messageText);
+        setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: defaultResponse }]);
       }
     } catch (err) {
       console.error('Error in sendMessage:', err);
-      Alert.alert('Error', `Failed to send message. Error: ${err.message}`);
+      const defaultResponse = getDefaultResponse(messageText);
+      setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: defaultResponse }]);
     } finally {
       setIsTyping(false);
-      setInput('');
     }
   }, [userId, messages]);
+
+  const getDefaultResponse = (message) => {
+    const defaultResponses = [
+      "I'm sorry, I didn't quite understand that. Could you please rephrase your question?",
+      "That's an interesting point. Could you provide more details?",
+      "I'm here to help with any questions about Luus products. What specific information are you looking for?",
+      "Thank you for your question. Let me find the best information for you.",
+      "I'm always learning. Could you elaborate on your request?"
+    ];
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  };
 
   const handleOptionClick = (option) => {
     sendMessage(option);
@@ -132,13 +147,13 @@ const styles = StyleSheet.create({
   botMessageContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 14,
     paddingHorizontal: 16,
   },
   userMessageContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 14,
     paddingHorizontal: 16,
   },
   botAvatar: {
@@ -150,14 +165,14 @@ const styles = StyleSheet.create({
   },
   botMessageBubble: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     maxWidth: '80%',
   },
   userMessageBubble: {
     backgroundColor: '#2B78E4',
-    padding: 16,
+    padding: 9,
     paddingHorizontal: 20,
     borderRadius: 20,
     maxWidth: '80%',
