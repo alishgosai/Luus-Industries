@@ -37,6 +37,14 @@ export default function WarrantyServiceForm() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async () => {
+        // Validate required fields
+                const requiredFields = ['name', 'email', 'productModel', 'serialNumber', 'purchaseDate', 'problemDescription'];
+                const emptyFields = requiredFields.filter(field => !formData[field]);
+        
+                if (emptyFields.length > 0) {
+                    Alert.alert('', 'Please fill all the required fields.');
+                    return;
+                }
         setIsLoading(true);
         try {
             const result = await submitWarrantyServiceForm(formData);

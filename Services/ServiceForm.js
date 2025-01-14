@@ -27,7 +27,7 @@ export const submitEquipmentSalesForm = async (formData) => {
   try {
     const data = createFormData(formData, formData.image ? { image: formData.image, fileName: formData.fileName } : null);
 
-    const response = await fetch(`${API_URL}/equipment-sales`, {
+    const response = await fetch(`${API_URL}/api/service/equipment-sales`, {
       method: 'POST',
       body: data,
       headers: {
@@ -51,7 +51,7 @@ export const submitTechnicalSupportForm = async (formData) => {
   try {
     const data = createFormData(formData, formData.image ? { image: formData.image, fileName: formData.fileName } : null);
 
-    const response = await fetch(`${API_URL}/technical-support`, {
+    const response = await fetch(`${API_URL}/api/service/technical-support`, {
       method: 'POST',
       body: data,
       headers: {
@@ -75,7 +75,7 @@ export const submitWarrantyServiceForm = async (formData) => {
   try {
     const data = createFormData(formData, formData.image ? { image: formData.image, fileName: formData.fileName } : null);
 
-    const response = await fetch(`${API_URL}/warranty-service`, {
+    const response = await fetch(`${API_URL}/api/service/warranty-service`, {
       method: 'POST',
       body: data,
       headers: {
@@ -93,3 +93,4 @@ export const submitWarrantyServiceForm = async (formData) => {
     throw error;
   }
 };
+
