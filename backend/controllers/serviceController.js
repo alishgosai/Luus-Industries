@@ -1,22 +1,4 @@
-import { createServiceForm } from '../models/ServiceModels.js';
-import path from 'path';
-import fs from 'fs';
-
-const uploadFile = async (file) => {
-  const uploadDir = path.join(process.cwd(), 'uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-  const fileName = `${Date.now()}_${file.originalname}`;
-  const filePath = path.join(uploadDir, fileName);
-  
-  return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, file.buffer, (err) => {
-      if (err) reject(err);
-      else resolve(`/uploads/${fileName}`);
-    });
-  });
-};
+import { createServiceForm, uploadFile } from '../models/ServiceModels.js';
 
 export const submitEquipmentSales = async (req, res) => {
   try {
