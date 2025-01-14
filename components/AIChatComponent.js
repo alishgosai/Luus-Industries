@@ -147,13 +147,13 @@ const styles = StyleSheet.create({
   botMessageContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 14,
     paddingHorizontal: 16,
   },
   userMessageContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 14,
     paddingHorizontal: 16,
   },
   botAvatar: {
@@ -165,14 +165,14 @@ const styles = StyleSheet.create({
   },
   botMessageBubble: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     maxWidth: '80%',
   },
   userMessageBubble: {
     backgroundColor: '#2B78E4',
-    padding: 16,
+    padding: 9,
     paddingHorizontal: 20,
     borderRadius: 20,
     maxWidth: '80%',
