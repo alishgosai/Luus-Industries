@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
-import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 import ProductApi from '../Services/productApi';
 
 export default function HomeQR() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigation = useNavigation();
   const cameraRef = useRef(null);
 
@@ -32,32 +34,41 @@ export default function HomeQR() {
     })();
   }, [navigation]);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    if (scanned) return;
-    setScanned(true);
-    console.log('Scanned QR code:', data);
-    processScannedData(data);
-  };
-
   const handleManualCapture = async () => {
-    if (cameraRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.5,
-          base64: true,
-        });
-        console.log('Picture taken:', photo.uri);
-        
-        // Here you would process the photo for QR code
-        // For now, we'll simulate finding a QR code
-        const simulatedQrData = "PROD_WV1A";
-        await processScannedData(simulatedQrData);
-      } catch (error) {
-        console.error('Error capturing photo:', error);
-        Alert.alert('Error', 'Failed to capture photo. Please try again.');
+    if (!cameraRef.current) return;
+
+    try {
+      setIsProcessing(true);
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
+      
+      const resizedPhoto = await ImageManipulator.manipulateAsync(
+        photo.uri,
+        [{ resize: { width: 800 } }],
+        { format: 'jpeg', compress: 0.7 }
+      );
+
+      const base64Image = await FileSystem.readAsStringAsync(resizedPhoto.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      Alert.alert('Photo Captured', 'Processing the QR code...');
+
+      const qrData = await ProductApi.detectQR(base64Image);
+
+      if (qrData) {
+        await handleBarCodeScanned({ data: qrData });
+      } else {
+        Alert.alert('No QR Code Found', 'The captured image does not contain a valid QR code.');
       }
+    } catch (error) {
+      const errorMessage = error.message || JSON.stringify(error);
+      Alert.alert('Error', `Failed to capture and process the image: ${errorMessage}`);
+      console.error('Error in handleManualCapture:', errorMessage);
+    } finally {
+      setIsProcessing(false);
     }
   };
+
 
   const processScannedData = async (qrCodeData) => {
     console.log('Processing scanned data:', qrCodeData);
@@ -87,8 +98,6 @@ export default function HomeQR() {
     } catch (error) {
       console.error('Error processing product data:', error);
       Alert.alert('Error', 'Unable to register product. Please try again.');
-    } finally {
-      setScanned(false);
     }
   };
 
@@ -105,10 +114,6 @@ export default function HomeQR() {
         ref={cameraRef}
         style={styles.camera}
         type="back"
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        barCodeScannerSettings={{
-          barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
-        }}
       >
         <View style={styles.overlay}>
           <View style={styles.unfocusedContainer}/>
