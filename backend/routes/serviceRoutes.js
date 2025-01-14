@@ -1,22 +1,54 @@
 import express from 'express';
-import * as chatController from '../controllers/chatController.js';
-import * as faqController from '../controllers/faqController.js';
+import multer from 'multer';
+import { 
+  submitEquipmentSales, 
+  submitTechnicalSupport, 
+  submitWarrantyService 
+} from '../controllers/serviceController.js';
+import { 
+  getServiceFormById, 
+  getServiceFormsByType, 
+  getAllServiceForms 
+} from '../models/ServiceModels.js';
 
 const router = express.Router();
 
-// Chat routes
-router.post('/chat', chatController.handleChat);
-router.get('/chat/history/:userId', chatController.getChatSessionHistory);
-router.get('/chat/interests/:userId', chatController.getUserProductInterests);
-router.delete('/chat/history/:userId', chatController.deleteUserChatHistory);
-router.get('/chat/users', chatController.getAllUsers);
+// Configure multer for file upload
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-// FAQ routes (unchanged)
-router.get('/faq', faqController.getAllFAQsController);
-router.get('/faq/:id', faqController.getFAQByIdController);
-router.post('/faq', faqController.createFAQController);
-router.put('/faq/:id', faqController.updateFAQController);
-router.delete('/faq/:id', faqController.deleteFAQController);
+// POST routes for form submissions
+router.post('/equipment-sales', upload.single('file'), submitEquipmentSales);
+router.post('/technical-support', upload.single('file'), submitTechnicalSupport);
+router.post('/warranty-service', upload.single('file'), submitWarrantyService);
+
+// GET routes for retrieving form data
+router.get('/forms', async (req, res) => {
+  try {
+    const forms = await getAllServiceForms();
+    res.json(forms);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving forms', error: error.message });
+  }
+});
+
+router.get('/forms/:id', async (req, res) => {
+  try {
+    const form = await getServiceFormById(req.params.id);
+    res.json(form);
+  } catch (error) {
+    res.status(404).json({ message: 'Form not found', error: error.message });
+  }
+});
+
+router.get('/forms/type/:formType', async (req, res) => {
+  try {
+    const forms = await getServiceFormsByType(req.params.formType);
+    res.json(forms);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving forms', error: error.message });
+  }
+});
 
 export default router;
 
