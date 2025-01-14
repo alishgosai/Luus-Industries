@@ -3,20 +3,21 @@ import {
     View,
     Text,
     TextInput,
-    TouchableOpacity,
     StyleSheet,
-    ScrollView,
+    TouchableOpacity,
     Image,
     Alert,
     ActivityIndicator,
     Linking,
+    ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { submitTechnicalSupportForm } from '../Services/ServiceForm';
 
-const isImageFile = (fileName: string) => {
+const isImageFile = (fileName) => {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
     return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
 };
@@ -25,18 +26,28 @@ export default function TechnicalSupportForm() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phone: '',
-        businessName: '',
-        location: '',
-        message: '',
+        productModel: '',
+        serialNumber: '',
+        purchaseDate: '',
+        problemDescription: '',
         image: null,
-        fileName: null,
+        fileName: null
     });
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        // Add your form submission logic here
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        try {
+            const result = await submitTechnicalSupportForm(formData);
+            console.log('Form submitted successfully:', result);
+            Alert.alert('Success', 'Your technical support request has been submitted successfully.');
+            // Reset form data here if needed
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            Alert.alert('Error', 'Failed to submit form. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleTakePhoto = async () => {
@@ -51,8 +62,6 @@ export default function TechnicalSupportForm() {
                 aspect: [4, 3],
                 quality: 0.7,
             });
-
-            console.log('Camera result:', result);
 
             if (!result.canceled && result.assets && result.assets[0].uri) {
                 const resizedUri = await resizeImage(result.assets[0].uri);
@@ -85,8 +94,6 @@ export default function TechnicalSupportForm() {
                 aspect: [4, 3],
                 quality: 0.7,
             });
-
-            console.log('File import result:', JSON.stringify(result, null, 2));
 
             if (!result.canceled && result.assets && result.assets[0].uri) {
                 const resizedUri = await resizeImage(result.assets[0].uri);
@@ -201,10 +208,6 @@ export default function TechnicalSupportForm() {
     return (
         <ScrollView style={styles.container}>
             <View style={styles.form}>
-                <Text style={styles.introText}>
-                    To get in touch with us, please complete the below form and a member of our team will contact you shortly
-                </Text>
-
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Name*</Text>
                     <TextInput
@@ -229,49 +232,48 @@ export default function TechnicalSupportForm() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Phone Number*</Text>
+                    <Text style={styles.label}>Product Model*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Mobile/Landline"
+                        placeholder="Enter product model"
                         placeholderTextColor="#666"
-                        keyboardType="phone-pad"
-                        value={formData.phone}
-                        onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                        value={formData.productModel}
+                        onChangeText={(text) => setFormData({ ...formData, productModel: text })}
                     />
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Business Name*</Text>
+                    <Text style={styles.label}>Serial Number*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Business Name"
+                        placeholder="Enter serial number"
                         placeholderTextColor="#666"
-                        value={formData.businessName}
-                        onChangeText={(text) => setFormData({ ...formData, businessName: text })}
+                        value={formData.serialNumber}
+                        onChangeText={(text) => setFormData({ ...formData, serialNumber: text })}
                     />
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Location*</Text>
+                    <Text style={styles.label}>Purchase Date*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="City/Postcode"
+                        placeholder="YYYY-MM-DD"
                         placeholderTextColor="#666"
-                        value={formData.location}
-                        onChangeText={(text) => setFormData({ ...formData, location: text })}
+                        value={formData.purchaseDate}
+                        onChangeText={(text) => setFormData({ ...formData, purchaseDate: text })}
                     />
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Message*</Text>
+                    <Text style={styles.label}>Problem Description*</Text>
                     <TextInput
                         style={[styles.input, styles.messageInput]}
-                        placeholder="Describe your problem here!"
+                        placeholder="Describe the issue you're experiencing"
                         placeholderTextColor="#666"
                         multiline
                         numberOfLines={4}
-                        value={formData.message}
-                        onChangeText={(text) => setFormData({ ...formData, message: text })}
+                        value={formData.problemDescription}
+                        onChangeText={(text) => setFormData({ ...formData, problemDescription: text })}
                     />
                 </View>
 
@@ -282,17 +284,17 @@ export default function TechnicalSupportForm() {
                             <Image source={{ uri: formData.image }} style={styles.selectedImage} />
                         ) : (
                             <View style={styles.fileIconContainer}>
-                                <Ionicons name="document-outline" size={50} color="#87CEEB" />
+                                <Icon name="document-outline" size={50} color="#87CEEB" />
                             </View>
                         )}
                         <Text style={styles.fileName}>{formData.fileName}</Text>
                         <View style={styles.fileActions}>
                             <TouchableOpacity style={styles.fileActionButton} onPress={handleChangeImage}>
-                                <Ionicons name="refresh-outline" size={24} color="#87CEEB" />
+                                <Icon name="refresh-outline" size={24} color="#87CEEB" />
                                 <Text style={styles.fileActionText}>Change</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.fileActionButton} onPress={handleRemoveImage}>
-                                <Ionicons name="trash-outline" size={24} color="#FF6347" />
+                                <Icon name="trash-outline" size={24} color="#FF6347" />
                                 <Text style={[styles.fileActionText, { color: '#FF6347' }]}>Remove</Text>
                             </TouchableOpacity>
                         </View>
@@ -304,7 +306,7 @@ export default function TechnicalSupportForm() {
                             onPress={handleTakePhoto}
                             disabled={isLoading}
                         >
-                            <Ionicons name="camera-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
+                            <Icon name="camera-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
                             <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Take Photo</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
@@ -312,7 +314,7 @@ export default function TechnicalSupportForm() {
                             onPress={handleImportFile}
                             disabled={isLoading}
                         >
-                            <Ionicons name="folder-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
+                            <Icon name="folder-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
                             <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose File</Text>
                         </TouchableOpacity>
                     </View>
@@ -324,8 +326,8 @@ export default function TechnicalSupportForm() {
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                    <Text style={styles.submitText}>Submit</Text>
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+                    <Text style={styles.submitText}>{isLoading ? 'Submitting...' : 'Submit'}</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -340,25 +342,18 @@ const styles = StyleSheet.create({
     form: {
         padding: 16,
     },
-    introText: {
-        color: '#FFF',
-        marginBottom: 16,
-        lineHeight: 20,
-    },
     inputGroup: {
         marginBottom: 16,
     },
     label: {
         color: '#FFF',
         marginBottom: 8,
-        fontSize: 16,
     },
     input: {
         backgroundColor: '#1C1C1C',
         borderRadius: 4,
         padding: 12,
         color: '#FFF',
-        fontSize: 16,
     },
     messageInput: {
         height: 100,
@@ -380,7 +375,6 @@ const styles = StyleSheet.create({
     },
     attachmentText: {
         color: '#87CEEB',
-        fontSize: 16,
         marginLeft: 8,
     },
     submitButton: {
@@ -392,8 +386,7 @@ const styles = StyleSheet.create({
     },
     submitText: {
         color: '#000',
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '500',
     },
     fileContainer: {
         alignItems: 'center',
@@ -440,6 +433,6 @@ const styles = StyleSheet.create({
     },
     disabledText: {
         color: '#666',
-    },
+    }
 });
 

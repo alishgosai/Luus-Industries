@@ -5,45 +5,50 @@ import {
     TextInput,
     StyleSheet,
     TouchableOpacity,
-    ScrollView,
     Image,
     Alert,
     ActivityIndicator,
     Linking,
-    Platform
+    ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
-import * as DocumentPicker from 'expo-document-picker';
+import { submitWarrantyServiceForm } from '../Services/ServiceForm';
 
-const isImageFile = (fileName: string) => {
+const isImageFile = (fileName) => {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
     return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
 };
 
-export default function ServiceWarrantyForm() {
+export default function WarrantyServiceForm() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phone: '',
-        businessName: '',
-        location: '',
         productModel: '',
         serialNumber: '',
-        purchasedFrom: '',
         purchaseDate: '',
-        location2: '',
+        warrantyNumber: '',
         problemDescription: '',
         image: null,
         fileName: null
     });
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        // Add your form submission logic here
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        try {
+            const result = await submitWarrantyServiceForm(formData);
+            console.log('Form submitted successfully:', result);
+            Alert.alert('Success', 'Your warranty service request has been submitted successfully.');
+            // Reset form data here if needed
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            Alert.alert('Error', 'Failed to submit form. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleTakePhoto = async () => {
@@ -59,12 +64,11 @@ export default function ServiceWarrantyForm() {
                 quality: 0.7,
             });
 
-            console.log('Camera result:', result);
-
             if (!result.canceled && result.assets && result.assets[0].uri) {
+                const resizedUri = await resizeImage(result.assets[0].uri);
                 setFormData(prevState => ({ 
                     ...prevState, 
-                    image: result.assets[0].uri,
+                    image: resizedUri,
                     fileName: 'Photo_' + new Date().toISOString() + '.jpg'
                 }));
             } else {
@@ -91,8 +95,6 @@ export default function ServiceWarrantyForm() {
                 aspect: [4, 3],
                 quality: 0.7,
             });
-
-            console.log('File import result:', JSON.stringify(result, null, 2));
 
             if (!result.canceled && result.assets && result.assets[0].uri) {
                 const resizedUri = await resizeImage(result.assets[0].uri);
@@ -205,11 +207,7 @@ export default function ServiceWarrantyForm() {
     };
 
     return (
-        <ScrollView style={styles.content}>
-            {/* Categories */}
-           
-
-            {/* Form Fields */}
+        <ScrollView style={styles.container}>
             <View style={styles.form}>
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Name*</Text>
@@ -235,44 +233,10 @@ export default function ServiceWarrantyForm() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Phone Number*</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Mobile/Landline"
-                        placeholderTextColor="#666"
-                        keyboardType="phone-pad"
-                        value={formData.phone}
-                        onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Business Name*</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Business Name"
-                        placeholderTextColor="#666"
-                        value={formData.businessName}
-                        onChangeText={(text) => setFormData({ ...formData, businessName: text })}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Location*</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="City/Postcode"
-                        placeholderTextColor="#666"
-                        value={formData.location}
-                        onChangeText={(text) => setFormData({ ...formData, location: text })}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
                     <Text style={styles.label}>Product Model*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="What is the Model Code?"
+                        placeholder="Enter product model"
                         placeholderTextColor="#666"
                         value={formData.productModel}
                         onChangeText={(text) => setFormData({ ...formData, productModel: text })}
@@ -283,7 +247,7 @@ export default function ServiceWarrantyForm() {
                     <Text style={styles.label}>Serial Number*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="What is the Serial Number?"
+                        placeholder="Enter serial number"
                         placeholderTextColor="#666"
                         value={formData.serialNumber}
                         onChangeText={(text) => setFormData({ ...formData, serialNumber: text })}
@@ -291,21 +255,10 @@ export default function ServiceWarrantyForm() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Purchased From</Text>
+                    <Text style={styles.label}>Purchase Date*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Which Dealer did you purchased from?"
-                        placeholderTextColor="#666"
-                        value={formData.purchasedFrom}
-                        onChangeText={(text) => setFormData({ ...formData, purchasedFrom: text })}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Purchased Date</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="When did you purchased form?"
+                        placeholder="YYYY-MM-DD"
                         placeholderTextColor="#666"
                         value={formData.purchaseDate}
                         onChangeText={(text) => setFormData({ ...formData, purchaseDate: text })}
@@ -313,13 +266,13 @@ export default function ServiceWarrantyForm() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Location*</Text>
+                    <Text style={styles.label}>Warranty Number*</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="City/Postcode"
+                        placeholder="Enter warranty number"
                         placeholderTextColor="#666"
-                        value={formData.location2}
-                        onChangeText={(text) => setFormData({ ...formData, location2: text })}
+                        value={formData.warrantyNumber}
+                        onChangeText={(text) => setFormData({ ...formData, warrantyNumber: text })}
                     />
                 </View>
 
@@ -327,7 +280,7 @@ export default function ServiceWarrantyForm() {
                     <Text style={styles.label}>Problem Description*</Text>
                     <TextInput
                         style={[styles.input, styles.messageInput]}
-                        placeholder="What seems to be the problem?"
+                        placeholder="Describe the issue you're experiencing"
                         placeholderTextColor="#666"
                         multiline
                         numberOfLines={4}
@@ -374,7 +327,7 @@ export default function ServiceWarrantyForm() {
                             disabled={isLoading}
                         >
                             <Icon name="folder-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
-                            <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose from Library</Text>
+                            <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose File</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -385,9 +338,8 @@ export default function ServiceWarrantyForm() {
                     </View>
                 )}
 
-                {/* Submit Button */}
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                    <Text style={styles.submitText}>Submit</Text>
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+                    <Text style={styles.submitText}>{isLoading ? 'Submitting...' : 'Submit'}</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -395,7 +347,7 @@ export default function ServiceWarrantyForm() {
 }
 
 const styles = StyleSheet.create({
-    content: {
+    container: {
         flex: 1,
         backgroundColor: '#000',
     },
@@ -421,7 +373,7 @@ const styles = StyleSheet.create({
     },
     attachmentOptions: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
         marginTop: 8,
     },
     attachmentButton: {
@@ -430,6 +382,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#1C1C1C',
         padding: 10,
         borderRadius: 4,
+        flex: 1,
+        marginHorizontal: 4,
     },
     attachmentText: {
         color: '#87CEEB',

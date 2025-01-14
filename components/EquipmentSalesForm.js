@@ -15,8 +15,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { submitEquipmentSalesForm } from '../Services/ServiceForm';
 
-const isImageFile = (fileName: string) => {
+const isImageFile = (fileName) => {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
     return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
 };
@@ -34,9 +35,19 @@ export default function EquipmentSalesForm() {
     });
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        // Add your form submission logic here
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        try {
+            const result = await submitEquipmentSalesForm(formData);
+            console.log('Form submitted successfully:', result);
+            Alert.alert('Success', 'Your equipment sales inquiry has been submitted successfully.');
+            // Reset form data here if needed
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            Alert.alert('Error', 'Failed to submit form. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleTakePhoto = async () => {
@@ -51,8 +62,6 @@ export default function EquipmentSalesForm() {
                 aspect: [4, 3],
                 quality: 0.7,
             });
-
-            console.log('Camera result:', result);
 
             if (!result.canceled && result.assets && result.assets[0].uri) {
                 const resizedUri = await resizeImage(result.assets[0].uri);
@@ -85,8 +94,6 @@ export default function EquipmentSalesForm() {
                 aspect: [4, 3],
                 quality: 0.7,
             });
-
-            console.log('File import result:', JSON.stringify(result, null, 2));
 
             if (!result.canceled && result.assets && result.assets[0].uri) {
                 const resizedUri = await resizeImage(result.assets[0].uri);
@@ -319,8 +326,8 @@ export default function EquipmentSalesForm() {
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                    <Text style={styles.submitText}>Submit</Text>
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+                    <Text style={styles.submitText}>{isLoading ? 'Submitting...' : 'Submit'}</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -428,4 +435,3 @@ const styles = StyleSheet.create({
         color: '#666',
     }
 });
-
