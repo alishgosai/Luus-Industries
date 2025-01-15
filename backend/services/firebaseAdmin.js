@@ -19,7 +19,8 @@ if (!admin.apps.length) {
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      databaseURL: process.env.FIREBASE_DATABASE_URL
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
     });
 
     console.log('Firebase Admin initialized successfully');
@@ -32,13 +33,15 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+const storage = admin.storage();
 
 // Test the database connection
 try {
-  await db.collection('users').limit(1).get();
+  await db.collection('serviceForms').limit(1).get();
   console.log('Firestore connection successful');
 } catch (error) {
   console.error('Firestore connection failed:', error);
 }
 
-export { admin, db };
+export { admin, db, storage };
+

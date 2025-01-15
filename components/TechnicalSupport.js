@@ -36,12 +36,29 @@ export default function TechnicalSupportForm() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async () => {
+        const requiredFields = ['name', 'email', 'productModel', 'serialNumber', 'purchaseDate', 'problemDescription'];
+        const emptyFields = requiredFields.filter(field => !formData[field]);
+
+        if (emptyFields.length > 0) {
+            Alert.alert('Error', 'Please fill all the required fields.');
+            return;
+        }
         setIsLoading(true);
         try {
             const result = await submitTechnicalSupportForm(formData);
             console.log('Form submitted successfully:', result);
             Alert.alert('Success', 'Your technical support request has been submitted successfully.');
             // Reset form data here if needed
+            setFormData({
+                name: '',
+                email: '',
+                productModel: '',
+                serialNumber: '',
+                purchaseDate: '',
+                problemDescription: '',
+                image: null,
+                fileName: null
+            });
         } catch (error) {
             console.error('Error submitting form:', error);
             Alert.alert('Error', 'Failed to submit form. Please try again later.');

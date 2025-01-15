@@ -36,6 +36,15 @@ export default function EquipmentSalesForm() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async () => {
+// Validate required fields
+const requiredFields = ['name', 'email', 'businessName', 'businessType', 'requiredDate', 'problemDescription'];
+const emptyFields = requiredFields.filter(field => !formData[field]);
+
+if (emptyFields.length > 0) {
+    Alert.alert('', 'Please fill all the required fields.');
+    return;
+}
+
         setIsLoading(true);
         try {
             const result = await submitEquipmentSalesForm(formData);
