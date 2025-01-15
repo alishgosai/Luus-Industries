@@ -1,5 +1,5 @@
 
-const API_URL = 'http://172.20.10.3:3000'; // Make sure this is your correct server IP and 
+const API_URL = 'http://192.168.0.23:3000'; // Make sure this is your correct server IP and 
 
 
 
