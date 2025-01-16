@@ -17,7 +17,7 @@ export const createServiceForm = async (data) => {
     warrantyNumber: data.warrantyNumber,
     problemDescription: data.problemDescription,
     fileName: data.fileName,
-    fileUrl: data.fileUrl,
+    imageUrl: data.imageUrl,
     createdAt: new Date()
   });
   return docRef.id;

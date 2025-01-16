@@ -4,9 +4,7 @@ import { streamText } from 'ai';
 // Ensure the API key is loaded from environment variables
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-if (!OPENAI_API_KEY) {
-  throw new Error('OPENAI_API_KEY is not set in the environment variables');
-}
+
 
 const LUUS_PRODUCT_CATEGORIES = [
   'Cooktops', 'Ovens', 'Fryers', 'Griddles', 'Chargrills', 
