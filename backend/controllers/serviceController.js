@@ -1,27 +1,60 @@
-import { createServiceForm, uploadFile } from '../models/ServiceModels.js';
+const { createServiceForm } = require('../models/ServiceModels');
+const nodemailer = require('nodemailer');
 
-export const submitEquipmentSales = async (req, res) => {
+const transporter = nodemailer.createTransport({
+  // Configure your email service here
+  // For example, using Gmail:
+  service: 'gmail',
+  auth: {
+    user: 'your-email@gmail.com',
+    pass: 'your-email-password'
+  }
+});
+
+const sendEmail = async (formData, formType) => {
+  const mailOptions = {
+    from: 'your-email@gmail.com',
+    to: 'alishgosai@gmail.com',
+    subject: `New ${formType} Submission`,
+    text: `
+      A new ${formType} form has been submitted:
+      
+      Name: ${formData.name}
+      Email: ${formData.email}
+      ${Object.entries(formData)
+        .filter(([key]) => !['name', 'email'].includes(key))
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n')}
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+exports.submitWarrantyService = async (req, res) => {
   try {
-    const { name, email, businessName, businessType, requiredDate, problemDescription } = req.body;
-    let fileUrl = null;
-    let fileName = null;
-
-    if (req.file) {
-      fileUrl = await uploadFile(req.file);
-      fileName = req.file.originalname;
+    const formData = req.body;
+    const docId = await createServiceForm({ ...formData, formType: 'warrantyService' });
+    
+    if (req.query.sendEmail === 'true') {
+      await sendEmail(formData, 'Warranty Service');
     }
 
-    const docId = await createServiceForm({
-      formType: 'equipmentSales',
-      name,
-      email,
-      businessName,
-      businessType,
-      requiredDate,
-      problemDescription,
-      fileName,
-      fileUrl
-    });
+    res.status(201).json({ message: 'Warranty service form submitted successfully', id: docId });
+  } catch (error) {
+    console.error('Error submitting warranty service form:', error);
+    res.status(500).json({ message: 'Error submitting warranty service form', error: error.message });
+  }
+};
+
+exports.submitEquipmentSales = async (req, res) => {
+  try {
+    const formData = req.body;
+    const docId = await createServiceForm({ ...formData, formType: 'equipmentSales' });
+    
+    if (req.query.sendEmail === 'true') {
+      await sendEmail(formData, 'Equipment Sales');
+    }
 
     res.status(201).json({ message: 'Equipment sales form submitted successfully', id: docId });
   } catch (error) {
@@ -30,64 +63,19 @@ export const submitEquipmentSales = async (req, res) => {
   }
 };
 
-export const submitTechnicalSupport = async (req, res) => {
+exports.submitTechnicalSupport = async (req, res) => {
   try {
-    const { name, email, productModel, serialNumber, purchaseDate, problemDescription } = req.body;
-    let fileUrl = null;
-    let fileName = null;
-
-    if (req.file) {
-      fileUrl = await uploadFile(req.file);
-      fileName = req.file.originalname;
+    const formData = req.body;
+    const docId = await createServiceForm({ ...formData, formType: 'technicalSupport' });
+    
+    if (req.query.sendEmail === 'true') {
+      await sendEmail(formData, 'Technical Support');
     }
-
-    const docId = await createServiceForm({
-      formType: 'technicalSupport',
-      name,
-      email,
-      productModel,
-      serialNumber,
-      purchaseDate,
-      problemDescription,
-      fileName,
-      fileUrl
-    });
 
     res.status(201).json({ message: 'Technical support form submitted successfully', id: docId });
   } catch (error) {
     console.error('Error submitting technical support form:', error);
     res.status(500).json({ message: 'Error submitting technical support form', error: error.message });
-  }
-};
-
-export const submitWarrantyService = async (req, res) => {
-  try {
-    const { name, email, productModel, serialNumber, purchaseDate, warrantyNumber, problemDescription } = req.body;
-    let fileUrl = null;
-    let fileName = null;
-
-    if (req.file) {
-      fileUrl = await uploadFile(req.file);
-      fileName = req.file.originalname;
-    }
-
-    const docId = await createServiceForm({
-      formType: 'warrantyService',
-      name,
-      email,
-      productModel,
-      serialNumber,
-      purchaseDate,
-      warrantyNumber,
-      problemDescription,
-      fileName,
-      fileUrl
-    });
-
-    res.status(201).json({ message: 'Warranty service form submitted successfully', id: docId });
-  } catch (error) {
-    console.error('Error submitting warranty service form:', error);
-    res.status(500).json({ message: 'Error submitting warranty service form', error: error.message });
   }
 };
 
