@@ -23,11 +23,7 @@ export default function ProductDetails({ navigation, route }) {
             return;
         }
 
-        loadProductDetails(productId).then(() => {
-            if (product && !validateProductData(product)) {
-                setError('Invalid product data received. Please try again.');
-            }
-        });
+        loadProductDetails(productId);
 
         if (isNewProduct) {
             Alert.alert(
@@ -168,7 +164,7 @@ export default function ProductDetails({ navigation, route }) {
                                 <TouchableOpacity
                                     key={index}
                                     style={styles.link}
-                                    onPress={() => handleLinkClick(link.title)}
+                                    onPress={() => handleLinkClick(link)}
                                 >
                                     <Text
                                         style={[

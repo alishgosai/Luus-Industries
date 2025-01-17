@@ -39,6 +39,7 @@ const ProductApi = {
       };
     }
   },
+  
   getProductDetails: async (productId) => {
     console.log('Getting product details. Product ID:', productId, 'User ID:', ProductApi.userId);
     try {
@@ -68,7 +69,7 @@ const ProductApi = {
         id: data.product.id,
         name: data.product.name || 'Unknown Product',
         description: data.product.description || 'No description available',
-        imageUrl: data.product.qrCodePath || '/placeholder.png',
+        imageUrl: data.product.storedImageUrl || data.product.qrCodePath || '/placeholder.png',
         category: data.product.category || 'Uncategorized',
         model: data.product.model || 'Unknown Model',
         specifications: [
