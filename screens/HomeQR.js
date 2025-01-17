@@ -1,119 +1,105 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { Camera, CameraView } from 'expo-camera';
+import React, { useEffect, useRef, useState } from 'react';
+import { Camera, CameraView, useCameraPermissions } from "expo-camera";
 import { useNavigation } from '@react-navigation/native';
+import {
+  AppState,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
-import * as ImageManipulator from 'expo-image-manipulator';
 import ProductApi from '../Services/productApi';
 
 export default function HomeQR() {
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const isPermissionGranted = Boolean(permission?.granted);
   const [scanned, setScanned] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const navigation = useNavigation();
+  const [isScanning, setIsScanning] = useState(false);
   const cameraRef = useRef(null);
+  const navigation = useNavigation();
+
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
-    (async () => {
-      console.log('Requesting camera permission...');
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      console.log('Camera permission status:', status);
-      setHasPermission(status === 'granted');
-
-      const storedUserId = await AsyncStorage.getItem('userId');
-      console.log('Retrieved user ID:', storedUserId);
-      if (storedUserId) {
-        setUserId(storedUserId);
-        ProductApi.setUserId(storedUserId);
-      } else {
-        console.log('User not authenticated, redirecting to login');
-        navigation.replace('Login');
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        setScanned(false);
+        setIsScanning(false);
       }
-    })();
-  }, [navigation]);
+      appState.current = nextAppState;
+    });
 
-  const handleManualCapture = async () => {
-    if (!cameraRef.current) return;
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
-    try {
-      setIsProcessing(true);
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
-      
-      const resizedPhoto = await ImageManipulator.manipulateAsync(
-        photo.uri,
-        [{ resize: { width: 800 } }],
-        { format: 'jpeg', compress: 0.7 }
-      );
+  const handleBarCodeScanned = async ({ data }) => {
+    if (data && isScanning) {
+      setScanned(true);
+      setIsScanning(false);
 
-      const base64Image = await FileSystem.readAsStringAsync(resizedPhoto.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) {
+          throw new Error('User not authenticated');
+        }
+        ProductApi.setUserId(userId);
 
-      Alert.alert('Photo Captured', 'Processing the QR code...');
-
-      const qrData = await ProductApi.detectQR(base64Image);
-
-      if (qrData) {
-        await handleBarCodeScanned({ data: qrData });
-      } else {
-        Alert.alert('No QR Code Found', 'The captured image does not contain a valid QR code.');
+        const result = await ProductApi.getProductDetails(data);
+        if (result.success) {
+          navigation.navigate('ProductDetails', { 
+            productId: data,
+            isNewProduct: false // You might want to determine this based on the API response
+          });
+        } else {
+          Alert.alert('Error', result.error || 'Failed to fetch product details');
+        }
+      } catch (error) {
+        console.error('Error handling scanned code:', error);
+        Alert.alert('Error', 'Failed to process the scanned code. Please try again.');
       }
-    } catch (error) {
-      const errorMessage = error.message || JSON.stringify(error);
-      Alert.alert('Error', `Failed to capture and process the image: ${errorMessage}`);
-      console.error('Error in handleManualCapture:', errorMessage);
-    } finally {
-      setIsProcessing(false);
     }
   };
 
+  const handleShutterPress = async () => {
+    if (scanned) {
+      setScanned(false);
+      return;
+    }
 
-  const processScannedData = async (qrCodeData) => {
-    console.log('Processing scanned data:', qrCodeData);
-    try {
-      if (!userId) {
-        throw new Error('User not authenticated');
-      }
-
-      console.log('Calling scanAndRegisterProduct with user ID:', userId);
-      const result = await ProductApi.scanAndRegisterProduct(qrCodeData);
-      console.log('scanAndRegisterProduct result:', result);
-
-      if (result.success) {
-        console.log('Product registration successful');
-        const message = result.isNewProduct
-          ? 'New product created and registered to your account!'
-          : 'Product registered to your account!';
-        Alert.alert('Success', message);
-        navigation.navigate('ProductDetails', { 
-          productId: result.productId,
-          isNewProduct: result.isNewProduct
-        });
-      } else {
-        console.log('Product registration failed:', result.error);
-        Alert.alert('Error', result.error || 'Failed to register product. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error processing product data:', error);
-      Alert.alert('Error', 'Unable to register product. Please try again.');
+    if (cameraRef.current) {
+      setIsScanning(true);
+      // The camera will now scan for QR codes
     }
   };
 
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+  if (!isPermissionGranted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.permissionText}>We need your permission to use the camera</Text>
+        <Button onPress={requestPermission} title="Grant Permission" />
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {Platform.OS === "android" ? <StatusBar hidden /> : null}
       <CameraView
         ref={cameraRef}
         style={styles.camera}
-        type="back"
+        facing="back"
+        onBarcodeScanned={handleBarCodeScanned}
       >
         <View style={styles.overlay}>
           <View style={styles.unfocusedContainer}/>
@@ -126,15 +112,18 @@ export default function HomeQR() {
           </View>
           <View style={styles.unfocusedContainer}>
             <Text style={styles.scanInstructions}>
-              {scanned ? 'QR Code detected!' : 'Position a QR code inside the frame to scan'}
+              {scanned ? 'QR Code detected!' : isScanning ? 'Scanning...' : 'Press the button to scan a QR code'}
             </Text>
           </View>
         </View>
       </CameraView>
-      <TouchableOpacity style={styles.shutterButton} onPress={handleManualCapture}>
+      <TouchableOpacity 
+        style={styles.shutterButton}
+        onPress={handleShutterPress}
+      >
         <View style={styles.shutterButtonInner} />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -190,7 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 40,
+    bottom: 80,
     alignSelf: 'center',
   },
   shutterButtonInner: {
@@ -199,6 +188,12 @@ const styles = StyleSheet.create({
     borderRadius: 27,
     backgroundColor: '#87CEEB',
     opacity: 1,
-  }
+  },
+  permissionText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
 });
 

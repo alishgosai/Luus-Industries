@@ -4,24 +4,22 @@ const PRODUCT_API_URL = `${API_URL}/api/products`;
 
 const ProductApi = {
   userId: null,
-  token: null,
 
-  setUserAuth: (userId, token) => {
-    console.log('Setting user authentication in ProductApi:', userId);
+  setUserId: (userId) => {
+    console.log('Setting user ID in ProductApi:', userId);
     ProductApi.userId = userId;
-    ProductApi.token = token;
   },
 
   scanAndRegisterProduct: async (qrCodeData) => {
     console.log('Scanning and registering product. User ID:', ProductApi.userId);
     try {
-      if (!ProductApi.userId || !ProductApi.token) {
-        throw new Error('User authentication not set');
+      if (!ProductApi.userId) {
+        throw new Error('User ID not set');
       }
       const response = await fetch(`${PRODUCT_API_URL}/scan-and-register`, {
         method: 'POST',
         headers: { 
-          'Authorization': `Bearer ${ProductApi.token}`,
+          'X-User-Id': ProductApi.userId,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ qrCodeData })
@@ -41,6 +39,7 @@ const ProductApi = {
       };
     }
   },
+  
   getProductDetails: async (productId) => {
     console.log('Getting product details. Product ID:', productId, 'User ID:', ProductApi.userId);
     try {
@@ -70,7 +69,7 @@ const ProductApi = {
         id: data.product.id,
         name: data.product.name || 'Unknown Product',
         description: data.product.description || 'No description available',
-        imageUrl: data.product.qrCodePath || '/placeholder.png',
+        imageUrl: data.product.storedImageUrl || data.product.qrCodePath || '/placeholder.png',
         category: data.product.category || 'Uncategorized',
         model: data.product.model || 'Unknown Model',
         specifications: [
@@ -158,38 +157,7 @@ const ProductApi = {
       console.error('Error fetching user products:', error);
       return { success: false, error: error.message };
     }
-  },
-
-  detectQR: async (base64Image) => {
-    console.log('Detecting QR code from image');
-    try {
-      if (!ProductApi.userId) {
-        throw new Error('User ID not set');
-      }
-      const response = await fetch(`${PRODUCT_API_URL}/detect-qr`, {
-        method: 'POST',
-        headers: {
-          'X-User-Id': ProductApi.userId,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image: base64Image }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(JSON.stringify(data) || `HTTP error! status: ${response.status}`);
-      }
-
-      if (!data.qrData) {
-        throw new Error('No QR code detected in the image');
-      }
-      return data.qrData;
-    } catch (error) {
-      console.error('Error detecting QR code:', error);
-      throw new Error(error.message || JSON.stringify(error));
-    }
-  },
+  }
 };
 
 export default ProductApi;

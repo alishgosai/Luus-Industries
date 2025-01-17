@@ -1,4 +1,4 @@
-import { scanAndRegisterProduct, getProductDetails, getUserProducts } from '../models/Product.js';
+import { scanAndRegisterProduct, getProductDetails, getUserProducts, registerProduct } from '../models/Product.js';
 
 const ProductController = {
   scanAndRegisterProduct: async (req, res) => {
@@ -57,63 +57,90 @@ const ProductController = {
     }
   },
 
-  getProductDetails: async (req, res) => {
+  
+getProductDetails : async (req, res) => {
+  try {
     console.log('Received request for product details:', req.params);
-    try {
-      const { productId } = req.params;
-      if (!productId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Product ID is required'
-        });
-      }
-      console.log('Fetching product details for productId:', productId);
-      const product = await getProductDetails(productId);
-      console.log('Product details retrieved:', JSON.stringify(product, null, 2));
-      res.json({ success: true, product });
-    } catch (error) {
-      console.error('Error in getProductDetails:', error);
-      let statusCode = 500;
-      let errorMessage = 'An unexpected error occurred';
+    const { productId } = req.params;
+    
+    // Parse the productId if it's a JSON string
+    const parsedProductId = typeof productId === 'string' && productId.startsWith('{') 
+      ? JSON.parse(productId) 
+      : productId;
 
-      if (error.message === 'Product not found') {
-        statusCode = 404;
-        errorMessage = 'Product not found in the database';
-      }
-
-      res.status(statusCode).json({
-        success: false,
-        error: errorMessage
-      });
+    console.log('Fetching product details for productId:', JSON.stringify(parsedProductId));
+    
+    const product = await getProductDetails(parsedProductId);
+    
+    if (!product) {
+      console.log('Product not found in the database');
+      return res.status(404).json({ success: false, error: 'Product not found in the database' });
     }
-  },
 
-  getUserProducts: async (req, res) => {
-    console.log('Received request for user products');
-    try {
-      const userId = req.user.id;
-      const products = await getUserProducts(userId);
-      res.json({ 
-        success: true, 
-        products,
-        count: products.length
-      });
-    } catch (error) {
-      console.error('Error in getUserProducts:', error);
-      let statusCode = 500;
-      let errorMessage = 'An unexpected error occurred';
-
-      if (error.message === 'User not found') {
-        statusCode = 404;
-        errorMessage = 'User not found. Please log in again.';
-      }
-
-      res.status(statusCode).json({
-        success: false,
-        error: errorMessage
-      });
-    }
+    console.log('Product details retrieved successfully');
+    res.json({ success: true, product });
+  } catch (error) {
+    console.error('Error in getProductDetails controller:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
+},
+
+registerProduct: async (req, res) => {
+  console.log('Received request to register product:', req.body);
+  try {
+      const { productId } = req.body;
+      const userId = req.user.id;
+      
+      if (!productId) {
+          return res.status(400).json({
+              success: false,
+              error: 'Product ID is required'
+          });
+      }
+
+      const result = await registerProduct(productId, userId);
+      console.log('Product registration result:', result);
+      
+      res.json({ 
+          success: true, 
+          message: 'Product successfully registered',
+          product: result
+      });
+  } catch (error) {
+      console.error('Error in registerProduct:', error);
+      res.status(500).json({
+          success: false,
+          error: error.message || 'An unexpected error occurred'
+      });
+  }
+},
+
+getUserProducts: async (req, res) => {
+  console.log('Received request for user products');
+  try {
+    const userId = req.user.id;
+    const products = await getUserProducts(userId);
+    res.json({ 
+      success: true, 
+      products,
+      count: products.length
+    });
+  } catch (error) {
+    console.error('Error in getUserProducts:', error);
+    let statusCode = 500;
+    let errorMessage = 'An unexpected error occurred';
+
+    if (error.message === 'User not found') {
+      statusCode = 404;
+      errorMessage = 'User not found. Please log in again.';
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+},
 };
 
 export default ProductController;

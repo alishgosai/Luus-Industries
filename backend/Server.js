@@ -6,10 +6,17 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import productRoutes from './routes/productRoutes.js';
+import productRoutes from './routes/ProductRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { 
+  handleChat, 
+  getChatSessionHistory, 
+  getUserProductInterests, 
+  deleteUserChatHistory, 
+  getAllUsers 
+} from './controllers/chatController.js';
 
 // Load environment variables
 dotenv.config();
@@ -40,8 +47,8 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
   credentials: true,
 };
 
@@ -73,13 +80,6 @@ if (!fs.existsSync(uploadsDir)) {
   console.log(`Created uploads directory: ${uploadsDir}`);
 }
 
-// Ensure data directory exists
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-  console.log(`Created data directory: ${dataDir}`);
-}
-
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(uploadsDir));
 
@@ -99,8 +99,15 @@ app.get('/api/test', (req, res) => {
 app.use('/user', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/products', productRoutes);
-app.use('/', serviceRoutes);
+app.use('/api/service', serviceRoutes);
 app.use('/api', supportRoutes);
+
+// Chat routes
+app.post('/api/chat', handleChat);
+app.get('/api/chat/history/:userId', getChatSessionHistory);
+app.get('/api/chat/interactions/:userId', getUserProductInterests);
+app.delete('/api/chat/history/:userId', deleteUserChatHistory);
+app.get('/api/chat/users', getAllUsers);
 
 // 404 handler for unmatched routes
 app.use((req, res, next) => {

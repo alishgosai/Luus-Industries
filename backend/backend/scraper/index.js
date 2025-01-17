@@ -17,32 +17,66 @@ const serviceAccount = JSON.parse(serviceAccountContent);
 
 const app = initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "luus-industries.firebasestorage.app/Products"
+  storageBucket: "luus-industries.firebasestorage.app"
 });
 
 const db = getFirestore(app);
 const storage = getStorage(app);
 const bucket = storage.bucket();
 
+// Mapping of product models to their image URLs
+const productImageUrls = {
+  'WV-1A': 'https://luus.com.au/wp-content/uploads/2021/01/WV1A-768x768.jpg',
+  'WV-1A1P': 'https://luus.com.au/wp-content/uploads/2021/03/WV1A1P-768x768.jpg',
+  'WV-1P1A': 'https://luus.com.au/wp-content/uploads/2021/03/WV1P1A-768x768.jpg',
+  'WV-2A': 'https://luus.com.au/wp-content/uploads/2021/03/WV2A-768x768.jpg',
+  'WV-1A1P1A': 'https://luus.com.au/wp-content/uploads/2021/04/WV1A1P1A-768x768.jpg',
+  'WV-1A2P1A': 'https://luus.com.au/wp-content/uploads/2022/01/WV1A2P1A-768x768.jpg'
+};
+
 function generateProductId(model) {
   return `PROD_${model.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`;
 }
 
-async function downloadImage(url, localPath) {
-  const response = await fetch(url);
-  const buffer = await response.buffer();
-  await fs.writeFile(localPath, buffer);
+async function downloadImage(url) {
+  try {
+    console.log(`Downloading image from ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.buffer();
+  } catch (error) {
+    console.error(`Error downloading image from ${url}:`, error);
+    throw error;
+  }
 }
 
-async function uploadImageToFirebase(localPath, storagePath) {
-  await bucket.upload(localPath, {
-    destination: storagePath,
-    metadata: {
-      contentType: 'image/jpeg',
-    },
-  });
-  await fs.unlink(localPath);
-  return bucket.file(storagePath).publicUrl();
+async function uploadImageToFirebase(buffer, storagePath) {
+  try {
+    console.log(`Attempting to upload image to ${storagePath}`);
+    
+    const file = bucket.file(storagePath);
+    await file.save(buffer, {
+      metadata: {
+        contentType: 'image/jpeg',
+      },
+    });
+    
+    console.log(`Image uploaded successfully to ${storagePath}`);
+    
+    const [signedUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-01-2500',
+    });
+    
+    console.log(`Signed URL generated: ${signedUrl}`);
+    return signedUrl;
+  } catch (error) {
+    console.error(`Error uploading image to Firebase:`, error);
+    if (error.code === 'storage/unauthorized') {
+      console.error('Firebase Storage permissions error. Check your Storage rules.');
+    }
+    throw error;
+  }
 }
 
 async function autoScroll(page) {
@@ -104,17 +138,11 @@ async function scrapeWokPage() {
 
     await autoScroll(page);
 
-    await page.screenshot({ path: 'debug_screenshot.png', fullPage: true });
-    const pageContent = await page.content();
-    await fs.writeFile('debug_page_content.html', pageContent);
-
-    console.log('Saved debug screenshot and page content');
-
     const productData = await page.evaluate(() => {
       const products = [];
       const productElements = document.querySelectorAll('.lu-product-list-item');
 
-      productElements.forEach((element, index) => {
+      productElements.forEach((element) => {
         const titleElement = element.querySelector('h2');
         const title = titleElement ? titleElement.textContent.trim() : '';
         const [model, ...nameParts] = title.split(' ');
@@ -131,39 +159,14 @@ async function scrapeWokPage() {
           }
         });
 
-        let imageUrl = '';
-        let imageSrcset = '';
-
-        const imageElement = element.querySelector('.lu-product-list-item__image img');
-        if (imageElement) {
-          imageUrl = imageElement.src || imageElement.dataset.src || '';
-          imageSrcset = imageElement.srcset || imageElement.dataset.srcset || '';
-        }
-
-        if (!imageUrl && !imageSrcset) {
-          const pictureElement = element.querySelector('.lu-product-list-item__image picture');
-          if (pictureElement) {
-            const sourceElement = pictureElement.querySelector('source');
-            if (sourceElement) {
-              imageSrcset = sourceElement.srcset || sourceElement.dataset.srcset || '';
-            }
-            const imgElement = pictureElement.querySelector('img');
-            if (imgElement) {
-              imageUrl = imgElement.src || imgElement.dataset.src || '';
-            }
-          }
-        }
-
         products.push({
           model,
-          name,
+          name: `${model} ${name}`,
           description,
           specifications: specs,
           category: 'Asian',
           subcategory: 'Fo San Woks',
-          scrapedAt: new Date().toISOString(),
-          imageUrl,
-          imageSrcset
+          scrapedAt: new Date().toISOString()
         });
       });
 
@@ -177,8 +180,24 @@ async function scrapeWokPage() {
         const productId = generateProductId(product.model);
         product.product_id = productId;
 
+        // Get image URL from our mapping
+        const imageUrl = productImageUrls[product.model];
+        if (imageUrl) {
+          try {
+            const imageBuffer = await downloadImage(imageUrl);
+            const storagePath = `products/${productId}.jpg`;
+            const signedUrl = await uploadImageToFirebase(imageBuffer, storagePath);
+            product.storedImageUrl = signedUrl;
+            console.log(`Stored image URL for ${productId}: ${signedUrl}`);
+          } catch (error) {
+            console.error(`Error processing image for product ${productId}:`, error);
+            product.storedImageUrl = null;
+          }
+        } else {
+          console.log(`No image URL found for product ${product.model}`);
+          product.storedImageUrl = null;
+        }
 
-        // Convert the product object to a plain JavaScript object
         const productObject = {
           product_id: productId,
           model: product.model,
@@ -187,12 +206,17 @@ async function scrapeWokPage() {
           specifications: product.specifications,
           category: product.category,
           subcategory: product.subcategory,
-          scrapedAt: product.scrapedAt
+          scrapedAt: product.scrapedAt,
+          storedImageUrl: product.storedImageUrl
         };
 
-        const docRef = db.collection('products').doc(productId);
-        await docRef.set(productObject);
-        console.log(`Successfully stored product data for ${product.model} in Firestore with product_id: ${productId}`);
+        try {
+          const docRef = db.collection('products').doc(productId);
+          await docRef.set(productObject);
+          console.log(`Successfully stored product data for ${product.model} in Firestore with product_id: ${productId}`);
+        } catch (error) {
+          console.error(`Error storing product data for ${product.model}:`, error);
+        }
       } else {
         console.warn('Skipping product with empty model:', product);
       }
@@ -207,54 +231,14 @@ async function scrapeWokPage() {
   }
 }
 
-async function checkFirestoreConsistency() {
-  try {
-    const productsRef = db.collection('products');
-    const snapshot = await productsRef.get();
-
-    if (snapshot.empty) {
-      console.log('No products found in the database.');
-      return;
-    }
-
-    console.log('Checking products in Firestore for consistency:');
-    let mismatchFound = false;
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      console.log(`Product ID: ${data.product_id}`);
-      console.log(`Model: ${data.model}`);
-      console.log(`Document ID: ${doc.id}`);
-      console.log(`Stored Image URL: ${data.storedImageUrl || 'N/A'}`);
-      console.log('---');
-
-      if (doc.id !== data.product_id || generateProductId(data.model) !== data.product_id) {
-        mismatchFound = true;
-        console.warn(`Warning: Mismatch found for document ${doc.id}`);
-        console.warn(`Document ID: ${doc.id}, Product ID: ${data.product_id}, Generated Product ID: ${generateProductId(data.model)}`);
-      }
-    });
-
-    if (!mismatchFound) {
-      console.log('All products have matching product_id, document ID, and generated product ID fields.');
-    } else {
-      console.warn('Mismatches found. Please review and correct the data inconsistencies.');
-    }
-
-    console.log('Database consistency check complete.');
-  } catch (error) {
-    console.error('Error checking Firestore consistency:', error);
-  }
-}
-
 async function main() {
   console.log('Starting Fo San Woks scraper with image storage...');
-  await scrapeWokPage();
-  console.log('Scraping complete');
-
-  console.log('Starting Firestore consistency check...');
-  await checkFirestoreConsistency();
-  console.log('Process complete');
+  try {
+    await scrapeWokPage();
+    console.log('Scraping complete');
+  } catch (error) {
+    console.error('An error occurred during the scraping process:', error);
+  }
 }
 
 main().catch(console.error);

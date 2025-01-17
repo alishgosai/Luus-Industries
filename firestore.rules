@@ -1,4 +1,5 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
@@ -8,20 +9,40 @@ service cloud.firestore {
     // Products collection
     match /products/{productId} {
       // Allow read access to authenticated users
-      allow read: if isAuthenticated();
-      // Optionally, you can add a write rule if needed
-      // allow write: if isAuthenticated() && <additional conditions>;
+      allow read: if request.auth != null;
+      // Allow write access for the scraping process (consider restricting this in production)
+      allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
     // User Products collection
     match /userProducts/{userProductId} {
       // Allow read access to authenticated users, but only for their own products
-      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
       // Allow creation of new user product registrations
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
-       allow create: if isAuthenticated() 
+      allow create: if request.auth != null 
                 && request.auth.uid == request.resource.data.userId
                 && !exists(/databases/$(database)/documents/userProducts/$(request.resource.data.productId + '_' + request.auth.uid));
+    }
+  }
+}
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // This rule allows anyone with your Storage bucket reference to view, edit,
+    // and delete all data in your Storage bucket. It is useful for getting
+    // started, but it is configured to expire after 30 days because it
+    // leaves your app open to attackers. At that time, all client
+    // requests to your Storage bucket will be denied.
+    //
+    // Make sure to write security rules for your app before that time, or else
+    // all client requests to your Storage bucket will be denied until you Update
+    // your rules
+    match /{allPaths=**} {
+      allow read, write: if request.time < timestamp.date(2025, 2, 10);
     }
   }
 }

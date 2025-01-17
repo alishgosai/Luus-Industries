@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -9,60 +9,65 @@ import {
   SafeAreaView, 
   ActivityIndicator
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { fetchRegisteredProducts } from "../Services/productApi";
+import ProductApi from "../Services/productApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WarrantyAndProductsScreen = () => {
     const navigation = useNavigation();
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState(null); // Update 1: Initial state of products is null
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const checkAuthAndFetchProducts = async () => {
-        const token = await AsyncStorage.getItem('userToken');
-        console.log('WarrantyAndProductsScreen: Token from AsyncStorage:', token ? 'exists' : 'not found');
-        if (token) {
-            fetchProducts(token);
+        const userId = await AsyncStorage.getItem('userId');
+        console.log('WarrantyAndProductsScreen: UserId from AsyncStorage:', userId ? 'exists' : 'not found');
+        if (userId) {
+            fetchProducts(userId);
         } else {
-            console.log('WarrantyAndProductsScreen: No token found, displaying no products message');
+            console.log('WarrantyAndProductsScreen: No userId found, displaying no products message');
             setLoading(false);
-            setProducts([]);
+            setProducts(null); // Update 1: Set products to null
         }
     };
 
-    useEffect(() => {
-        console.log('WarrantyAndProductsScreen: Component mounted');
+    useFocusEffect(
+      useCallback(() => {
+        console.log('WarrantyAndProductsScreen: Screen focused');
         checkAuthAndFetchProducts().catch(error => {
-            console.error('WarrantyAndProductsScreen: Error in checkAuthAndFetchProducts:', error);
-            setError('Failed to authenticate. Please try logging in again.');
-            setLoading(false);
+          console.error('WarrantyAndProductsScreen: Error in checkAuthAndFetchProducts:', error);
+          setError('Failed to authenticate. Please try logging in again.');
+          setLoading(false);
         });
-    }, []);
+      }, [])
+    );
 
-    const fetchProducts = async (token) => {
+    const fetchProducts = async (userId) => { // Update 3: Added more logging
         try {
             setLoading(true);
             setError(null);
-            console.log('WarrantyAndProductsScreen: Fetching products with token');
-            const response = await fetchRegisteredProducts(token);
-            console.log('WarrantyAndProductsScreen: fetchRegisteredProducts response:', response);
+            console.log('WarrantyAndProductsScreen: Fetching products with userId:', userId); // Update 3
+            ProductApi.setUserId(userId); // Update 3
+            const response = await ProductApi.getUserProducts();
+            console.log('WarrantyAndProductsScreen: getUserProducts response:', JSON.stringify(response, null, 2)); // Update 3
             if (response.success) {
-                setProducts(response.data);
+                console.log('WarrantyAndProductsScreen: Number of products fetched:', response.products.length); // Update 3
+                setProducts(response.products);
             } else {
-                console.error('WarrantyAndProductsScreen: Failed to fetch products:', response.message);
-                setError(response.message || 'Failed to load products');
-                setProducts([]);
+                console.error('WarrantyAndProductsScreen: Failed to fetch products:', response.error);
+                setError(response.error || 'Failed to load products');
+                setProducts(null); // Update 1: Set products to null
             }
         } catch (err) {
             console.error('WarrantyAndProductsScreen: Error fetching registered products:', err);
             setError(err.message || 'Failed to load products. Please try again.');
-            setProducts([]);
+            setProducts(null); // Update 1: Set products to null
         } finally {
             setLoading(false);
         }
     };
+
 
     const ProductCard = ({ product }) => (
         <View style={styles.productCard}>
@@ -124,7 +129,7 @@ const WarrantyAndProductsScreen = () => {
                           <Text style={styles.retryButtonText}>Retry</Text>
                       </TouchableOpacity>
                   </View>
-              ) : products.length === 0 ? (
+              ) : products === null || products.length === 0 ? ( // Update 2: Check if products is null or empty
                   <View style={styles.noProductsContainer}>
                       <Text style={styles.noProductsText}>No registered products found.</Text>
                       <Text style={styles.noProductsSubText}>Register a product by scanning QR to see it here.</Text>
@@ -266,3 +271,4 @@ const styles = StyleSheet.create({
 });
 
 export default WarrantyAndProductsScreen;
+
