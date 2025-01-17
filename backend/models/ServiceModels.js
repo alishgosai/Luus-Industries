@@ -1,11 +1,27 @@
-import { admin, db, storage } from '../services/firebaseAdmin.js';
+import { collection, addDoc, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase.config';
+
+const COLLECTION_NAME = 'serviceForms';
 
 export const createServiceForm = async (data) => {
   try {
-    const docRef = await db.collection('serviceForms').add({
-      ...data,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      formType: data.formType, // 'equipmentSales', 'technicalSupport', or 'warrantyService'
+      name: data.name,
+      email: data.email,
+      businessName: data.businessName,
+      businessType: data.businessType,
+      requiredDate: data.requiredDate,
+      productModel: data.productModel,
+      serialNumber: data.serialNumber,
+      purchaseDate: data.purchaseDate,
+      warrantyNumber: data.warrantyNumber,
+      problemDescription: data.problemDescription,
+      fileName: data.fileName,
+      imageUrl: data.imageUrl, // Changed from fileUrl to imageUrl to match our implementation
+      createdAt: new Date()
     });
+    console.log('Service form created with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error creating service form:', error);
@@ -15,10 +31,11 @@ export const createServiceForm = async (data) => {
 
 export const getServiceFormById = async (id) => {
   try {
-    const docRef = db.collection('serviceForms').doc(id);
-    const doc = await docRef.get();
-    if (doc.exists) {
-      return { id: doc.id, ...doc.data() };
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
     } else {
       throw new Error('Service form not found');
     }
@@ -30,10 +47,9 @@ export const getServiceFormById = async (id) => {
 
 export const getServiceFormsByType = async (formType) => {
   try {
-    const snapshot = await db.collection('serviceForms')
-      .where('formType', '==', formType)
-      .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const q = query(collection(db, COLLECTION_NAME), where("formType", "==", formType));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting service forms by type:', error);
     throw error;
@@ -42,41 +58,13 @@ export const getServiceFormsByType = async (formType) => {
 
 export const getAllServiceForms = async () => {
   try {
-    const snapshot = await db.collection('serviceForms').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting all service forms:', error);
     throw error;
   }
 };
 
-export const uploadFile = async (file) => {
-  try {
-    const bucket = storage.bucket();
-    const fileName = `${Date.now()}_${file.originalname}`;
-    const fileUpload = bucket.file(fileName);
-
-    const blobStream = fileUpload.createWriteStream({
-      metadata: {
-        contentType: file.mimetype
-      }
-    });
-
-    return new Promise((resolve, reject) => {
-      blobStream.on('error', (error) => {
-        reject(error);
-      });
-
-      blobStream.on('finish', async () => {
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-        resolve(publicUrl);
-      });
-
-      blobStream.end(file.buffer);
-    });
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    throw error;
-  }
-};
+export const getServiceFormsCollection = () => collection(db, COLLECTION_NAME);
 
