@@ -1,19 +1,20 @@
-const { createServiceForm } = require('../models/ServiceModels');
-const nodemailer = require('nodemailer');
+import { createServiceForm } from '../models/ServiceModels.js';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  // Configure your email service here
-  // For example, using Gmail:
   service: 'gmail',
   auth: {
-    user: 'your-email@gmail.com',
-    pass: 'your-email-password'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
 const sendEmail = async (formData, formType) => {
   const mailOptions = {
-    from: 'your-email@gmail.com',
+    from: process.env.EMAIL_USER,
     to: 'alishgosai@gmail.com',
     subject: `New ${formType} Submission`,
     text: `
@@ -31,7 +32,7 @@ const sendEmail = async (formData, formType) => {
   await transporter.sendMail(mailOptions);
 };
 
-exports.submitWarrantyService = async (req, res) => {
+export const submitWarrantyService = async (req, res) => {
   try {
     const formData = req.body;
     const docId = await createServiceForm({ ...formData, formType: 'warrantyService' });
@@ -47,7 +48,7 @@ exports.submitWarrantyService = async (req, res) => {
   }
 };
 
-exports.submitEquipmentSales = async (req, res) => {
+export const submitEquipmentSales = async (req, res) => {
   try {
     const formData = req.body;
     const docId = await createServiceForm({ ...formData, formType: 'equipmentSales' });
@@ -63,7 +64,7 @@ exports.submitEquipmentSales = async (req, res) => {
   }
 };
 
-exports.submitTechnicalSupport = async (req, res) => {
+export const submitTechnicalSupport = async (req, res) => {
   try {
     const formData = req.body;
     const docId = await createServiceForm({ ...formData, formType: 'technicalSupport' });
