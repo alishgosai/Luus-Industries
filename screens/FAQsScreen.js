@@ -1,47 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import API_URL from '../backend/config/api';
 
 const defaultFAQs = [
   {
-    title: "App related questions:",
+    title: "About LUUS",
     questions: [
       {
-        title: "How do I contact technician?",
-        answer: "If you need technical assistance, our dedicated team is here to help. You can reach out to our technicians through multiple channels: Email us at support@example.com, call our technical support line, or use the in-app chat feature for immediate assistance. Our technicians are available Monday through Friday, 9 AM to 6 PM, and will respond to your query within 24 hours.",
-        action: "Contact Support",
-        actionType: "navigate",
-        actionTarget: "ServiceForm"
+        title: "Where is LUUS located?",
+        answer: "LUUS Industries is housed within a purpose-built facility in Melbourne's West. We are proudly committed to being the leading manufacturer and solutions provider of commercial catering equipment in Australia.",
+        action: "View on Map",
+        actionType: "link",
+        actionTarget: "https://g.co/kgs/u5BMWpt"
       },
-    ]
-  },
-  {
-    title: "System related questions:",
-    questions: [
       {
-        title: "How to change password?",
-        answer: "Changing your password is a simple process to help keep your account secure. Follow these steps:\n1. Go to your Account Settings\n2. Select the 'Security' tab\n3. Click on 'Change Password'\n4. Enter your current password\n5. Enter and confirm your new password\n6. Click 'Save Changes'\n\nRemember to choose a strong password that includes a mix of letters, numbers, and special characters.",
-        action: "Change Password",
+        title: "Is LUUS featured on MasterChef Australia?",
+        answer: "Yes! LUUS is proud to be featured on MasterChef Australia 2024, where our professional-grade equipment, including our signature woks, are used by contestants and chefs.",
+      },
+      {
+        title: "What types of equipment does LUUS manufacture?",
+        answer: "LUUS manufactures a wide range of commercial catering equipment including woks, cooktops, ovens, fryers, griddles, and specialized Asian cooking equipment. Our product range caters to various commercial kitchen needs with both Asian and Professional series.",
+        action: "View Products",
         actionType: "navigate",
-        actionTarget: "EditPersonalDetails"
+        actionTarget: "Browse"
       }
     ]
   },
   {
-    title: "Support related questions:",
+    title: "Service & Support",
     questions: [
       {
-        title: "Contact number of LUXE",
-        answer: "You can reach LUXE support at any time through our dedicated support line. Our team is ready to assist you with any questions or concerns you may have about our services or products. We aim to provide prompt and helpful assistance to ensure your complete satisfaction.",
-        action: "Call Support",
+        title: "How do I book a service?",
+        answer: "You can easily book a service through our website or by contacting our support team. Our qualified technicians are available to help maintain and repair your LUUS equipment.",
+        action: "Book Service",
+        actionType: "navigate",
+        actionTarget: "ServiceForm"
+      },
+      {
+        title: "How do I register my warranty?",
+        answer: "Warranty registration can be completed online through our warranty registration portal. This ensures your LUUS equipment is properly documented and covered under our warranty terms.",
+        action: "Register Warranty",
+        actionType: "navigate",
+        actionTarget: "HomeQR"
+      },
+      { title: "Where do I find my warranty information?",
+        answer: "Warranty details can be found on warranty and products page, where you can find all the details regarding duration and type of warranty of the products.",
+        action: "View Warranty",
+        actionType: "navigate",
+        actionTarget: "WarrantyAndProducts"
+      },
+      {
+        title: "Where can I find spare parts?",
+        answer: "LUUS provides a comprehensive range of spare parts for all our equipment. You can browse and order spare parts through our dedicated spare parts section.",
+        action: "View Spare Parts",
+        actionType: "navigate",
+        actionTarget: "SpareParts"
+      }
+    ]
+  },
+  {
+    title: "Product Information",
+    questions: [
+      {
+        title: "What is special about LUUS Asian cooking equipment?",
+        answer: "LUUS has been involved in Asian cuisine since our inception. Our Asian cooking equipment is designed with intricate knowledge of the demands of Asian cooking, addressing common frustrations Asian chefs experience. Our equipment ensures authentic cooking results with professional-grade durability.",
+        action: "View Asian Range",
+        actionType: "navigate",
+        actionTarget: "AsianProducts"
+      },
+      {
+        title: "Tell me about the Professional Range",
+        answer: "The LUUS Professional Series is engineered with higher specifications and heavy-duty construction. Standing at 800mm in depth, these units are ideal for restaurants, hotels, and franchises looking for extra performance, reliability, and style in a compact footprint.",
+        action: "View Professional Range",
+        actionType: "navigate",
+        actionTarget: "ProfessionalProducts"
+      }
+    ]
+  },
+  {
+    title: "Contact Information",
+    questions: [
+      {
+        title: "How can I contact LUUS?",
+        answer: "You can reach our support team through multiple channels. We're here to assist with any questions about our products and services.",
+        action: "Contact Support",
         actionType: "call",
         actionTarget: "+61 0392406822"
       },
       {
-        title: "Phone number",
-        answer: "+61 0392406822",
+        title: "Where can I see LUUS products?",
+        answer: "LUUS products can be viewed on our website, through our authorized dealers, or by visiting our showroom. Contact us to find the nearest dealer or to schedule a showroom visit.",
+        action: "Find Dealer",
+        actionType: "navigate",
+        actionTarget: "ContactUs"
       }
     ]
   }
@@ -51,32 +103,7 @@ const FAQsScreen = () => {
   const navigation = useNavigation();
   const [expandedSections, setExpandedSections] = useState([]);
   const [expandedQuestions, setExpandedQuestions] = useState([]);
-  const [faqData, setFaqData] = useState(defaultFAQs);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchFAQs();
-  }, []);
-
-  const fetchFAQs = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/support/faq`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setFaqData(data);
-      }
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Error fetching FAQs:', err);
-      setError('Failed to load FAQs. Using default data.');
-      setFaqData(defaultFAQs);
-      setIsLoading(false);
-    }
-  };
+  const faqData = defaultFAQs;
 
   const handleAction = (actionType, actionTarget) => {
     switch (actionType) {
@@ -85,6 +112,9 @@ const FAQsScreen = () => {
         break;
       case 'call':
         Linking.openURL(`tel:${actionTarget}`);
+        break;
+      case 'link':
+        Linking.openURL(actionTarget);
         break;
       default:
         console.log('No action specified');
@@ -176,14 +206,6 @@ const FAQsScreen = () => {
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#87CEEB" />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -196,12 +218,6 @@ const FAQsScreen = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Frequently Asked Questions</Text>
         </View>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
 
         <ScrollView 
           style={styles.content}
@@ -219,7 +235,7 @@ const FAQsScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000',
   },
   container: {
     flex: 1,
@@ -323,23 +339,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#121212',
-  },
-  errorContainer: {
-    padding: 16,
-    backgroundColor: '#FF0000',
-    margin: 16,
-    borderRadius: 8,
-  },
-  errorText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    textAlign: 'center',
   },
 });
 

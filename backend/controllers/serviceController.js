@@ -2,18 +2,16 @@ import { createServiceForm } from '../models/ServiceModels.js';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  // Configure your email service here
-  // For example, using Gmail:
   service: 'gmail',
   auth: {
-    user: 'your-email@gmail.com',
-    pass: 'your-email-password'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
 const sendEmail = async (formData, formType) => {
   const mailOptions = {
-    from: 'your-email@gmail.com',
+    from: process.env.EMAIL_USER,
     to: 'alishgosai@gmail.com',
     subject: `New ${formType} Submission`,
     text: `
