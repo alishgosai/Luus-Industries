@@ -4,82 +4,6 @@ const PRODUCTS_COLLECTION = 'products';
 const USER_PRODUCTS_COLLECTION = 'userProducts';
 const USERS_COLLECTION = 'users';
 
-export async function scanAndRegisterProduct(productData, userId) {
-  console.log(`Attempting to scan and register product. Product Data: ${JSON.stringify(productData)}, User ID: ${userId}`);
-
-  if (!productData || !userId) {
-    throw new Error('Invalid product data or user ID');
-  }
-
-  let productId, model;
-
-  if (typeof productData === 'string' && productData.startsWith('PROD_')) {
-    productId = productData;
-    model = null;
-  } else if (typeof productData === 'object' && productData.product_id && productData.model) {
-    productId = productData.product_id;
-    model = productData.model;
-  } else {
-    throw new Error('Invalid product data format');
-  }
-
-  try {
-    let productQuery = db.collection(PRODUCTS_COLLECTION).where('product_id', '==', productId);
-    
-    if (model) {
-      productQuery = productQuery.where('model', '==', model);
-    }
-
-    const productSnapshot = await productQuery.limit(1).get();
-
-    if (productSnapshot.empty) {
-      throw new Error(`Scanned product does not exist in the database. Product ID: ${productId}`);
-    }
-
-    const productDoc = productSnapshot.docs[0];
-    const productData = productDoc.data();
-
-    const userDoc = await db.collection(USERS_COLLECTION).doc(userId).get();
-    if (!userDoc.exists) {
-      throw new Error('User not found');
-    }
-
-    const existingUserProductQuery = await db.collection(USER_PRODUCTS_COLLECTION)
-      .where('userId', '==', userId)
-      .where('productId', '==', productDoc.id)
-      .limit(1)
-      .get();
-
-    if (!existingUserProductQuery.empty) {
-      throw new Error('Product already registered to this user');
-    }
-
-    const userProductRef = db.collection(USER_PRODUCTS_COLLECTION).doc();
-    await userProductRef.set({
-      userId: userId,
-      productId: productDoc.id,
-      registeredAt: new Date(),
-      productName: productData.name,
-      productModel: productData.model,
-    });
-
-    console.log(`Product registered to user. User Product ID: ${userProductRef.id}, User ID: ${userId}`);
-
-    return {
-      id: userProductRef.id,
-      productId: productDoc.id,
-      ...productData,
-      registeredBy: userId,
-      registeredAt: new Date()
-    };
-
-  } catch (error) {
-    console.error('Error in scanAndRegisterProduct:', error);
-    throw error;
-  }
-}
-
-
 export async function getProductDetails(productId) {
   try {
     console.log(`Attempting to fetch product details for ID: ${productId}`);
@@ -130,66 +54,6 @@ export async function getProductDetails(productId) {
   }
 }
 
-
-export async function registerProduct(productId, userId) {
-  console.log(`Attempting to register product. Product ID: ${productId}, User ID: ${userId}`);
-
-  if (!productId || !userId) {
-      throw new Error('Invalid product ID or user ID');
-  }
-
-  try {
-      // Check if the product exists
-      const productDoc = await db.collection(PRODUCTS_COLLECTION).doc(productId).get();
-      if (!productDoc.exists) {
-          throw new Error('Product not found');
-      }
-
-      // Check if user exists
-      const userDoc = await db.collection(USERS_COLLECTION).doc(userId).get();
-      if (!userDoc.exists) {
-          throw new Error('User not found');
-      }
-
-      // Check if the product is already registered to the user
-      const existingUserProductQuery = await db.collection(USER_PRODUCTS_COLLECTION)
-          .where('userId', '==', userId)
-          .where('productId', '==', productId)
-          .limit(1)
-          .get();
-
-      if (!existingUserProductQuery.empty) {
-          throw new Error('Product already registered to this user');
-      }
-
-      // Create a new document in the userProducts collection
-      const userProductRef = db.collection(USER_PRODUCTS_COLLECTION).doc();
-      const productData = productDoc.data();
-      await userProductRef.set({
-          userId: userId,
-          productId: productId,
-          registeredAt: new Date(),
-          productName: productData.name,
-          productModel: productData.model,
-      });
-
-      console.log(`Product registered to user. User Product ID: ${userProductRef.id}, User ID: ${userId}`);
-
-      return {
-          id: userProductRef.id,
-          productId: productId,
-          ...productData,
-          registeredBy: userId,
-          registeredAt: new Date()
-      };
-
-  } catch (error) {
-      console.error('Error in registerProduct:', error);
-      throw error;
-  }
-}
-
-
 export async function getUserProducts(userId) {
   try {
     const userProductsQuery = db.collection(USER_PRODUCTS_COLLECTION)
@@ -228,9 +92,129 @@ export async function getUserProducts(userId) {
   }
 }
 
+export async function checkProductRegistration(userId, productId) {
+  try {
+    console.log(`Checking registration for user ${userId} and product ${productId}`);
+    const existingRegistration = await db.collection(USER_PRODUCTS_COLLECTION)
+      .where('userId', '==', userId)
+      .where('productId', '==', productId)
+      .limit(1)
+      .get();
+
+    const isRegistered = !existingRegistration.empty;
+    console.log(`Registration check result: ${isRegistered ? 'Already registered' : 'Not registered'}`);
+
+    return { 
+      isRegistered, 
+      message: isRegistered ? 'Product already registered' : 'Product not registered',
+      newlyRegistered: false
+    };
+  } catch (error) {
+    console.error('Error in checkProductRegistration:', error);
+    throw error;
+  }
+}
+
+export async function registerUserProduct(userId, productId) {
+  try {
+    console.log(`Attempting to register product ${productId} for user ${userId}`);
+
+    const registrationCheck = await checkProductRegistration(userId, productId);
+    if (registrationCheck.isRegistered) {
+      return registrationCheck;
+    }
+
+    // Check if the user exists
+    const userDoc = await db.collection(USERS_COLLECTION).doc(userId).get();
+    if (!userDoc.exists) {
+      console.log(`User ${userId} not found`);
+      throw new Error('User not found');
+    }
+
+    // Check if the product exists
+    const productDoc = await db.collection(PRODUCTS_COLLECTION).doc(productId).get();
+    if (!productDoc.exists) {
+      console.log(`Product ${productId} not found`);
+      throw new Error('Product not found');
+    }
+
+    // Check if the user has already registered this product
+    const existingRegistration = await db.collection(USER_PRODUCTS_COLLECTION)
+      .where('userId', '==', userId)
+      .where('productId', '==', productId)
+      .limit(1)
+      .get();
+
+    if (!existingRegistration.empty) {
+      console.log(`Product ${productId} already registered for user ${userId}`);
+      return { 
+        success: true, 
+        newlyRegistered: false, 
+        message: 'Product already registered' 
+      };
+    }
+
+    // Register the product to the user
+    const userProductRef = await db.collection(USER_PRODUCTS_COLLECTION).add({
+      userId: userId,
+      productId: productId,
+      registeredAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`Product registered to user. User Product ID: ${userProductRef.id}, User ID: ${userId}`);
+
+    return {
+      success: true,
+      isRegistered: true,
+      userProductId: userProductRef.id,
+      newlyRegistered: true,
+      message: 'Product registered successfully'
+    };
+
+  } catch (error) {
+    console.error('Error in registerUserProduct:', error);
+    throw error;
+  }
+}
+
+export async function deleteUserProduct(userId, userProductId) {
+  try {
+    console.log(`Attempting to delete user product ${userProductId} for user ${userId}`);
+
+    // Check if the user product exists and belongs to the user
+    const userProductRef = db.collection(USER_PRODUCTS_COLLECTION).doc(userProductId);
+    const userProductDoc = await userProductRef.get();
+
+    if (!userProductDoc.exists) {
+      console.log(`User product ${userProductId} not found in the database`);
+      throw new Error('User product not found');
+    }
+
+    const userProductData = userProductDoc.data();
+    console.log(`User product data:`, userProductData);
+
+    if (userProductData.userId !== userId) {
+      console.log(`User ${userId} does not own product ${userProductId}. Owner is ${userProductData.userId}`);
+      throw new Error('User does not own this product');
+    }
+
+    // Delete the user product
+    await userProductRef.delete();
+
+    console.log(`User product ${userProductId} deleted successfully`);
+    return { success: true, message: 'User product deleted successfully' };
+
+  } catch (error) {
+    console.error('Error in deleteUserProduct:', error);
+    throw error;
+  }
+}
+
 export default {
-  scanAndRegisterProduct,
   getProductDetails,
   getUserProducts,
-  registerProduct
+  registerUserProduct,
+  checkProductRegistration,
+  deleteUserProduct,
 };
+

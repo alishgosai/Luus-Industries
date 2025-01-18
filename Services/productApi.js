@@ -10,37 +10,7 @@ const ProductApi = {
     ProductApi.userId = userId;
   },
 
-  scanAndRegisterProduct: async (qrCodeData) => {
-    console.log('Scanning and registering product. User ID:', ProductApi.userId);
-    try {
-      if (!ProductApi.userId) {
-        throw new Error('User ID not set');
-      }
-      const response = await fetch(`${PRODUCT_API_URL}/scan-and-register`, {
-        method: 'POST',
-        headers: { 
-          'X-User-Id': ProductApi.userId,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ qrCodeData })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-      console.log('Product registered successfully:', data);
-      return data;
-    } catch (error) {
-      console.error('Error scanning and registering product:', error);
-      return { 
-        success: false, 
-        error: error.message,
-        details: error.stack
-      };
-    }
-  },
-  
-  getProductDetails: async (productId) => {
+  getProductDetails: async (productId, shouldRegister = false) => {
     console.log('Getting product details. Product ID:', productId, 'User ID:', ProductApi.userId);
     try {
       if (!ProductApi.userId) {
@@ -51,10 +21,12 @@ const ProductApi = {
       }
 
       const response = await fetch(`${PRODUCT_API_URL}/${productId}`, {
+        method: 'POST',
         headers: { 
           'X-User-Id': ProductApi.userId,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ shouldRegister })
       });
 
       const data = await response.json();
@@ -95,43 +67,14 @@ const ProductApi = {
       };
 
       console.log('Transformed product details:', transformedData);
-      return { success: true, product: transformedData };
+      return { 
+        success: true, 
+        product: transformedData, 
+        registered: data.registered,
+        registrationMessage: data.registrationMessage
+      };
     } catch (error) {
       console.error('Error fetching product details:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-
-
-  updateProductDetails: async (productId, updateData) => {
-    console.log('Updating product details. Product ID:', productId, 'Data:', updateData);
-    try {
-      if (!ProductApi.userId) {
-        throw new Error('User ID not set');
-      }
-      if (!productId) {
-        throw new Error('Product ID is required');
-      }
-
-      const response = await fetch(`${PRODUCT_API_URL}/${productId}`, {
-        method: 'PATCH',
-        headers: { 
-          'X-User-Id': ProductApi.userId,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      console.log('Product details updated successfully:', data);
-      return data;
-    } catch (error) {
-      console.error('Error updating product details:', error);
       return { success: false, error: error.message };
     }
   },
@@ -155,6 +98,37 @@ const ProductApi = {
       return data;
     } catch (error) {
       console.error('Error fetching user products:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  deleteUserProduct: async (userProductId) => {
+    console.log('Deleting user product. User Product ID:', userProductId, 'User ID:', ProductApi.userId);
+    try {
+      if (!ProductApi.userId) {
+        throw new Error('User ID not set');
+      }
+      if (!userProductId) {
+        throw new Error('User Product ID is required');
+      }
+
+      const response = await fetch(`${PRODUCT_API_URL}/user-products/${userProductId}`, {
+        method: 'DELETE',
+        headers: { 
+          'X-User-Id': ProductApi.userId,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      console.log('Product deleted successfully');
+      return { success: true, message: data.message };
+    } catch (error) {
+      console.error('Error deleting user product:', error);
       return { success: false, error: error.message };
     }
   }

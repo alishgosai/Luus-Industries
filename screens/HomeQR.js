@@ -5,13 +5,13 @@ import {
   AppState,
   Platform,
   SafeAreaView,
-  StatusBar,
   StyleSheet,
   View,
   Text,
   Button,
   TouchableOpacity,
   Alert,
+  StatusBar,
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProductApi from '../Services/productApi';
@@ -55,12 +55,25 @@ export default function HomeQR() {
         }
         ProductApi.setUserId(userId);
 
-        const result = await ProductApi.getProductDetails(data);
+        const result = await ProductApi.getProductDetails(data, true);
         if (result.success) {
-          navigation.navigate('ProductDetails', { 
-            productId: data,
-            isNewProduct: false // You might want to determine this based on the API response
-          });
+          const alertMessage = result.newlyRegistered
+            ? 'This product has been registered to your account.'
+            : 'Product scanned successfully.';
+
+          Alert.alert(
+            'Product Scanned',
+            alertMessage,
+            [
+              {
+                text: 'OK',
+                onPress: () => navigation.navigate('ProductDetails', { 
+                  productId: data,
+                  isNewProduct: result.newlyRegistered
+                })
+              }
+            ]
+          );
         } else {
           Alert.alert('Error', result.error || 'Failed to fetch product details');
         }

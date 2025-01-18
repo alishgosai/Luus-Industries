@@ -6,7 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import productRoutes from './routes/ProductRoutes.js';
+import productRoutes from './routes/productRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -39,7 +39,6 @@ process.on('unhandledRejection', (reason, promise) => {
 const corsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://192.168.214.238:3000'];
-
 
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -99,7 +98,9 @@ app.get('/api/test', (req, res) => {
 // Routes
 app.use('/user', userRoutes);
 app.use('/auth', authRoutes);
+console.log('Mounting product routes...');
 app.use('/api/products', productRoutes);
+console.log('Product routes mounted.');
 app.use('/api/service', serviceRoutes);
 app.use('/api', supportRoutes);
 
