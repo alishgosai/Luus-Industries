@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     Image,
     ActivityIndicator,
-    Linking,
     ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -85,7 +84,7 @@ export default function WarrantyServiceForm() {
             console.log('Form submitted successfully:', result);
             setAlertVisible(true);
             setAlertTitle('Success');
-            setAlertMessage('Your warranty service request has been submitted successfully. An email notification has been sent to our admin team.');
+            setAlertMessage('Your warranty service request has been submitted successfully.');
             setFormData({
                 name: '',
                 email: '',
@@ -262,7 +261,6 @@ export default function WarrantyServiceForm() {
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.container}>
                 <View style={styles.form}>
-                    <Text style={styles.title}>Warranty Service Form</Text>
                     {renderInput('Name', 'name', 'First/Surname', true)}
                     {renderInput('Email', 'email', 'example@email.com', true, 'email-address')}
                     {renderInput('Product Model', 'productModel', 'Enter product model', true)}
@@ -343,7 +341,7 @@ export default function WarrantyServiceForm() {
                                 disabled={isLoading}
                             >
                                 <Icon name="folder-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
-                                <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose File</Text>
+                                <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose Image</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -353,9 +351,6 @@ export default function WarrantyServiceForm() {
                             <ActivityIndicator size="large" color="#87CEEB" />
                         </View>
                     )}
-                    <Text style={styles.noteText}>
-                        Note: Upon submission, a notification will be sent to our admin team.
-                    </Text>
                     <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
                         <Text style={styles.submitText}>{isLoading ? 'Submitting...' : 'Submit'}</Text>
                     </TouchableOpacity>
@@ -382,13 +377,6 @@ const styles = StyleSheet.create({
     },
     form: {
         padding: 16,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#FFF',
-        marginBottom: 20,
-        textAlign: 'center',
     },
     inputGroup: {
         marginBottom: 16,
@@ -505,12 +493,6 @@ const styles = StyleSheet.create({
     },
     disabledText: {
         color: '#666',
-    },
-    noteText: {
-        color: '#87CEEB',
-        fontSize: 14,
-        marginTop: 16,
-        textAlign: 'center',
     },
 });
 

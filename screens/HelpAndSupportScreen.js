@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   View, 
   Text, 
@@ -8,17 +8,14 @@ import {
   SafeAreaView,
   Linking,
   Platform,
-  Alert,
-  ActivityIndicator
+  Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import API_URL from '../backend/config/api';
 
 const HelpAndSupportScreen = () => {
   const navigation = useNavigation();
   const phoneNumber = '+61 0392406822';
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleCallPress = async () => {
     console.log('Call button pressed');
@@ -42,30 +39,20 @@ const HelpAndSupportScreen = () => {
     }
   };
 
-  const handleItemPress = async (type) => {
+  const handleItemPress = (type) => {
     console.log('Item pressed:', type);
-    setIsLoading(true);
-    try {
-      switch(type) {
-        case 'chatbot':
-          await fetch(`${API_URL}/api/support/chat`);
-          navigation.navigate('ChatWithBot');
-          break;
-        case 'call':
-          await handleCallPress();
-          break;
-        case 'faq':
-          await fetch(`${API_URL}/api/support/faq`);
-          navigation.navigate('FAQs');
-          break;
-        default:
-          console.warn('Unknown item type:', type);
-      }
-    } catch (error) {
-      console.error('Error handling item press:', error);
-      Alert.alert('Error', 'An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+    switch(type) {
+      case 'chatbot':
+        navigation.navigate('ChatWithBot');
+        break;
+      case 'call':
+        handleCallPress();
+        break;
+      case 'faq':
+        navigation.navigate('FAQs');
+        break;
+      default:
+        console.warn('Unknown item type:', type);
     }
   };
 
@@ -75,7 +62,7 @@ const HelpAndSupportScreen = () => {
       onPress={() => handleItemPress(type)}
     >
       <View style={styles.supportItemIcon}>
-        <Icon name={icon} size={24} color="#000000" />
+        <Icon name={icon} size={28} color="#000000" />
       </View>
       <View style={styles.supportItemContent}>
         <Text style={styles.supportItemLabel}>{label}</Text>
@@ -121,11 +108,6 @@ const HelpAndSupportScreen = () => {
           />
         </ScrollView>
       </View>
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#87CEEB" />
-        </View>
-      )}
     </SafeAreaView>
   );
 };
@@ -133,7 +115,7 @@ const HelpAndSupportScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000',
   },
   container: {
     flex: 1,
@@ -162,43 +144,38 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 32, 
+    paddingBottom: 32,
   },
   supportItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
     marginBottom: 16,
     padding: 16,
   },
   supportItemIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#87CEEB',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
   },
   supportItemContent: {
     flex: 1,
+    paddingVertical: 8,
   },
   supportItemLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   supportItemDescription: {
     fontSize: 14,
-    color: '#666666',
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    color: '#CCCCCC',
   },
 });
 

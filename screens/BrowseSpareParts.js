@@ -25,6 +25,5 @@ const styles = StyleSheet.create({
   },
   webviewContainer: {
     flex: 1,
-    paddingBottom: 70, // Space for BottomNavBar
   },
 });

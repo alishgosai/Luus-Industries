@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     Image,
     ActivityIndicator,
-    Linking,
     ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -188,9 +187,6 @@ export default function TechnicalSupportForm() {
                 setAlertVisible(true);
                 setAlertTitle('Permission Denied');
                 setAlertMessage('Sorry, we need camera permissions to make this work!');
-                setTimeout(() => {
-                    Linking.openSettings();
-                }, 2000);
                 return false;
             }
             return true;
@@ -262,7 +258,6 @@ export default function TechnicalSupportForm() {
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.container}>
                 <View style={styles.form}>
-                    <Text style={styles.title}>Technical Support Form</Text>
                     {renderInput('Name', 'name', 'First/Surname', true)}
                     {renderInput('Email', 'email', 'example@email.com', true, 'email-address')}
                     {renderInput('Product Model', 'productModel', 'Enter product model', true)}
@@ -341,7 +336,7 @@ export default function TechnicalSupportForm() {
                                 disabled={isLoading}
                             >
                                 <Icon name="folder-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
-                                <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose File</Text>
+                                <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose Image</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -378,13 +373,6 @@ const styles = StyleSheet.create({
     },
     form: {
         padding: 16,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#FFF',
-        marginBottom: 20,
-        textAlign: 'center',
     },
     inputGroup: {
         marginBottom: 16,

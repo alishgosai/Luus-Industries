@@ -6,7 +6,7 @@ const COLLECTION_NAME = 'serviceForms';
 export const createServiceForm = async (data) => {
   try {
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      formType: data.formType, // 'equipmentSales', 'technicalSupport', or 'warrantyService'
+      formType: data.formType,
       name: data.name,
       email: data.email,
       businessName: data.businessName,
@@ -18,7 +18,7 @@ export const createServiceForm = async (data) => {
       warrantyNumber: data.warrantyNumber,
       problemDescription: data.problemDescription,
       fileName: data.fileName,
-      imageUrl: data.imageUrl, // Changed from fileUrl to imageUrl to match our implementation
+      imageUrl: data.imageUrl,
       createdAt: new Date()
     });
     console.log('Service form created with ID:', docRef.id);

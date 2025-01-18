@@ -7,7 +7,7 @@ import {
   ScrollView,
   SafeAreaView
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Feather';
 import EquipmentSalesForm from '../components/EquipmentSalesForm';
 import WarrantyServiceForm from '../components/WarrantyServiceForm';
 import TechnicalSupportForm from '../components/TechnicalSupport';
@@ -60,14 +60,14 @@ export default function ServiceForm({ navigation }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-back" size={24} color="#000" />
+          <Icon name="chevron-left" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Service</Text>
       </View>
 
       <ScrollView style={styles.content}>
         {/* Categories */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories} contentContainerStyle={styles.categoriesContainer}>
           {categories.map((category, index) => (
             <TouchableOpacity
               key={index}
@@ -116,7 +116,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categories: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  categoriesContainer: {
+    marginHorizontal: -16,
   },
   categoryPill: {
     backgroundColor: '#333',
@@ -124,6 +128,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
+    marginHorizontal: 4,
   },
   selectedCategoryPill: {
     backgroundColor: '#87CEEB',
@@ -135,3 +140,4 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
+
