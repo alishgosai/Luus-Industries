@@ -336,7 +336,7 @@ export default function TechnicalSupportForm() {
                                 disabled={isLoading}
                             >
                                 <Icon name="folder-outline" size={24} color={isLoading ? '#666' : '#87CEEB'} />
-                                <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose File</Text>
+                                <Text style={[styles.attachmentText, isLoading && styles.disabledText]}>Choose Image</Text>
                             </TouchableOpacity>
                         </View>
                     )}

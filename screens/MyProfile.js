@@ -140,6 +140,11 @@ const MyProfileScreen = () => {
               onPress={() => navigation.navigate('WarrantyAndProducts', { warrantyProducts: userData ? userData.warrantyProducts : null })}
             />
             <ProfileItem 
+              icon="calendar-clock" 
+              label="Book a Service" 
+              onPress={() => navigation.navigate('ServiceForm')}
+            />
+            <ProfileItem 
               icon="help-circle" 
               label="Help & Support" 
               onPress={() => navigation.navigate('HelpAndSupport')}
