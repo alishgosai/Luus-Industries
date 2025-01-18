@@ -7,9 +7,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get('/user-products', ProductController.getUserProducts);
-router.post('/register', ProductController.registerProduct);
-router.post('/scan-and-register', ProductController.scanAndRegisterProduct);
-router.get('/:productId', ProductController.getProductDetails);
+router.post('/:productId', ProductController.getProductDetails);
+router.delete('/user-products/:userProductId', ProductController.deleteUserProduct);
 
 export default router;
 

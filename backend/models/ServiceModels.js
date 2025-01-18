@@ -1,5 +1,5 @@
 import { collection, addDoc, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase.config';
+import { db, admin } from '../services/firebaseAdmin.js';
 
 const COLLECTION_NAME = 'serviceForms';
 
