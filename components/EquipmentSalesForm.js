@@ -262,7 +262,7 @@ export default function EquipmentSalesForm() {
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.container}>
                 <View style={styles.form}>
-                    <Text style={styles.title}>Equipment Sales Form</Text>
+                    {/*Removed Title Text per update request*/}
                     {renderInput('Name', 'name', 'First/Surname', true)}
                     {renderInput('Email', 'email', 'example@email.com', true, 'email-address')}
                     {renderInput('Business Name', 'businessName', 'Enter business name', true)}
@@ -378,13 +378,6 @@ const styles = StyleSheet.create({
     },
     form: {
         padding: 16,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#FFF',
-        marginBottom: 20,
-        textAlign: 'center',
     },
     inputGroup: {
         marginBottom: 16,
