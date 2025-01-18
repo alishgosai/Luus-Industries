@@ -217,7 +217,7 @@ const EditPictureScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000',
   },
   container: {
     flex: 1,

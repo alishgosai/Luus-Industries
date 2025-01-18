@@ -261,7 +261,7 @@ const EditPersonalDetailsScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: "#000000",
   },
   container: {
     flex: 1,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: "#000000",
   },
   contentContainer: {
     padding: 16,
