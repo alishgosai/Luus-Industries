@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   welcomeBorder: {
-    borderWidth: 1,
+    borderWidth: 0.3,
     borderColor: BUTTON_COLOR,
     borderRadius: 12,
     padding: 10,
