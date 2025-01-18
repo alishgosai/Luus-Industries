@@ -1,5 +1,3 @@
-import pkg from '../../FireBase/firebase.config.js';
-const { db } = pkg;
 import { collection, addDoc, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db, admin } from '../services/firebaseAdmin.js';
 

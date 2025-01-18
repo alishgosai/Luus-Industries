@@ -14,10 +14,7 @@ export default function ProfessionalProducts({ navigation }) {
         />
       </View>
 
-      {/* Fixed Bottom Navigation Bar */}
-      <View style={styles.navbarContainer}>
-        <BottomNavBar navigation={navigation} />
-      </View>
+      
     </SafeAreaView>
   );
 }
@@ -29,7 +26,6 @@ const styles = StyleSheet.create({
   },
   webviewContainer: {
     flex: 1,
-    paddingBottom: 70, // Space for BottomNavBar
   },
   navbarContainer: {
     position: "absolute",

@@ -1,11 +1,5 @@
 import { createServiceForm } from '../models/ServiceModels.js';
 import nodemailer from 'nodemailer';
-<<<<<<< HEAD
-import dotenv from 'dotenv';
-
-dotenv.config();
-=======
->>>>>>> d12ee0d60bc693c7351d91ce2063172eeb7b4194
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
