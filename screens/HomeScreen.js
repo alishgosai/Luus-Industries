@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   ctaContainer: {
-    backgroundColor: BUTTON_COLOR,
+    backgroundColor: "#111",
     padding: 20,
     borderRadius: 12,
     marginTop: 30,
