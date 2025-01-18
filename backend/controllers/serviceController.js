@@ -1,5 +1,5 @@
-const { createServiceForm } = require('../models/ServiceModels');
-const nodemailer = require('nodemailer');
+import { createServiceForm } from '../models/ServiceModels.js';
+import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   // Configure your email service here
@@ -31,7 +31,7 @@ const sendEmail = async (formData, formType) => {
   await transporter.sendMail(mailOptions);
 };
 
-exports.submitWarrantyService = async (req, res) => {
+export const submitWarrantyService = async (req, res) => {
   try {
     const formData = req.body;
     const docId = await createServiceForm({ ...formData, formType: 'warrantyService' });
@@ -47,7 +47,7 @@ exports.submitWarrantyService = async (req, res) => {
   }
 };
 
-exports.submitEquipmentSales = async (req, res) => {
+export const submitEquipmentSales = async (req, res) => {
   try {
     const formData = req.body;
     const docId = await createServiceForm({ ...formData, formType: 'equipmentSales' });
@@ -63,7 +63,7 @@ exports.submitEquipmentSales = async (req, res) => {
   }
 };
 
-exports.submitTechnicalSupport = async (req, res) => {
+export const submitTechnicalSupport = async (req, res) => {
   try {
     const formData = req.body;
     const docId = await createServiceForm({ ...formData, formType: 'technicalSupport' });
