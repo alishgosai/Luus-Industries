@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { fetchUserProfile } from '../Services/userApi';
 import {
   View,
@@ -7,15 +7,18 @@ import {
   StyleSheet,
   Dimensions,
   Image,
-  ScrollView,
   SafeAreaView,
   FlatList,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from '@react-navigation/native';
 
 const BUTTON_COLOR = "#87CEEB";
+const HEADER_MAX_HEIGHT = 100;
+const HEADER_MIN_HEIGHT = 60;
+const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.85;
@@ -30,6 +33,7 @@ export default function HomeScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const cards = [
     {
@@ -111,6 +115,24 @@ export default function HomeScreen({ navigation }) {
     },
   ];
 
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE],
+    outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+    extrapolate: 'clamp',
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],
+    outputRange: [1, 0.5, 1],
+    extrapolate: 'clamp',
+  });
+
+  const logoScale = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE],
+    outputRange: [1, 1],
+    extrapolate: 'clamp',
+  });
+
   const renderRangeItem = ({ item }) => (
     <View style={[styles.card, styles.rangeCard]}>
       <Text style={styles.rangeTitle}>{item.title}</Text>
@@ -160,10 +182,25 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Image
+        <Animated.View style={[
+          styles.header,
+          {
+            height: headerHeight,
+            opacity: headerOpacity,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            elevation: 1000,
+          }
+        ]}>
+          <Animated.Image
             source={require("../assets/images/logo.png")}
-            style={styles.logo}
+            style={[
+              styles.logo,
+              { transform: [{ scale: logoScale }] }
+            ]}
             resizeMode="contain"
           />
           <TouchableOpacity
@@ -172,161 +209,166 @@ export default function HomeScreen({ navigation }) {
           >
             <Text style={styles.serviceButtonText}>Book a Service</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
-        <ScrollView
+        <Animated.ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
         >
-          {userData && (
-            <View style={styles.welcomeBorder}>
-              <View style={styles.welcomeContainer}>
-                <Image
-                  source={userData.avatar ? { uri: userData.avatar } : require("../assets/images/person.png")}
-                  style={styles.profilePicture}
-                />
-                <Text style={styles.welcomeText}>{`Welcome ${userData.name}`}</Text>
-              </View>
-            </View>
-          )}
-          {errorMessage && (
-            <Text style={styles.errorMessage}>{errorMessage}</Text>
-          )}
-
-          <FlatList
-            data={cards}
-            renderItem={({ item }) => (
-              <View style={[styles.card, styles.carouselBorder]}>
-                <Image
-                  source={item.image}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                />
-                <Text style={styles.cardText}>{item.text}</Text>
-                <TouchableOpacity
-                  style={styles.readMoreButton}
-                  onPress={() => navigation.navigate("AboutUs")}
-                >
-                  <Text style={styles.readMoreText}>Read More About Us</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#000" />
-                </TouchableOpacity>
+          <View style={{ paddingTop: HEADER_MAX_HEIGHT }}>
+            {userData && (
+              <View style={styles.welcomeBorder}>
+                <View style={styles.welcomeContainer}>
+                  <Image
+                    source={userData.avatar ? { uri: userData.avatar } : require("../assets/images/person.png")}
+                    style={styles.profilePicture}
+                  />
+                  <Text style={styles.welcomeText}>{`Welcome ${userData.name}`}</Text>
+                </View>
               </View>
             )}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={ITEM_WIDTH + 10}
-            decelerationRate="fast"
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          />
+            {errorMessage && (
+              <Text style={styles.errorMessage}>{errorMessage}</Text>
+            )}
 
-          <View style={styles.imageCarouselContainer}>
             <FlatList
-              data={[
-                require("../assets/images/products-feature1.jpg"),
-                require("../assets/images/aLCfeature-1.jpg"),
-                require("../assets/images/feature3.jpg"),
-                require("../assets/images/image19-1.png"),
-                require("../assets/images/feature2.jpg"),
-              ]}
+              data={cards}
               renderItem={({ item }) => (
-                <Image source={item} style={styles.imageCarouselItem} />
-              )}
-              keyExtractor={(item, index) => `image-${index}`}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 10 }}
-              style={{ marginVertical: 20 }}
-            />
-          </View>
-
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Product Ranges</Text>
-            <FlatList
-              data={ranges}
-              renderItem={renderRangeItem}
-              keyExtractor={(item) => item.title}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={ITEM_WIDTH + 20}
-              decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: 0 }}
-            />
-          </View>
-
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Our Products</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.productScroll}
-            >
-              {products.map((product) => (
-                <TouchableOpacity
-                  key={product.id}
-                  style={styles.productCard}
-                  onPress={() => navigation.navigate(product.route)}
-                >
+                <View style={[styles.card, styles.carouselBorder]}>
                   <Image
-                    source={product.image}
-                    style={styles.productImage}
+                    source={item.image}
+                    style={styles.cardImage}
                     resizeMode="cover"
                   />
-                  <View style={styles.productOverlay}>
-                    <Text style={styles.productTitle}>{product.title}</Text>
-                    <Text style={styles.productDescription}>
-                      {product.description}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.productButton}
-                      onPress={() => navigation.navigate(product.route)}
-                    >
-                      <Text style={styles.productButtonText}>Learn More</Text>
-                      <Ionicons name="arrow-forward" size={16} color="#000" />
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>What Our Clients Say</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.testimonialScroll}
-            >
-              {testimonials.map((testimonial) => (
-                <View key={testimonial.id} style={styles.testimonialCard}>
-                  <Image
-                    source={testimonial.image}
-                    style={styles.testimonialImage}
-                    resizeMode="cover"
-                  />
-                  <Text style={styles.testimonialFeedback}>
-                    "{testimonial.feedback}"
-                  </Text>
-                  <Text style={styles.testimonialName}>
-                    - {testimonial.name}
-                  </Text>
+                  <Text style={styles.cardText}>{item.text}</Text>
+                  <TouchableOpacity
+                    style={styles.readMoreButton}
+                    onPress={() => navigation.navigate("AboutUs")}
+                  >
+                    <Text style={styles.readMoreText}>Read More About Us</Text>
+                    <Ionicons name="arrow-forward" size={16} color="#000" />
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </ScrollView>
-          </View>
+              )}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={ITEM_WIDTH + 10}
+              decelerationRate="fast"
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            />
 
-          <View style={styles.ctaContainer}>
-            <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={() => navigation.navigate("ChatWithBot")}
-            >
-              <Text style={styles.ctaButtonText}>Contact Us</Text>
-              <Ionicons name="arrow-forward" size={16} color="#000" />
-            </TouchableOpacity>
-          </View>
+            <View style={styles.imageCarouselContainer}>
+              <FlatList
+                data={[
+                  require("../assets/images/products-feature1.jpg"),
+                  require("../assets/images/aLCfeature-1.jpg"),
+                  require("../assets/images/feature3.jpg"),
+                  require("../assets/images/image19-1.png"),
+                  require("../assets/images/feature2.jpg"),
+                ]}
+                renderItem={({ item }) => (
+                  <Image source={item} style={styles.imageCarouselItem} />
+                )}
+                keyExtractor={(item, index) => `image-${index}`}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 10 }}
+                style={{ marginVertical: 20 }}
+              />
+            </View>
 
-        </ScrollView>
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Product Ranges</Text>
+              <FlatList
+                data={ranges}
+                renderItem={renderRangeItem}
+                keyExtractor={(item) => item.title}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={ITEM_WIDTH + 20}
+                decelerationRate="fast"
+                contentContainerStyle={{ paddingHorizontal: 0 }}
+              />
+            </View>
+
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Our Products</Text>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={products}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.productCard}
+                    onPress={() => navigation.navigate(item.route)}
+                  >
+                    <Image
+                      source={item.image}
+                      style={styles.productImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.productOverlay}>
+                      <Text style={styles.productTitle}>{item.title}</Text>
+                      <Text style={styles.productDescription}>
+                        {item.description}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.productButton}
+                        onPress={() => navigation.navigate(item.route)}
+                      >
+                        <Text style={styles.productButtonText}>Learn More</Text>
+                        <Ionicons name="arrow-forward" size={16} color="#000" />
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>What Our Clients Say</Text>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={testimonials}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <View style={styles.testimonialCard}>
+                    <Image
+                      source={item.image}
+                      style={styles.testimonialImage}
+                      resizeMode="cover"
+                    />
+                    <Text style={styles.testimonialFeedback}>
+                      "{item.feedback}"
+                    </Text>
+                    <Text style={styles.testimonialName}>
+                      - {item.name}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
+
+            <View style={styles.ctaContainer}>
+              <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={() => navigation.navigate("ChatWithBot")}
+              >
+                <Text style={styles.ctaButtonText}>Contact Us</Text>
+                <Ionicons name="arrow-forward" size={16} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -353,8 +395,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     backgroundColor: "#000",
-    paddingVertical: 10,
-    height: 100,
   },
   logo: {
     width: 120,
@@ -372,7 +412,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   welcomeBorder: {
-    borderWidth: 1,
+    borderWidth: 0.3,
     borderColor: BUTTON_COLOR,
     borderRadius: 12,
     padding: 10,
@@ -490,9 +530,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  productScroll: {
-    paddingVertical: 10,
-  },
   productCard: {
     width: width * 0.6,
     height: 200,
@@ -540,9 +577,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
     fontWeight: "600",
   },
-  testimonialScroll: {
-    paddingVertical: 10,
-  },
   testimonialCard: {
     width: width * 0.8,
     backgroundColor: "#111",
@@ -570,7 +604,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   ctaContainer: {
-    backgroundColor: BUTTON_COLOR,
+    backgroundColor: "#111",
     padding: 20,
     borderRadius: 12,
     marginTop: 30,
@@ -597,22 +631,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginRight: 5,
     fontWeight: "600",
-  },
-  clientsContainer: {
-    flexDirection: "row",
-  },
-  clientImageContainer: {
-    width: CLIENT_IMAGE_SIZE,
-    height: CLIENT_IMAGE_SIZE,
-    marginRight: CLIENT_IMAGE_MARGIN_RIGHT,
-    borderRadius: 8,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  clientImage: {
-    width: "100%",
-    height: "100%",
   },
   errorMessage: {
     color: 'red',
