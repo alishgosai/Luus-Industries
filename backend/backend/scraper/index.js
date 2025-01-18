@@ -26,42 +26,38 @@ const bucket = storage.bucket();
 
 // Mapping of product models to their image URLs
 const productImageUrls = {
-  'WV-1A': 'https://luus.com.au/wp-content/uploads/2021/01/WV1A-768x768.jpg',
-  'WV-1A1P': 'https://luus.com.au/wp-content/uploads/2021/03/WV1A1P-768x768.jpg',
-  'WV-1P1A': 'https://luus.com.au/wp-content/uploads/2021/03/WV1P1A-768x768.jpg',
-  'WV-2A': 'https://luus.com.au/wp-content/uploads/2021/03/WV2A-768x768.jpg',
-  'WV-1A1P1A': 'https://luus.com.au/wp-content/uploads/2021/04/WV1A1P1A-768x768.jpg',
-  'WV-1A2P1A': 'https://luus.com.au/wp-content/uploads/2022/01/WV1A2P1A-768x768.jpg'
+  'PC-45' : 'https://luus.com.au/wp-content/uploads/2016/09/PC45-768x768.jpg',
+  'PC-60' : 'https://luus.com.au/wp-content/uploads/2016/09/PC60-768x768.jpg'
 };
 
 function generateProductId(model) {
   return `PROD_${model.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`;
 }
 
-async function downloadImage(url) {
+async function downloadFile(url) {
   try {
-    console.log(`Downloading image from ${url}`);
+    console.log(`Downloading file from ${url}`);
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.buffer();
   } catch (error) {
-    console.error(`Error downloading image from ${url}:`, error);
+    console.error(`Error downloading file from ${url}:`, error);
     throw error;
   }
 }
 
-async function uploadImageToFirebase(buffer, storagePath) {
+async function uploadFileToFirebase(buffer, storagePath, contentType) {
   try {
-    console.log(`Attempting to upload image to ${storagePath}`);
+    console.log(`Attempting to upload file to ${storagePath}`);
     
     const file = bucket.file(storagePath);
     await file.save(buffer, {
       metadata: {
-        contentType: 'image/jpeg',
+        contentType: contentType,
       },
     });
     
-    console.log(`Image uploaded successfully to ${storagePath}`);
+    console.log(`File uploaded successfully to ${storagePath}`);
     
     const [signedUrl] = await file.getSignedUrl({
       action: 'read',
@@ -71,7 +67,7 @@ async function uploadImageToFirebase(buffer, storagePath) {
     console.log(`Signed URL generated: ${signedUrl}`);
     return signedUrl;
   } catch (error) {
-    console.error(`Error uploading image to Firebase:`, error);
+    console.error(`Error uploading file to Firebase:`, error);
     if (error.code === 'storage/unauthorized') {
       console.error('Firebase Storage permissions error. Check your Storage rules.');
     }
@@ -96,6 +92,9 @@ async function autoScroll(page) {
       }, 100);
     });
   });
+  
+  // Wait for any dynamic content to load after scrolling
+  await page.waitForSelector('.lu-product-list-item', { timeout: 10000 });
 }
 
 async function scrapeWokPage() {
@@ -123,30 +122,40 @@ async function scrapeWokPage() {
       'Cache-Control': 'max-age=0'
     });
 
-    console.log('Navigating to Fo San Woks page...');
+    console.log('Navigating to pasta cookers page...');
     
-    await page.goto('https://luus.com.au/range/asian/fo-san-woks/', {
+    await page.goto('https://luus.com.au/range/professional/pasta-cookers/', {
       waitUntil: 'networkidle0',
       timeout: 60000
     });
 
     console.log('Page loaded, waiting for content...');
 
+    // Wait for the product list to load
     await page.waitForSelector('.lu-product-list-item', { timeout: 60000 });
 
     console.log('Product list loaded, extracting content...');
 
+    // Scroll to load all content
     await autoScroll(page);
+    console.log('Finished scrolling, waiting for content to settle...');
 
     const productData = await page.evaluate(() => {
       const products = [];
       const productElements = document.querySelectorAll('.lu-product-list-item');
 
-      productElements.forEach((element) => {
+      console.log(`Found ${productElements.length} product elements`);
+
+      productElements.forEach((element, index) => {
         const titleElement = element.querySelector('h2');
         const title = titleElement ? titleElement.textContent.trim() : '';
-        const [model, ...nameParts] = title.split(' ');
-        const name = nameParts.join(' ');
+        const modelMap = {
+          '450': 'PC-45',
+          '600': 'PC-60'
+        };
+        const modelMatch = title.match(/PC (\d+)/);
+        const model = modelMatch ? modelMap[modelMatch[1]] || '' : '';
+        const name = title;
 
         const description = element.querySelector('.lu-product-list-item__copy p')?.textContent?.trim() || '';
 
@@ -159,14 +168,21 @@ async function scrapeWokPage() {
           }
         });
 
+        const specificationsPdfLink = element.querySelector('a[href$=".pdf"]')?.href;
+        const cadDrawingsLink = element.querySelector('a[href$=".dwg"]')?.href;
+
+        console.log(`Extracted product ${index + 1}: ${model}`);
+
         products.push({
           model,
-          name: `${model} ${name}`,
+          name,
           description,
           specifications: specs,
-          category: 'Asian',
-          subcategory: 'Fo San Woks',
-          scrapedAt: new Date().toISOString()
+          category: 'Professional',
+          subcategory: 'pasta cookers',
+          scrapedAt: new Date().toISOString(),
+          specificationsPdfLink,
+          cadDrawingsLink
         });
       });
 
@@ -177,6 +193,7 @@ async function scrapeWokPage() {
 
     for (const product of productData) {
       if (product.model) {
+        console.log(`Processing product: ${product.model}`);
         const productId = generateProductId(product.model);
         product.product_id = productId;
 
@@ -184,9 +201,9 @@ async function scrapeWokPage() {
         const imageUrl = productImageUrls[product.model];
         if (imageUrl) {
           try {
-            const imageBuffer = await downloadImage(imageUrl);
+            const imageBuffer = await downloadFile(imageUrl);
             const storagePath = `products/${productId}.jpg`;
-            const signedUrl = await uploadImageToFirebase(imageBuffer, storagePath);
+            const signedUrl = await uploadFileToFirebase(imageBuffer, storagePath, 'image/jpeg');
             product.storedImageUrl = signedUrl;
             console.log(`Stored image URL for ${productId}: ${signedUrl}`);
           } catch (error) {
@@ -198,6 +215,34 @@ async function scrapeWokPage() {
           product.storedImageUrl = null;
         }
 
+        // Download and store specifications PDF
+        if (product.specificationsPdfLink) {
+          try {
+            const pdfBuffer = await downloadFile(product.specificationsPdfLink);
+            const pdfStoragePath = `specifications/${productId}_specifications.pdf`;
+            const pdfSignedUrl = await uploadFileToFirebase(pdfBuffer, pdfStoragePath, 'application/pdf');
+            product.storedSpecificationsPdfUrl = pdfSignedUrl;
+            console.log(`Stored specifications PDF URL for ${productId}: ${pdfSignedUrl}`);
+          } catch (error) {
+            console.error(`Error processing specifications PDF for product ${productId}:`, error);
+            product.storedSpecificationsPdfUrl = null;
+          }
+        }
+
+        // Download and store CAD drawings
+        if (product.cadDrawingsLink) {
+          try {
+            const dwgBuffer = await downloadFile(product.cadDrawingsLink);
+            const dwgStoragePath = `cad_drawings/${productId}_cad.dwg`;
+            const dwgSignedUrl = await uploadFileToFirebase(dwgBuffer, dwgStoragePath, 'application/acad');
+            product.storedCadDrawingsUrl = dwgSignedUrl;
+            console.log(`Stored CAD drawings URL for ${productId}: ${dwgSignedUrl}`);
+          } catch (error) {
+            console.error(`Error processing CAD drawings for product ${productId}:`, error);
+            product.storedCadDrawingsUrl = null;
+          }
+        }
+
         const productObject = {
           product_id: productId,
           model: product.model,
@@ -207,7 +252,9 @@ async function scrapeWokPage() {
           category: product.category,
           subcategory: product.subcategory,
           scrapedAt: product.scrapedAt,
-          storedImageUrl: product.storedImageUrl
+          storedImageUrl: product.storedImageUrl,
+          storedSpecificationsPdfUrl: product.storedSpecificationsPdfUrl,
+          storedCadDrawingsUrl: product.storedCadDrawingsUrl
         };
 
         try {
@@ -232,7 +279,7 @@ async function scrapeWokPage() {
 }
 
 async function main() {
-  console.log('Starting Fo San Woks scraper with image storage...');
+  console.log('Starting compact pasta-cookers scraper with image, PDF, and CAD file storage...');
   try {
     await scrapeWokPage();
     console.log('Scraping complete');

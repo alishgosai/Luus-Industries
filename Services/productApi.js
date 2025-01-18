@@ -37,6 +37,7 @@ const ProductApi = {
       console.log('Raw API response:', JSON.stringify(data, null, 2));
 
       // Transform the data to match the expected format in ProductDetails
+      
       const transformedData = {
         id: data.product.id,
         name: data.product.name || 'Unknown Product',
@@ -57,11 +58,8 @@ const ProductApi = {
           expireDate: data.product.warranty.expireDate || new Date().toISOString(),
           status: data.product.warranty.status || 'Unknown'
         } : null,
-        links: [
-          { title: 'User Manual', url: data.product.manualUrl || '#' },
-          { title: 'Specifications', url: data.product.specificationsUrl || '#' },
-          { title: 'Support', url: data.product.supportUrl || '#' }
-        ],
+        specificationsPdfUrl: data.product.storedSpecificationsPdfUrl || null,
+        cadDrawingsUrl: data.product.storedCadDrawingsUrl || null,
         registrationDate: data.product.registrationDate || new Date().toISOString(),
         status: data.product.status || 'active'
       };

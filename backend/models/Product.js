@@ -32,19 +32,47 @@ export async function getProductDetails(productId) {
     const productData = productDoc.data();
     console.log(`Product data retrieved: ${JSON.stringify(productData)}`);
 
+    const bucket = admin.storage().bucket();
+
     // Generate a signed URL for the image if it exists
     if (productData.qrCodePath) {
-      const bucket = admin.storage().bucket();
-      const file = bucket.file(productData.qrCodePath);
-      const [signedUrl] = await file.getSignedUrl({
+      const imageFile = bucket.file(productData.qrCodePath);
+      const [imageSignedUrl] = await imageFile.getSignedUrl({
         action: 'read',
         expires: Date.now() + 15 * 60 * 1000, // URL expires in 15 minutes
       });
-      productData.imageUrl = signedUrl;
-      console.log(`Generated signed URL for image: ${signedUrl}`);
+      productData.imageUrl = imageSignedUrl;
+      console.log(`Generated signed URL for image: ${imageSignedUrl}`);
     } else {
       productData.imageUrl = null;
       console.log('No qrCodePath found for the product');
+    }
+
+    // Generate signed URLs for specifications and CAD drawings if they exist
+    if (productData.specificationsPath) {
+      const specFile = bucket.file(productData.specificationsPath);
+      const [specSignedUrl] = await specFile.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 15 * 60 * 1000, // URL expires in 15 minutes
+      });
+      productData.specificationsUrl = specSignedUrl;
+      console.log(`Generated signed URL for specifications: ${specSignedUrl}`);
+    } else {
+      productData.specificationsUrl = null;
+      console.log('No specificationsPath found for the product');
+    }
+
+    if (productData.cadDrawingsPath) {
+      const cadFile = bucket.file(productData.cadDrawingsPath);
+      const [cadSignedUrl] = await cadFile.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 15 * 60 * 1000, // URL expires in 15 minutes
+      });
+      productData.cadDrawingsUrl = cadSignedUrl;
+      console.log(`Generated signed URL for CAD drawings: ${cadSignedUrl}`);
+    } else {
+      productData.cadDrawingsUrl = null;
+      console.log('No cadDrawingsPath found for the product');
     }
 
     return { id: productDoc.id, ...productData };
@@ -136,22 +164,6 @@ export async function registerUserProduct(userId, productId) {
     if (!productDoc.exists) {
       console.log(`Product ${productId} not found`);
       throw new Error('Product not found');
-    }
-
-    // Check if the user has already registered this product
-    const existingRegistration = await db.collection(USER_PRODUCTS_COLLECTION)
-      .where('userId', '==', userId)
-      .where('productId', '==', productId)
-      .limit(1)
-      .get();
-
-    if (!existingRegistration.empty) {
-      console.log(`Product ${productId} already registered for user ${userId}`);
-      return { 
-        success: true, 
-        newlyRegistered: false, 
-        message: 'Product already registered' 
-      };
     }
 
     // Register the product to the user
