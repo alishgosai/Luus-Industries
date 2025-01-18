@@ -16,7 +16,7 @@ import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
 import AsianProducts from "./screens/BrowseAsianProducts";
 import ProfessionalProducts from "./screens/BrowseProfessionalProducts";
-import SpareParts from "./screens/BrowseSpareParts";
+import BrowseSpareParts from "./screens/BrowseSpareParts";
 import ProductDetails from "./screens/ProductDetails";
 import ServiceForm from "./screens/ServiceForm";
 import EquipmentSales from "./screens/EquipmentSales";
@@ -78,7 +78,7 @@ export default function App() {
           <Stack.Screen name="Browse" component={withNavBar(BrowseScreen)} />
           <Stack.Screen name="AsianProducts" component={withNavBar(AsianProducts)} />
           <Stack.Screen name="ProfessionalProducts" component={withNavBar(ProfessionalProducts)} />
-          <Stack.Screen name="SpareParts" component={withNavBar(SpareParts)} />
+          <Stack.Screen name="SpareParts" component={withNavBar(BrowseSpareParts)} />
           <Stack.Screen name="ProductDetails" component={withNavBar(ProductDetails)} />
           <Stack.Screen name="ServiceForm" component={withNavBar(ServiceForm)} />
           <Stack.Screen name="EquipmentSales" component={withNavBar(EquipmentSales)} />

@@ -1,9 +1,8 @@
 import React from "react";
 import { View, StyleSheet, SafeAreaView } from "react-native";
 import { WebView } from "react-native-webview";
-import BottomNavBar from "../components/BottomNavBar";
 
-export default function ProfessionalProducts({ navigation }) {
+export default function BrowseSpareParts({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* WebView Content */}
@@ -14,10 +13,7 @@ export default function ProfessionalProducts({ navigation }) {
         />
       </View>
 
-      {/* Fixed Bottom Navigation Bar */}
-      <View style={styles.navbarContainer}>
-        <BottomNavBar navigation={navigation} />
-      </View>
+     
     </SafeAreaView>
   );
 }
@@ -30,11 +26,5 @@ const styles = StyleSheet.create({
   webviewContainer: {
     flex: 1,
     paddingBottom: 70, // Space for BottomNavBar
-  },
-  navbarContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
 });
