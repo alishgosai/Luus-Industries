@@ -1,28 +1,46 @@
-import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import { db } from '../services/firebaseAdmin.js';
+import { getProductCategory } from '../services/aiService.js';
 
 export async function saveChatSession(userId, messages, aiResponse) {
   try {
+    if (!db) {
+      throw new Error('Firestore instance not initialized');
+    }
+
     const lastUserMessage = messages.length > 0 ? messages[messages.length - 1].content : '';
     const category = getProductCategory(lastUserMessage);
 
-    await addDoc(collection(db, 'chatSessions'), {
+    const chatSessionsRef = db.collection('chatSessions');
+    await chatSessionsRef.add({
       userId,
       messages,
       aiResponse,
       timestamp: new Date().toISOString(),
       category
     });
+
+    console.log('Chat session saved successfully');
   } catch (error) {
     console.error('Error saving chat session:', error);
+    throw error; // Propagate the error to handle it in the controller
   }
 }
 
 export async function getChatHistory(userId) {
   try {
-    const q = query(collection(db, 'chatSessions'), where('userId', '==', userId));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data());
+    if (!db) {
+      throw new Error('Firestore instance not initialized');
+    }
+
+    const chatSessionsRef = db.collection('chatSessions');
+    const q = chatSessionsRef.where('userId', '==', userId);
+    const querySnapshot = await q.get();
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   } catch (error) {
     console.error('Error getting chat history:', error);
     return [];
@@ -47,31 +65,41 @@ export async function getRecentProductInquiries(userId) {
 
 export async function clearChatHistory(userId) {
   try {
-    const q = query(collection(db, 'chatSessions'), where('userId', '==', userId));
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach(async (document) => {
-      await deleteDoc(doc(db, 'chatSessions', document.id));
-    });
+    if (!db) {
+      throw new Error('Firestore instance not initialized');
+    }
+
+    const chatSessionsRef = db.collection('chatSessions');
+    const q = chatSessionsRef.where('userId', '==', userId);
+    const querySnapshot = await q.get();
+    
+    const deletePromises = querySnapshot.docs.map(document => 
+      chatSessionsRef.doc(document.id).delete()
+    );
+    
+    await Promise.all(deletePromises);
+    console.log('Chat history cleared successfully');
   } catch (error) {
     console.error('Error clearing chat history:', error);
+    throw error;
   }
 }
 
 export async function getAllUserIds() {
   try {
-    const querySnapshot = await getDocs(collection(db, 'chatSessions'));
+    if (!db) {
+      throw new Error('Firestore instance not initialized');
+    }
+
+    const chatSessionsRef = db.collection('chatSessions');
+    const querySnapshot = await chatSessionsRef.get();
     const userIds = new Set();
+    
     querySnapshot.forEach(doc => userIds.add(doc.data().userId));
     return Array.from(userIds);
   } catch (error) {
     console.error('Error getting all user IDs:', error);
     return [];
   }
-}
-
-function getProductCategory(message) {
-  // Implement your logic to determine the product category based on the message
-  // This is a placeholder implementation
-  return 'Other';
 }
 

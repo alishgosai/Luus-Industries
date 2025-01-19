@@ -1,54 +1,45 @@
 import { API_URL } from "../backend/config/api";
-import { storage } from '../FireBase/firebase.config';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const uploadImageToFirebase = async (imageUri, fileName) => {
-  try {
-    console.log('Uploading image to Firebase Storage...');
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
-    const storageRef = ref(storage, `uploads/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, blob);
-    console.log('Image uploaded successfully');
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    console.log('Download URL:', downloadURL);
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading image to Firebase:', error);
-    throw error;
-  }
-};
-
-const createFormData = async (formData) => {
+const createFormData = (formData) => {
   const data = new FormData();
 
   for (const [key, value] of Object.entries(formData)) {
-    if (key === 'image' && value) {
-      const fileName = `${Date.now()}_${formData.fileName || 'photo.jpg'}`;
-      const downloadURL = await uploadImageToFirebase(value, fileName);
-      data.append('imageUrl', downloadURL);
-      data.append('fileName', fileName);
-    } else {
-      data.append(key, value);
+    if (value !== undefined && value !== null) {
+      if (key === 'image' && value) {
+        // Assuming the image is a file or blob
+        const fileName = formData.fileName || 'photo.jpg';
+        data.append('image', {
+          uri: value,
+          type: 'image/jpeg', // You might want to detect this dynamically
+          name: fileName
+        });
+      } else if (key === 'purchaseDate' || key === 'requiredDate') {
+        // Convert date to ISO string if it's a Date object
+        data.append(key, value instanceof Date ? value.toISOString() : value);
+      } else {
+        data.append(key, value.toString());
+      }
     }
   }
 
   return data;
 };
 
-export const submitWarrantyServiceForm = async (formData) => {
+const submitForm = async (endpoint, formData) => {
   try {
-    console.log('Preparing to submit warranty service form:', formData);
-    const data = await createFormData(formData);
+    console.log(`Preparing to submit form to ${endpoint}:`, formData);
+    const data = createFormData(formData);
 
-    console.log('Sending request to:', `${API_URL}/api/service/warranty-service?sendEmail=true`);
-    const response = await fetch(`${API_URL}/api/service/warranty-service?sendEmail=true`, {
+    console.log('Sending request to:', `${API_URL}/api/service/${endpoint}?sendEmail=true`);
+    const response = await fetch(`${API_URL}/api/service/${endpoint}?sendEmail=true`, {
       method: 'POST',
       body: data,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
     console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -60,66 +51,17 @@ export const submitWarrantyServiceForm = async (formData) => {
     console.log('Form submitted successfully:', result);
     return result;
   } catch (error) {
-    console.error('Error submitting Warranty Service form:', error);
+    console.error(`Error submitting form to ${endpoint}:`, error);
     throw error;
   }
 };
 
-export const submitEquipmentSalesForm = async (formData) => {
-  try {
-    console.log('Preparing to submit equipment sales form:', formData);
-    const data = await createFormData(formData);
+export const submitWarrantyServiceForm = (formData) => 
+  submitForm('warranty-service', formData);
 
-    console.log('Sending request to:', `${API_URL}/api/service/equipment-sales?sendEmail=true`);
-    const response = await fetch(`${API_URL}/api/service/equipment-sales?sendEmail=true`, {
-      method: 'POST',
-      body: data,
-    });
+export const submitEquipmentSalesForm = (formData) => 
+  submitForm('equipment-sales', formData);
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server response:', errorText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log('Form submitted successfully:', result);
-    return result;
-  } catch (error) {
-    console.error('Error submitting Equipment Sales form:', error);
-    throw error;
-  }
-};
-
-export const submitTechnicalSupportForm = async (formData) => {
-  try {
-    console.log('Preparing to submit technical support form:', formData);
-    const data = await createFormData(formData);
-
-    console.log('Sending request to:', `${API_URL}/api/service/technical-support?sendEmail=true`);
-    const response = await fetch(`${API_URL}/api/service/technical-support?sendEmail=true`, {
-      method: 'POST',
-      body: data,
-    });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server response:', errorText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log('Form submitted successfully:', result);
-    return result;
-  } catch (error) {
-    console.error('Error submitting Technical Support form:', error);
-    throw error;
-  }
-};
+export const submitTechnicalSupportForm = (formData) => 
+  submitForm('technical-support', formData);
 

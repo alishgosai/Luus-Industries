@@ -1,15 +1,9 @@
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import puppeteer from 'puppeteer';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fetch from 'node-fetch';
-
-// Add stealth plugin to bypass security checks
-puppeteer.use(StealthPlugin());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,234 +14,190 @@ const serviceAccountContent = await fs.readFile(serviceAccountPath, 'utf8');
 const serviceAccount = JSON.parse(serviceAccountContent);
 
 const app = initializeApp({
-  credential: cert(serviceAccount),
-  storageBucket: "luus-industries.appspot.com"
+  credential: cert(serviceAccount)
 });
 
 const db = getFirestore(app);
-const storage = getStorage(app);
-const bucket = storage.bucket();
 
-function generateSparePartId(partNumber) {
-  return `SPARE_${partNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`;
-}
-
-async function downloadImage(url) {
-  try {
-    console.log(`Downloading image from ${url}`);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.buffer();
-  } catch (error) {
-    console.error(`Error downloading image from ${url}:`, error);
-    throw error;
+// Predefined product information
+const productInfo = {
+  'ball-valve-20m-20f-no-handle': {
+    suits: 'NG, PG, RC, WF, WL, WX, YC, YCA, YCR',
+    productDetails: 'Ball valve only (no handle)\n3/4" BSP\nSuits:\nNoodle Cooker/Rice Roll Steamer and Pasta Cooker\nTraditional Wok/Waterless and Compact Waterless Wok\nStockpot Boiler\nYum Cha Steamer\nAuto Refill Yum Cha Steamer and Auto Refill Rice Roll Steamer\nWeight 0.3kg'
+  },
+  'ball-valve-3-4-f-f-dual-stem': {
+    suits: 'WY',
+    productDetails: 'Gas Valve 3/4"F x F\nsuits WY\nWeight 0.3kg'
+  },
+  'ball-valve-30fx30f': {
+    suits: 'WY',
+    productDetails: 'Ball Valve 30Fx30F for Waterless Wok'
+  },
+  'ball-valve-brass-1-2-bsp': {
+    suits: 'BCH, CS, GTS, RS',
+    productDetails: 'Ball Valve Brass 1/2" BSP\nSuits Professional Series Equipment'
+  },
+  'ball-valve-hex-shaft-3-4': {
+    suits: 'WY',
+    productDetails: 'Ball Valve with Hex Shaft 3/4" for Waterless Wok'
+  },
+  'assy-burner-fv-lpg': {
+    suits: 'FV',
+    productDetails: 'Assembly Burner for FV Series (LPG)\nComplete burner assembly for Fryer'
+  },
+  'burner-boiler-4-base': {
+    suits: 'BCH',
+    productDetails: 'Burner Base for Boiler Series\nSuits Professional Series Equipment'
+  },
+  'r4-burner-hood': {
+    suits: 'RS',
+    productDetails: 'R4 Burner Hood for RS Series Ovens'
+  },
+  'burner-chimney-24-jet-nat': {
+    suits: 'CS, RS',
+    productDetails: 'Burner Chimney 24 Jet Natural Gas\nSuits Professional Series Cooktops and Ovens'
+  },
+  'adjustable-leg-370mm-suit-wx-series': {
+    suits: 'WX',
+    productDetails: 'Adjustable Leg 370mm\nSpecifically designed for WX Series equipment'
+  },
+  'adjustable-leg-stainless-steel-750mm-suit-wz-series': {
+    suits: 'WZ',
+    productDetails: 'Adjustable Leg Stainless Steel 750mm\nSpecifically designed for WZ Series equipment'
+  },
+  'ball-valve-20m-20f-includes-handle': {
+    suits: 'NG, PG, RC, WF, WL, WX, YC, YCA, YCR',
+    productDetails: 'Ball valve with handle included\n3/4" BSP\nSuits multiple series equipment'
   }
-}
+};
 
-async function uploadImageToFirebase(buffer, storagePath) {
+// Product URLs
+const productUrls = [
+  'https://luus.com.au/product/ball-valve-20m-20f-no-handle/',
+  'https://luus.com.au/product/ball-valve-3-4-f-f-dual-stem/',
+  'https://luus.com.au/product/ball-valve-30fx30f/',
+  'https://luus.com.au/product/ball-valve-brass-1-2-bsp/',
+  'https://luus.com.au/product/ball-valve-hex-shaft-3-4/',
+  'https://luus.com.au/product/assy-burner-fv-lpg/',
+  'https://luus.com.au/product/burner-boiler-4-base/',
+  'https://luus.com.au/product/r4-burner-hood/',
+  'https://luus.com.au/product/burner-chimney-24-jet-nat/',
+  'https://luus.com.au/product/adjustable-leg-370mm-suit-wx-series/',
+  'https://luus.com.au/product/adjustable-leg-stainless-steel-750mm-suit-wz-series/',
+  'https://luus.com.au/product/ball-valve-20m-20f-includes-handle/'
+];
+
+async function scrapeProductPage(browser, url) {
+  const page = await browser.newPage();
+  
   try {
-    console.log(`Attempting to upload image to ${storagePath}`);
-    const file = bucket.file(storagePath);
-    await file.save(buffer, {
-      metadata: { contentType: 'image/jpeg' }
-    });
-    
-    const [signedUrl] = await file.getSignedUrl({
-      action: 'read',
-      expires: '03-01-2500'
-    });
-    
-    return signedUrl;
-  } catch (error) {
-    console.error(`Error uploading image to Firebase:`, error);
-    throw error;
-  }
-}
-
-async function waitForSecurityCheck(page) {
-  try {
-    // Wait for security check to complete
-    await page.waitForFunction(
-      () => !document.title.includes('Checking the site connection security'),
-      { timeout: 30000 }
-    );
-    
-    // Use setTimeout instead of waitForTimeout
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    return true;
-  } catch (error) {
-    console.error('Security check timeout:', error);
-    return false;
-  }
-}
-
-async function scrapeSparePartsFirstPage() {
-  let browser;
-  let page;
-
-  try {
-    browser = await puppeteer.launch({
-      headless: false, // Change to false to see what's happening
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--window-size=1920,1080',
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins',
-        '--disable-site-isolation-trials'
-      ],
-      defaultViewport: {
-        width: 1920,
-        height: 1080
-      }
-    });
-
-    page = await browser.newPage();
-    
-    // Set realistic browser environment
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    await page.setExtraHTTPHeaders({
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-      'Connection': 'keep-alive',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache'
-    });
-
-    // Enable JavaScript
-    await page.setJavaScriptEnabled(true);
     
-    console.log('Navigating to Spare Parts page 1...');
+    console.log(`Navigating to: ${url}`);
     
-    await page.goto('https://luus.com.au/spareparts/page/1/', {
+    await page.goto(url, {
       waitUntil: 'networkidle0',
       timeout: 60000
     });
 
-    // Handle security check
-    const securityCheckPassed = await waitForSecurityCheck(page);
-    if (!securityCheckPassed) {
-      throw new Error('Failed to pass security check');
-    }
+    const productData = await page.evaluate(() => {
+      const name = document.querySelector('h1.product_title')?.textContent.trim();
+      const priceElement = document.querySelector('.price .woocommerce-Price-amount');
+      const price = priceElement ? priceElement.textContent.trim() : '';
+      const imageUrl = document.querySelector('.woocommerce-product-gallery__image img')?.src;
+      const sku = document.querySelector('.sku')?.textContent.trim();
 
-    // Wait for the main content to load
-    await page.waitForSelector('.product-grid, .products-grid, .product-list', {
-      timeout: 30000
-    });
-
-    console.log('Page loaded successfully, extracting data...');
-
-    // Take a screenshot for debugging
-    await page.screenshot({ path: 'debug-screenshot.png' });
-
-    const sparePartsData = await page.evaluate(() => {
-      const spareParts = [];
-      const products = document.querySelectorAll('.product-item, .product, .product-list-item');
-
-      products.forEach(product => {
-        // Extract part number and name
-        const titleEl = product.querySelector('h2, .product-title, .title');
-        if (!titleEl) return;
-
-        const titleText = titleEl.textContent.trim();
-        const partNumber = titleText.split(' ')[0];
-        const name = titleText.substring(partNumber.length).trim();
-
-        // Extract compatibility
-        const compatibilityEl = product.querySelector('.compatibility, .specs');
-        const compatibility = compatibilityEl ? 
-          compatibilityEl.textContent.split(',').map(item => item.trim()).filter(Boolean) : 
-          [];
-
-        // Extract image URL
-        const imageEl = product.querySelector('img');
-        const imageUrl = imageEl ? (imageEl.src || imageEl.dataset.src) : '';
-
-        spareParts.push({
-          partNumber,
-          name,
-          compatibility,
-          imageUrl
-        });
-      });
-
-      return spareParts;
-    });
-
-    console.log(`Found ${sparePartsData.length} spare parts`);
-
-    // Store data in Firebase
-    for (const sparePart of sparePartsData) {
-      if (!sparePart.partNumber) continue;
-
-      const sparePartId = generateSparePartId(sparePart.partNumber);
-      let storedImageUrl = null;
-
-      if (sparePart.imageUrl) {
-        try {
-          const imageBuffer = await downloadImage(sparePart.imageUrl);
-          const storagePath = `spare-parts/${sparePartId}.jpg`;
-          storedImageUrl = await uploadImageToFirebase(imageBuffer, storagePath);
-        } catch (error) {
-          console.error(`Failed to process image for ${sparePartId}:`, error);
-        }
-      }
-
-      const sparePartObject = {
-        spare_part_id: sparePartId,
-        partNumber: sparePart.partNumber,
-        name: sparePart.name,
-        compatibility: sparePart.compatibility,
-        imageUrl: storedImageUrl,
-        scrapedAt: new Date().toISOString()
+      return {
+        partId: sku,
+        name,
+        price,
+        imageUrl,
+        
       };
+    });
 
-      try {
-        await db.collection('spare_parts').doc(sparePartId).set(sparePartObject);
-        console.log(`Stored spare part: ${sparePart.partNumber}`);
-      } catch (error) {
-        console.error(`Failed to store ${sparePart.partNumber}:`, error);
-      }
-    }
+    // Get the slug from the URL to match with predefined data
+    const slug = url.split('/').filter(Boolean).pop();
+    const predefinedData = productInfo[slug] || { suits: '', productDetails: '' };
 
-    console.log('All spare parts have been processed');
+    // Combine scraped and predefined data
+    return {
+      ...productData,
+      suits: predefinedData.suits,
+      productDetails: predefinedData.productDetails
+    };
 
   } catch (error) {
-    console.error('Scraping error:', error);
-    
-    // Save debug information
-    if (page) {
-      try {
-        const debugInfo = await page.evaluate(() => ({
-          title: document.title,
-          url: window.location.href,
-          html: document.documentElement.outerHTML
-        }));
-        
-        await fs.writeFile('debug-info.json', JSON.stringify(debugInfo, null, 2));
-        console.log('Debug information saved to debug-info.json');
-        
-        // Take a screenshot of the error state
-        await page.screenshot({ path: 'error-screenshot.png' });
-      } catch (debugError) {
-        console.error('Failed to save debug information:', debugError);
-      }
-    }
+    console.error(`Error scraping ${url}:`, error);
+    return null;
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    await page.close();
+  }
+}
+
+async function storeInFirestore(productData) {
+  if (!productData?.partId) {
+    console.error('No partId found in product data');
+    return;
+  }
+
+  try {
+    const docRef = db.collection('spare_parts').doc(productData.partId);
+    await docRef.set(productData);
+    console.log(`Successfully stored product with partId: ${productData.partId} in Firestore`);
+    console.log('Stored data:', {
+      partId: productData.partId,
+      name: productData.name,
+      suits: productData.suits,
+      productDetails: productData.productDetails
+    });
+  } catch (error) {
+    console.error('Error storing data in Firestore:', error);
   }
 }
 
 async function main() {
-  console.log('Starting Spare Parts scraper...');
+  console.log('Starting product data scraper...');
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process'
+    ]
+  });
+
   try {
-    await scrapeSparePartsFirstPage();
-    console.log('Scraping completed successfully');
+    // Process URLs in batches of 3 to avoid overwhelming the server
+    const batchSize = 3;
+    for (let i = 0; i < productUrls.length; i += batchSize) {
+      const batch = productUrls.slice(i, i + batchSize);
+      console.log(`Processing batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(productUrls.length/batchSize)}`);
+      
+      const productPromises = batch.map(url => scrapeProductPage(browser, url));
+      const products = await Promise.all(productPromises);
+      
+      // Store batch results
+      for (const product of products) {
+        if (product) {
+          await storeInFirestore(product);
+        }
+      }
+
+      // Add a small delay between batches
+      if (i + batchSize < productUrls.length) {
+        console.log('Waiting before next batch...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    console.log('All products processed successfully.');
   } catch (error) {
-    console.error('Main process error:', error);
+    console.error('An error occurred during the process:', error);
+  } finally {
+    await browser.close();
+    process.exit(0);
   }
 }
 
