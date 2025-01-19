@@ -1,24 +1,19 @@
-import { collection, addDoc, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
-import { db, admin } from '../services/firebaseAdmin.js';
+import { db } from '../services/firebaseAdmin.js';
 
 const COLLECTION_NAME = 'serviceForms';
+const USERS_COLLECTION = 'users';
 
 export const createServiceForm = async (data) => {
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      formType: data.formType,
-      name: data.name,
-      email: data.email,
-      businessName: data.businessName,
-      businessType: data.businessType,
-      requiredDate: data.requiredDate,
-      productModel: data.productModel,
-      serialNumber: data.serialNumber,
-      purchaseDate: data.purchaseDate,
-      warrantyNumber: data.warrantyNumber,
-      problemDescription: data.problemDescription,
-      fileName: data.fileName,
-      imageUrl: data.imageUrl,
+    const cleanedData = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    const docRef = await db.collection(COLLECTION_NAME).add({
+      ...cleanedData,
       createdAt: new Date()
     });
     console.log('Service form created with ID:', docRef.id);
@@ -31,11 +26,11 @@ export const createServiceForm = async (data) => {
 
 export const getServiceFormById = async (id) => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    const docSnap = await getDoc(docRef);
+    const docRef = db.collection(COLLECTION_NAME).doc(id);
+    const doc = await docRef.get();
     
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
+    if (doc.exists) {
+      return { id: doc.id, ...doc.data() };
     } else {
       throw new Error('Service form not found');
     }
@@ -47,8 +42,7 @@ export const getServiceFormById = async (id) => {
 
 export const getServiceFormsByType = async (formType) => {
   try {
-    const q = query(collection(db, COLLECTION_NAME), where("formType", "==", formType));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await db.collection(COLLECTION_NAME).where("formType", "==", formType).get();
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting service forms by type:', error);
@@ -58,7 +52,7 @@ export const getServiceFormsByType = async (formType) => {
 
 export const getAllServiceForms = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    const querySnapshot = await db.collection(COLLECTION_NAME).get();
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting all service forms:', error);
@@ -66,5 +60,49 @@ export const getAllServiceForms = async () => {
   }
 };
 
-export const getServiceFormsCollection = () => collection(db, COLLECTION_NAME);
+export const getServiceFormsCollection = () => db.collection(COLLECTION_NAME);
+
+export const getUserData = async (email) => {
+  try {
+    if (!email) {
+      console.log('No email provided for user lookup');
+      return null;
+    }
+
+    // First try looking up by email field
+    let snapshot = await db.collection(USERS_COLLECTION)
+      .where('email', '==', email.toLowerCase())
+      .get();
+
+    // If not found, try looking up by auth.email field (in case of nested structure)
+    if (snapshot.empty) {
+      snapshot = await db.collection(USERS_COLLECTION)
+        .where('auth.email', '==', email.toLowerCase())
+        .get();
+    }
+
+    if (snapshot.empty) {
+      console.log(`No user found for email: ${email}`);
+      return null;
+    }
+
+    const userData = snapshot.docs[0].data();
+    
+    // Check different possible locations for mobile number
+    const mobileNumber = userData.mobileNumber || 
+                        userData.mobile ||
+                        userData.phone ||
+                        userData.phoneNumber ||
+                        (userData.auth && userData.auth.mobileNumber) ||
+                        null;
+
+    return {
+      ...userData,
+      mobileNumber: mobileNumber
+    };
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    return null;
+  }
+};
 

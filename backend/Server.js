@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
+import sparePartRoutes from './routes/sparePartRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { 
   handleChat, 
@@ -17,6 +18,8 @@ import {
   deleteUserChatHistory, 
   getAllUsers 
 } from './controllers/chatController.js';
+import { handleChatMessage } from './services/aiService.js';
+import { initializeEmailService } from './services/emailservice.js';
 
 // Load environment variables
 dotenv.config();
@@ -103,6 +106,7 @@ app.use('/api/products', productRoutes);
 console.log('Product routes mounted.');
 app.use('/api/service', serviceRoutes);
 app.use('/api', supportRoutes);
+app.use('/', sparePartRoutes);
 
 // Chat routes
 app.post('/api/chat', handleChat);
@@ -110,6 +114,47 @@ app.get('/api/chat/history/:userId', getChatSessionHistory);
 app.get('/api/chat/interactions/:userId', getUserProductInterests);
 app.delete('/api/chat/history/:userId', deleteUserChatHistory);
 app.get('/api/chat/users', getAllUsers);
+
+// New chat route for AI-powered responses
+const conversationHistory = new Map();
+
+app.post("/api/chat/ai", async (req, res) => {
+  const { message, userId } = req.body;
+
+  if (!message || !userId) {
+    return res.status(400).json({ error: "Message and userId are required" });
+  }
+
+  try {
+    console.log('Received chat request:', { message, userId });
+
+    if (!conversationHistory.has(userId)) {
+      conversationHistory.set(userId, []);
+    }
+
+    const userHistory = conversationHistory.get(userId);
+    console.log('User conversation history:', JSON.stringify(userHistory, null, 2));
+
+    const response = await handleChatMessage(message, userHistory);
+    console.log('AI response:', response);
+
+    userHistory.push({ role: 'user', content: message });
+    userHistory.push({ role: 'assistant', content: response });
+
+    // Limit conversation history to last 10 messages
+    if (userHistory.length > 20) {
+      userHistory.splice(0, 2);
+    }
+
+    res.json({
+      answer: response,
+      prompt: message,
+    });
+  } catch (error) {
+    console.error('Error in chat endpoint:', error);
+    res.status(500).json({ error: "An error occurred while processing your request" });
+  }
+});
 
 // 404 handler for unmatched routes
 app.use((req, res, next) => {
@@ -143,6 +188,13 @@ process.on('SIGTERM', () => {
   server.close(() => {
     console.log('HTTP server closed');
   });
+});
+
+//email
+initializeEmailService();
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 export default server;

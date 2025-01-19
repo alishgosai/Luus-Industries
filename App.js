@@ -35,7 +35,6 @@ import FAQsScreen from "./screens/FAQsScreen";
 import ChatbotScreen from "./screens/ChatBotScreen";
 import ChatWithBot from "./screens/ChatWithBot";
 import WebScreen from "./components/WebScreen";
-import DataManagement from './screens/DataManagement';
 
 import BottomNavBar from "./components/BottomNavBar";
 import ChangePasswordScreen from './screens/ChangePassword';
@@ -66,7 +65,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Stack.Navigator
-          initialRouteName="Home"
+          initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Auth" component={Authentication} />
@@ -101,7 +100,6 @@ export default function App() {
           <Stack.Screen name="NoodleCooker" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/asian/noodle-cookers/" }} />
           <Stack.Screen name="OvenRanges" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/professional/oven-ranges/" }} />
           <Stack.Screen name="PastaCooker" component={WebScreen} initialParams={{ uri: "https://luus.com.au/range/asian/pasta-cookers/" }} />
-          <Stack.Screen name="DataManagement" component={withNavBar(DataManagement)} />
         </Stack.Navigator>
       </SafeAreaProvider>
     </NavigationContainer>

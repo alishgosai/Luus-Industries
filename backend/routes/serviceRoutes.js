@@ -18,12 +18,12 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // POST routes for form submissions
-router.post('/api/service/equipment-sales', upload.single('file'), submitEquipmentSales);
-router.post('/api/service/technical-support', upload.single('file'), submitTechnicalSupport);
-router.post('/api/service/warranty-service', upload.single('file'), submitWarrantyService);
+router.post('/equipment-sales', upload.single('image'), submitEquipmentSales);
+router.post('/technical-support', upload.single('image'), submitTechnicalSupport);
+router.post('/warranty-service', upload.single('image'), submitWarrantyService);
 
 // GET routes for retrieving form data
-router.get('/api/service/forms', async (req, res) => {
+router.get('/forms', async (req, res) => {
   try {
     const forms = await getAllServiceForms();
     res.json(forms);
@@ -32,7 +32,7 @@ router.get('/api/service/forms', async (req, res) => {
   }
 });
 
-router.get('/api/service/forms/:id', async (req, res) => {
+router.get('/forms/:id', async (req, res) => {
   try {
     const form = await getServiceFormById(req.params.id);
     res.json(form);
@@ -41,7 +41,7 @@ router.get('/api/service/forms/:id', async (req, res) => {
   }
 });
 
-router.get('/api/service/forms/type/:formType', async (req, res) => {
+router.get('/forms/type/:formType', async (req, res) => {
   try {
     const forms = await getServiceFormsByType(req.params.formType);
     res.json(forms);

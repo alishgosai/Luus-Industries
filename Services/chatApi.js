@@ -15,17 +15,32 @@ const handleApiRequest = async (endpoint, options) => {
 };
 
 export const sendChatOpenEvent = async (userId) => {
+  if (!userId) {
+    throw new Error('userId is required');
+  }
   try {
     console.log('Sending chat open event to:', `${API_URL}/api/chat`);
     console.log('API_URL:', API_URL);
     
-    return await handleApiRequest('/api/chat', {
+    const response = await handleApiRequest('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ userId, messages: [], isOpenEvent: true }),
     });
+
+    // If the server doesn't provide options, use default options
+    if (!response.options) {
+      response.options = [
+        "Product Details",
+        "Warranty",
+        "Contact Information",
+        "Spare Parts"
+      ];
+    }
+
+    return response;
   } catch (error) {
     console.error('Error in sendChatOpenEvent:', error);
     console.error('Error details:', error.message);
@@ -37,6 +52,9 @@ export const sendChatOpenEvent = async (userId) => {
 };
 
 export const fetchChatHistory = async (userId) => {
+  if (!userId) {
+    throw new Error('userId is required');
+  }
   try {
     return await handleApiRequest(`/api/chat/history/${userId}`);
   } catch (error) {
@@ -45,18 +63,29 @@ export const fetchChatHistory = async (userId) => {
   }
 };
 
-export const sendChatMessage = async (messages, userId) => {
+export const sendChatMessage = async (messages, userId, isPartial = false) => {
+  if (!userId) {
+    throw new Error('userId is required');
+  }
   try {
-    return await handleApiRequest('/api/chat', {
+    const response = await handleApiRequest('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ 
         messages,
-        userId
+        userId,
+        isPartial
       }),
     });
+    
+    if (!response || (!response.response && !isPartial)) {
+      throw new Error('Invalid response from server');
+    }
+    
+    console.log('Server response:', response);
+    return response;
   } catch (error) {
     console.error('Error in sendChatMessage:', error);
     throw error;

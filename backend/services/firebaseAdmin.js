@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -20,7 +21,7 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: process.env.FIREBASE_DATABASE_URL,
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+      storageBucket: 'luus-industries.firebasestorage.app'
     });
 
     console.log('Firebase Admin initialized successfully');
@@ -32,7 +33,7 @@ if (!admin.apps.length) {
   }
 }
 
-const db = admin.firestore();
+const db = getFirestore();
 const storage = admin.storage();
 
 // Test the database connection
@@ -44,4 +45,3 @@ try {
 }
 
 export { admin, db, storage };
-
