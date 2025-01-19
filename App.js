@@ -6,7 +6,7 @@ import { StatusBar, View } from "react-native";
 import { app, auth } from './FireBase/firebase.config';
 import { getFirestore } from 'firebase/firestore';
 const db = getFirestore(app);
-import Authentication from './components/Authentication';
+
 
 // Import all screens
 //import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
@@ -22,7 +22,7 @@ import ServiceForm from "./screens/ServiceForm";
 import EquipmentSales from "./screens/EquipmentSales";
 import TechnicalSupport from "./screens/TechnicalSupport";
 import HomeQR from "./screens/HomeQR";
-import ProductInfo from "./screens/BeforeProductDetails";
+
 import SparePartsScreen from "./screens/SparePart";
 import WarrantyInformation from "./screens/WarrantyInformation";
 import MyProfileScreen from "./screens/MyProfile";
@@ -32,7 +32,6 @@ import EditPersonalDetailsScreen from "./screens/EditPersonalDetailsScreen";
 import WarrantyAndProductsScreen from "./screens/WarrantyAndProductsScreen";
 import HelpAndSupportScreen from "./screens/HelpAndSupportScreen";
 import FAQsScreen from "./screens/FAQsScreen";
-import ChatbotScreen from "./screens/ChatBotScreen";
 import ChatWithBot from "./screens/ChatWithBot";
 import WebScreen from "./components/WebScreen";
 
@@ -68,11 +67,11 @@ export default function App() {
           initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
-          <Stack.Screen name="Auth" component={Authentication} />
+     
         
         
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="BeforeProductDetails" component={ProductInfo} />
+          
           <Stack.Screen name="Home" component={withNavBar(HomeScreen)} />
           <Stack.Screen name="Browse" component={withNavBar(BrowseScreen)} />
           <Stack.Screen name="AsianProducts" component={withNavBar(AsianProducts)} />
@@ -83,7 +82,7 @@ export default function App() {
           <Stack.Screen name="EquipmentSales" component={withNavBar(EquipmentSales)} />
           <Stack.Screen name="TechnicalSupport" component={withNavBar(TechnicalSupport)} />
           <Stack.Screen name="HomeQR" component={withNavBar(HomeQR)} />
-          <Stack.Screen name="ChatBot" component={withNavBar(ChatbotScreen)} />
+         
           <Stack.Screen name="ChatWithBot" component={withNavBar(ChatWithBot)} />
           <Stack.Screen name="MyProfile" component={withNavBar(MyProfileScreen)} />
           <Stack.Screen name="EditPicture" component={withNavBar(EditPictureScreen)} />
