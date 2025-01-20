@@ -69,15 +69,15 @@ export const getUserData = async (email) => {
       return null;
     }
 
-    // First try looking up by email field
+    // Try looking up by accountInfo.email field
     let snapshot = await db.collection(USERS_COLLECTION)
-      .where('email', '==', email.toLowerCase())
+      .where('accountInfo.email', '==', email.toLowerCase())
       .get();
 
-    // If not found, try looking up by auth.email field (in case of nested structure)
+    // If not found, try looking up by email field directly
     if (snapshot.empty) {
       snapshot = await db.collection(USERS_COLLECTION)
-        .where('auth.email', '==', email.toLowerCase())
+        .where('email', '==', email.toLowerCase())
         .get();
     }
 
@@ -89,12 +89,20 @@ export const getUserData = async (email) => {
     const userData = snapshot.docs[0].data();
     
     // Check different possible locations for mobile number
-    const mobileNumber = userData.mobileNumber || 
-                        userData.mobile ||
-                        userData.phone ||
-                        userData.phoneNumber ||
-                        (userData.auth && userData.auth.mobileNumber) ||
-                        null;
+    const mobileNumber = 
+      userData.accountInfo?.mobileNumber || // Primary location
+      userData.accountInfo?.mobile ||
+      userData.accountInfo?.phone ||
+      userData.accountInfo?.phoneNumber ||
+      userData.mobileNumber || // Fallback locations
+      userData.mobile ||
+      userData.phone ||
+      userData.phoneNumber ||
+      null;
+
+    if (!mobileNumber) {
+      console.log(`Mobile number not found for user: ${email}`);
+    }
 
     return {
       ...userData,
@@ -105,4 +113,3 @@ export const getUserData = async (email) => {
     return null;
   }
 };
-
