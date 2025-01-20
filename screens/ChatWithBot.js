@@ -13,34 +13,42 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { sendChatOpenEvent } from '../Services/chatApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AIChatComponent from '../components/AIChatComponent';
 
 const ChatWithBot = ({ navigation }) => {
   const phoneNumber = '+61 0392406822';
-  const userId = 'user123'; // Replace with actual user ID management
+  const [userId, setUserId] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [initialMessage, setInitialMessage] = useState(null);
 
   useEffect(() => {
-    initializeChat();
+    const getUserIdAndInitializeChat = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (storedUserId) {
+          setUserId(storedUserId);
+          await initializeChat(storedUserId);
+        } else {
+          const newUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+          await AsyncStorage.setItem('userId', newUserId);
+          setUserId(newUserId);
+          await initializeChat(newUserId);
+        }
+      } catch (error) {
+        console.error('Error retrieving or setting userId:', error);
+        Alert.alert('Error', 'Failed to retrieve user information. Please try again.');
+      }
+    };
+
+    getUserIdAndInitializeChat();
   }, []);
 
-  const initializeChat = async () => {
+  const initializeChat = async (currentUserId) => {
     try {
-      const data = await sendChatOpenEvent(userId);
-      setInitialMessage({
-        role: 'assistant',
-        content: data.response,
-        options: [
-          "Product details",
-          "Installation or maintenance",
-          "Warranty and certifications",
-          "Contact information",
-          "Spare parts"
-        ]
-      });
+      await sendChatOpenEvent(currentUserId);
       setIsInitialized(true);
     } catch (error) {
+      console.error('Error initializing chat:', error);
       Alert.alert('Error', 'Failed to initialize chat. Please try again.');
     }
   };
@@ -83,7 +91,7 @@ const ChatWithBot = ({ navigation }) => {
         style={styles.keyboardAvoidingView}
       >
         {isInitialized ? (
-          <AIChatComponent userId={userId} initialMessage={initialMessage} />
+          <AIChatComponent userId={userId} />
         ) : (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Initializing chat...</Text>

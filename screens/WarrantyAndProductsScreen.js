@@ -134,6 +134,15 @@ const WarrantyAndProductsScreen = () => {
                             <Text style={styles.detailsButtonText}>View Details</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
+                            style={styles.sparePartsButton} 
+                            onPress={() => {
+                                console.log('WarrantyAndProductsScreen: Navigating to SpareParts');
+                                navigation.navigate('SparePart', { productId: product.productId });
+                            }}
+                        >
+                            <Text style={styles.sparePartsButtonText}>Spare Parts</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
                             style={styles.deleteButton} 
                             onPress={() => {
                                 Alert.alert(
@@ -280,11 +289,24 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         flex: 1,
-        marginRight: 10,
+        marginRight: 5,
     },
     detailsButtonText: {
         color: '#000000',
-        fontSize: 14,
+        fontSize: 12,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    sparePartsButton: {
+        backgroundColor: '#87CEEB',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        marginRight: 5,
+    },
+    sparePartsButtonText: {
+        color: '#000000',
+        fontSize: 12,
         fontWeight: '600',
         textAlign: 'center',
     },

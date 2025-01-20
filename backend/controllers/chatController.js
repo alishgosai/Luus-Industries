@@ -2,130 +2,222 @@ import {
   generateAIResponse, 
   getProductCategory, 
   formatContactInfo, 
-  getWarrantyInfo 
-} from '../services/aiService';
+  getWarrantyInfo,
+  getAsianCookingInfo,
+  getProfessionalEquipmentInfo,
+  getSparePartsInfo,
+  LUUS_PRODUCT_CATEGORIES
+} from '../services/aiService.js';
 import { 
   saveChatSession, 
   getChatHistory, 
   getRecentProductInquiries, 
   clearChatHistory, 
   getAllUserIds 
-} from '../models/Chat';
+} from '../models/Chat.js';
 
-function getDefaultResponse(message) {
-  const lowercaseMessage = message.toLowerCase().trim();
-  
-  // Greetings
-  if (/^(hello|hi|hey|greetings|howdy|hola|bonjour|good (morning|afternoon|evening)|what's up|yo|sup)/.test(lowercaseMessage)) {
-    return "Hello! Welcome to Luus Industries. How can I assist you with our commercial kitchen equipment today?";
+// Define predefined responses
+const predefinedResponses = {
+  'product details': {
+    response: "Great! Luus Industries specializes in two main categories of commercial kitchen equipment:",
+    options: ["Asian Range", "Professional Range"]
+  },
+  'asian range': {
+    response: getAsianCookingInfo(),
+    externalLink: "https://luus.com.au/range/asian/"
+  },
+  'professional range': {
+    response: getProfessionalEquipmentInfo(),
+    externalLink: "https://luus.com.au/range/professional/"
+  },
+  'warranty': {
+    response: getWarrantyInfo()
+  },
+  'contact information': {
+    response: formatContactInfo()
+  },
+  'spare parts': {
+    response: getSparePartsInfo(),
+    externalLink: "https://luus.com.au/spareparts/"
   }
-  
-  // Farewells
-  if (/^(bye|goodbye|see you|farewell|ciao|adios|take care|until next time)/.test(lowercaseMessage)) {
-    return "Thank you for chatting with Luus Industries. If you need any further assistance with our commercial kitchen solutions, please don't hesitate to ask. Have a great day!";
-  }
-  
-  // Gratitude
-  if (/^(thanks|thank you|appreciate it|grateful|cheers|much obliged)/.test(lowercaseMessage)) {
-    return "You're welcome! At Luus Industries, we're always happy to help. Is there anything else you'd like to know about our commercial kitchen equipment?";
-  }
-  
-  // Product inquiries
-  if (/\b(product|equipment|appliance|kitchen|cooktop|oven|fryer|grill|range|refrigerator|dishwasher)\b/.test(lowercaseMessage)) {
-    return "Luus Industries offers a wide range of commercial kitchen equipment, including cooktops, ovens, fryers, grills, ranges, refrigerators, and dishwashers. What specific type of equipment are you interested in?";
-  }
-  
-  // Help or assistance
-  if (/\b(help|assist|support|guidance|info|information|question)\b/.test(lowercaseMessage)) {
-    return "I'm here to help! Whether you need information about our products, warranty details, or have any other questions about Luus Industries, feel free to ask.";
-  }
+};
 
-  // Price inquiries
-  if (/\b(price|cost|expensive|cheap|affordable|budget)\b/.test(lowercaseMessage)) {
-    return "Luus Industries offers competitive pricing on all our commercial kitchen equipment. The cost can vary depending on the specific model and features. Can you tell me which product you're interested in, and I can provide more detailed pricing information?";
-  }
+// Function to find predefined response
+function findPredefinedResponse(userMessage) {
+  return predefinedResponses[userMessage];
+}
 
-  // Quality and durability
-  if (/\b(quality|durable|reliable|long-lasting|sturdy)\b/.test(lowercaseMessage)) {
-    return "At Luus Industries, we pride ourselves on the high quality and durability of our commercial kitchen equipment. Our products are built to withstand the demands of busy commercial kitchens and are backed by our comprehensive warranty. Is there a specific product you'd like to know more about?";
-  }
+// Active user sessions map
+const activeSessions = new Map();
 
-  // Installation and maintenance
-  if (/\b(install|maintenance|repair|service|clean|care)\b/.test(lowercaseMessage)) {
-    return "Luus Industries provides comprehensive installation and maintenance services for all our commercial kitchen equipment. We also offer guidance on proper care and cleaning to ensure your equipment performs optimally. Do you need specific information about installation or maintenance for a particular product?";
-  }
+// Welcome message function
+export async function sendWelcomeMessage(userId) {
+  try {
+    if (!userId) {
+      console.error('userId is required for welcome message');
+      return;
+    }
 
-  // Energy efficiency
-  if (/\b(energy|efficient|eco-friendly|green|environmental)\b/.test(lowercaseMessage)) {
-    return "Luus Industries is committed to providing energy-efficient commercial kitchen solutions. Many of our products are designed with energy-saving features to help reduce operational costs and environmental impact. Would you like information about our most energy-efficient models?";
-  }
+    const welcomeMessage = "Welcome to Luus Industries, Australia's leading manufacturer of commercial kitchen equipment. How may I assist you today?";
+    const options = [
+      "About Us",
+      "Product Information",
+      "Warranty Services",
+      "Contact & Support"
+    ];
 
-  // Customization
-  if (/\b(custom|customiz|tailor|specific needs|unique)\b/.test(lowercaseMessage)) {
-    return "Luus Industries understands that every kitchen is unique. We offer customization options for many of our products to meet the specific needs of your commercial kitchen. Would you like to discuss how we can tailor our equipment to your requirements?";
-  }
+    // Save welcome message to chat history
+    await saveChatSession(userId, [], welcomeMessage);
+    console.log('Welcome message saved for new user:', userId);
 
-  // Unrecognized input
-  if (lowercaseMessage.length < 4 || !/^[a-z\s]+$/.test(lowercaseMessage)) {
-    return "I'm sorry, but I didn't understand that. Could you please rephrase your question or provide more details about what you need help with regarding Luus Industries' commercial kitchen equipment?";
+    return {
+      response: welcomeMessage,
+      options,
+      externalLink: "https://luus.com.au/"
+    };
+  } catch (error) {
+    console.error('Error sending welcome message:', error);
+    throw error;
   }
-  
-  return null;
 }
 
 export async function handleChat(req, res) {
   console.log('Received chat request. Body:', JSON.stringify(req.body, null, 2));
   try {
-    const { messages, userId, isOpenEvent } = req.body;
+    const { messages, userId, isOpenEvent, isPartial } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'userId is required' });
+    }
+
+    // Check if this is a new user session
+    if (isOpenEvent) {
+      console.log('Handling chat open event for user:', userId);
+      
+      // Clear any existing session for this user
+      if (activeSessions.has(userId)) {
+        console.log('Clearing existing session for user:', userId);
+        activeSessions.delete(userId);
+      }
+      
+      // Start new session
+      activeSessions.set(userId, {
+        startTime: new Date(),
+        messageCount: 0
+      });
+
+      try {
+        // Send welcome message
+        const welcomeResponse = await sendWelcomeMessage(userId);
+        return res.json(welcomeResponse);
+      } catch (error) {
+        console.error('Error saving welcome message:', error);
+        return res.json({
+          response: "Welcome to Luus Industries. How may I assist you today?",
+          options: []
+        });
+      }
     }
 
     if (!Array.isArray(messages)) {
       return res.status(400).json({ error: 'Invalid messages format' });
     }
 
-    if (isOpenEvent) {
-      console.log('Handling chat open event for user:', userId);
-      const welcomeMessage = "Hello! 👋 I'm LuusBot, your assistant for Luus Industries commercial kitchen equipment. How can I help you today?";
-      await saveChatSession(userId, [], welcomeMessage);
-      return res.json({ response: welcomeMessage });
-    }
-
     if (messages.length === 0) {
       return res.status(400).json({ error: 'No messages provided' });
     }
 
-    const lastMessage = messages[messages.length - 1];
-    let aiResponse;
-
-    const defaultResponse = getDefaultResponse(lastMessage.content);
-    if (defaultResponse) {
-      aiResponse = defaultResponse;
-    } else if (lastMessage.role === 'assistant' && lastMessage.content.includes("How can I assist you today?")) {
-      aiResponse = "Great! I'm here to help with any questions about Luus Industries' commercial kitchen equipment and services. What would you like to know?";
-    } else if (lastMessage.content.toLowerCase().includes('contact')) {
-      aiResponse = formatContactInfo();
-    } else if (lastMessage.content.toLowerCase().includes('warranty')) {
-      aiResponse = getWarrantyInfo();
-    } else {
-      const formattedMessages = messages.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
-      aiResponse = await generateAIResponse(formattedMessages);
+    // Validate user has active session
+    if (!activeSessions.has(userId)) {
+      return res.status(401).json({ 
+        error: 'No active session',
+        message: 'Please start a new chat session'
+      });
     }
 
-    await saveChatSession(userId, messages, aiResponse);
+    const lastMessage = messages[messages.length - 1];
+    
+    if (!lastMessage || typeof lastMessage.content !== 'string') {
+      return res.status(400).json({ error: 'Invalid last message format' });
+    }
+    
+    if (isPartial) {
+      return res.json({
+        response: `I'm processing your question about ${lastMessage.content.slice(0, 20)}...`,
+        options: []
+      });
+    }
 
-    res.json({ response: aiResponse });
+    if (lastMessage.role === 'user') {
+      const userMessage = lastMessage.content.trim();
+      console.log('Processing message:', userMessage);
+      
+      try {
+        // Update session message count
+        const session = activeSessions.get(userId);
+        session.messageCount++;
+        activeSessions.set(userId, session);
+
+        // Generate AI response
+        console.log('Generating AI response');
+        const aiResponse = await generateAIResponse(messages);
+        
+        if (!aiResponse || typeof aiResponse.response !== 'string') {
+          throw new Error('Invalid AI response format');
+        }
+
+        // Save the chat session
+        await saveChatSession(userId, messages, aiResponse.response);
+
+        return res.json({
+          response: aiResponse.response,
+          options: aiResponse.options || [],
+          externalLink: aiResponse.externalLink
+        });
+
+      } catch (error) {
+        console.error('Error processing message:', error);
+        return res.json({
+          response: "I apologize for the technical difficulty. For immediate assistance:\n\n" +
+                   "1. Visit our website: https://luus.com.au\n" +
+                   "2. Call us: +61 3 9240 6822\n" +
+                   "3. Email: info@luus.com.au\n\n" +
+                   "Our team is available Monday to Friday, 8:30 AM - 5:00 PM AEST.",
+          options: [],
+          externalLink: "https://luus.com.au/contact/"
+        });
+      }
+    }
+
+    return res.json({
+      response: "I'm here to help you with information about Luus Industries' commercial kitchen equipment. Please feel free to ask any questions.",
+      options: []
+    });
+
   } catch (error) {
     console.error('Chat error:', error);
-    res.status(500).json({ 
-      error: 'Failed to process chat message',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'An unexpected error occurred. Please try again.'
     });
+  }
+}
+
+// Helper function to get default options
+function getDefaultOptions() {
+  return [
+    "Product Information",
+    "Technical Support",
+    "Request Quote",
+    "Contact Us"
+  ];
+}
+
+// Handle user logout - clear their session
+export async function clearUserSession(userId) {
+  if (activeSessions.has(userId)) {
+    console.log('Clearing chat session for user:', userId);
+    activeSessions.delete(userId);
   }
 }
 
@@ -183,4 +275,3 @@ export async function getAllUsers(req, res) {
     });
   }
 }
-

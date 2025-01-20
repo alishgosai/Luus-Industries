@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Linking, Platform } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as WebBrowser from 'expo-web-browser';
 import ProductApi from '../Services/productApi';
 
 export default function ProductDetails() {
@@ -31,6 +34,9 @@ export default function ProductDetails() {
       const result = await ProductApi.getProductDetails(productId);
       if (result.success && result.product) {
         setProduct(result.product);
+        console.log('Product data:', JSON.stringify(result.product, null, 2));
+        console.log('Specifications URL:', result.product.specificationsPdfUrl);
+        console.log('CAD Drawings URL:', result.product.cadDrawingsUrl);
         setError(null);
         
         if (result.newlyRegistered) {
@@ -51,17 +57,65 @@ export default function ProductDetails() {
     }
   };
 
-  const handleLinkClick = async (link) => {
+  const handleLinkClick = async (linkType) => {
     try {
-      if (await Linking.canOpenURL(link.url)) {
-        await Linking.openURL(link.url);
-        setClickedLinks(prev => ({ ...prev, [link.title]: true }));
-      } else {
-        Alert.alert('Error', 'Cannot open this link');
+      let url;
+      let fileName;
+      if (linkType === 'specifications') {
+        url = product.specificationsPdfUrl;
+        fileName = 'specifications.pdf';
+      } else if (linkType === 'cadDrawings') {
+        url = product.cadDrawingsUrl;
+        fileName = 'cad_drawings.dwg';  // Changed from .zip to .dwg based on the URL
       }
+
+      console.log(`Attempting to open ${linkType} URL:`, url); // Add this log
+
+      if (!url) {
+        console.log(`${linkType} URL is not available`); // Add this log
+        Alert.alert('Error', `${linkType} link is not available`);
+        return;
+      }
+
+      if (Platform.OS === 'ios') {
+        // For iOS, we'll use WebBrowser to open the link
+        const result = await WebBrowser.openBrowserAsync(url);
+        if (result.type === 'cancel') {
+          console.log('User canceled opening the link');
+        }
+      } else {
+        // For Android, we'll download the file and then open it
+        const fileUri = FileSystem.documentDirectory + fileName;
+        const downloadResumable = FileSystem.createDownloadResumable(
+          url,
+          fileUri,
+          {},
+          (downloadProgress) => {
+            const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+            console.log(`Download progress: ${progress * 100}%`);
+          }
+        );
+
+        try {
+          const { uri } = await downloadResumable.downloadAsync();
+          console.log('File downloaded to:', uri);
+
+          // Open the file
+          const contentUri = await FileSystem.getContentUriAsync(uri);
+          await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+            data: contentUri,
+            flags: 1,
+          });
+        } catch (e) {
+          console.error('Error downloading or opening file:', e);
+          Alert.alert('Error', 'Failed to download or open the file');
+        }
+      }
+
+      setClickedLinks(prev => ({ ...prev, [linkType]: true }));
     } catch (error) {
-      console.error('Error opening link:', error);
-      Alert.alert('Error', 'Failed to open link');
+      console.error(`Error handling ${linkType} link:`, error);
+      Alert.alert('Error', `Failed to handle ${linkType} link`);
     }
   };
 
@@ -156,16 +210,19 @@ export default function ProductDetails() {
         </View>
 
         <View style={styles.linksGrid}>
-          {product.links.map((link, index) => (
+          {[
+            { title: "View Specifications", type: "specifications" },
+            { title: "View CAD Drawings", type: "cadDrawings" },
+          ].map((link, index) => (
             <TouchableOpacity
               key={index}
               style={styles.link}
-              onPress={() => handleLinkClick(link)}
+              onPress={() => handleLinkClick(link.type)}
             >
               <Text
                 style={[
                   styles.linkText,
-                  clickedLinks[link.title] && styles.linkTextClicked,
+                  clickedLinks[link.type] && styles.linkTextClicked,
                 ]}
               >
                 {link.title}
@@ -316,12 +373,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   link: {
-    flex: 1,
-    marginHorizontal: 4,
+    backgroundColor: '#1E1E1E',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   linkText: {
     color: '#87CEEB',
     fontSize: 14,
+    textAlign: 'center',
   },
   linkTextClicked: {
     textDecorationLine: 'underline',

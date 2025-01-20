@@ -136,7 +136,7 @@ const MyProfileScreen = () => {
             />
             <ProfileItem 
               icon="shield-check" 
-              label="Warranty & Products" 
+              label="My Products" 
               onPress={() => navigation.navigate('WarrantyAndProducts', { warrantyProducts: userData ? userData.warrantyProducts : null })}
             />
             <ProfileItem 
@@ -148,11 +148,6 @@ const MyProfileScreen = () => {
               icon="help-circle" 
               label="Help & Support" 
               onPress={() => navigation.navigate('HelpAndSupport')}
-            />
-            <ProfileItem 
-              icon="frequently-asked-questions" 
-              label="FAQs" 
-              onPress={() => navigation.navigate('FAQs')}
             />
           </View>
 

@@ -308,5 +308,112 @@ export const logoutUser = async (userId) => {
   }
 };
 
-export default User;
+export const storeOTP = async (email, otp) => {
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
 
+    const expirationTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+    
+    await db.collection('users').doc(user.id).update({
+      'accountInfo.resetOTP': {
+        code: otp,
+        expirationTime: expirationTime
+      }
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error storing OTP:', error);
+    throw error;
+  }
+};
+
+export const verifyOTP = async (email, otp, clearIfValid = true) => {
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      console.log('User not found during OTP verification');
+      return {
+        isValid: false,
+        message: 'User not found. Please request a new verification code.'
+      };
+    }
+
+    const resetOTP = user.accountInfo?.resetOTP;
+    if (!resetOTP) {
+      console.log('No OTP found for user:', email);
+      return {
+        isValid: false,
+        message: 'No verification code found. Please request a new code.'
+      };
+    }
+
+    // Check if OTP has expired
+    if (Date.now() > resetOTP.expirationTime) {
+      console.log('OTP has expired for user:', email);
+      // Clear expired OTP
+      await db.collection('users').doc(user.id).update({
+        'accountInfo.resetOTP': null
+      });
+      return {
+        isValid: false,
+        message: 'Verification code has expired. Please request a new code.'
+      };
+    }
+
+    // Strict comparison with the stored OTP
+    if (resetOTP.code !== otp) {
+      console.log('Invalid OTP provided for user:', email, 'Expected:', resetOTP.code, 'Received:', otp);
+      return {
+        isValid: false,
+        message: 'Incorrect verification code. Please check and try again.'
+      };
+    }
+
+    // If we get here, OTP is valid
+    if (clearIfValid) {
+      console.log('Valid OTP provided, clearing OTP for user:', email);
+      // Clear the OTP after successful verification
+      await db.collection('users').doc(user.id).update({
+        'accountInfo.resetOTP': null
+      });
+    }
+
+    return {
+      isValid: true,
+      message: 'Code verified successfully'
+    };
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    return {
+      isValid: false,
+      message: 'Error verifying code. Please try again.'
+    };
+  }
+};
+
+export const resetPasswordWithOTP = async (email, newPassword) => {
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await db.collection('users').doc(user.id).update({
+      'accountInfo.password': hashedPassword
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    throw error;
+  }
+};
+
+export default User;

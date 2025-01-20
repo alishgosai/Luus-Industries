@@ -1,13 +1,24 @@
-import * as userModel from '../models/userModel.js';
-import bcrypt from 'bcryptjs';
-import { admin } from '../services/firebaseAdmin.js';
+import bcrypt from 'bcrypt';
+import { admin, db } from '../services/firebaseAdmin.js';
+import { sendWelcomeEmail } from '../services/emailservice.js';
+import { sendOTPEmail } from '../services/emailservice.js';
+import { clearUserSession, sendWelcomeMessage } from './chatController.js';
 
 // Function to convert Australian phone number to E.164 format
 const convertToE164 = (phoneNumber) => {
-  if (phoneNumber.startsWith('04')) {
-    return `+61${phoneNumber.slice(1)}`;
+  let cleaned = phoneNumber.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '61' + cleaned.substring(1);
+  } else if (cleaned.startsWith('61')) {
+    // Already in E.164 format
+    return '+' + cleaned;
   }
-  return phoneNumber; // Return as-is if it's already in E.164 format
+  return '+' + cleaned;
+};
+
+// Generate a random 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 export const register = async (req, res, next) => {
@@ -103,6 +114,14 @@ export const register = async (req, res, next) => {
 
     console.log('User registered successfully:', newUser.id);
 
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(newUser.accountInfo.email, newUser.name);
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+      // Continue with registration even if welcome email fails
+    }
+
     res.status(201).json({
       message: 'User registered successfully',
       user: {
@@ -133,52 +152,345 @@ export const register = async (req, res, next) => {
   }
 };
 
-
-
-
-export const login = async (req, res, next) => {
+export const login = async (req, res) => {
   try {
-    const { email, phoneNumber, password } = req.body;
-
-    if ((!email && !phoneNumber) || !password) {
-      return res.status(400).json({ message: 'Email/Phone and password are required' });
+    const { email, password, phoneNumber } = req.body;
+    
+    if (!password) {
+      return res.status(400).json({
+        message: 'Password is required',
+        status: 'ERROR'
+      });
     }
 
-    let user;
-    try {
-      if (email) {
-        user = await userModel.findUserByEmail(email);
+    // Initialize query
+    const usersRef = db.collection('users');
+    let querySnapshot;
+
+    if (email) {
+      console.log('Attempting login with email:', email);
+      querySnapshot = await usersRef.where('accountInfo.email', '==', email.toLowerCase()).get();
+    } else if (phoneNumber) {
+      console.log('Attempting login with phone:', phoneNumber);
+      // Try both formatted and unformatted phone numbers
+      const formattedPhone = convertToE164(phoneNumber);
+      const phoneQuery1 = usersRef.where('accountInfo.phoneNumber', '==', phoneNumber);
+      const phoneQuery2 = usersRef.where('accountInfo.phoneNumber', '==', formattedPhone);
+      
+      const [results1, results2] = await Promise.all([
+        phoneQuery1.get(),
+        phoneQuery2.get()
+      ]);
+
+      if (!results1.empty) {
+        querySnapshot = results1;
+      } else if (!results2.empty) {
+        querySnapshot = results2;
       } else {
-        user = await userModel.findUserByPhoneNumber(phoneNumber);
+        querySnapshot = { empty: true, docs: [] };
       }
+    } else {
+      return res.status(400).json({
+        message: 'Email or phone number is required',
+        status: 'ERROR'
+      });
+    }
+
+    if (querySnapshot.empty) {
+      const identifier = email || phoneNumber;
+      console.log('No user found with identifier:', identifier);
+      return res.status(401).json({
+        message: 'Invalid username or password',
+        status: 'ERROR'
+      });
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+    const userId = userDoc.id;
+
+    // Verify password using bcrypt
+    const storedPassword = userData.accountInfo?.password;
+    if (!storedPassword) {
+      console.error('No password found for user:', userId);
+      return res.status(401).json({
+        message: 'Invalid username or password',
+        status: 'ERROR'
+      });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, storedPassword);
+    if (!isValidPassword) {
+      console.log('Invalid password for user:', userId);
+      return res.status(401).json({
+        message: 'Invalid username or password',
+        status: 'ERROR'
+      });
+    }
+
+    console.log('Login successful for user:', userId);
+
+    // Create custom token
+    const token = await admin.auth().createCustomToken(userId);
+
+    // Prepare user data for response
+    const user = {
+      id: userId,
+      userId: userId,
+      name: userData.name,
+      email: userData.accountInfo?.email,
+      phoneNumber: userData.accountInfo?.phoneNumber,
+      dateOfBirth: userData.accountInfo?.dateOfBirth
+    };
+
+    // Send welcome message
+    try {
+      await sendWelcomeMessage(userId);
     } catch (error) {
-      console.error('Error finding user:', error);
-      return res.status(500).json({ message: 'Error finding user', error: error.message });
-    }
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.accountInfo.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      console.error('Error sending welcome message:', error);
+      // Continue with login even if welcome message fails
     }
 
     res.json({
-      message: 'Logged in successfully',
-      user: { id: user.id, name: user.name, email: user.accountInfo.email },
-      userId: user.id
+      token,
+      user,
+      userId,
+      status: 'SUCCESS',
+      message: 'Login successful'
     });
+
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Error during login', error: error.message });
+    res.status(500).json({
+      message: 'An error occurred during login. Please try again.',
+      status: 'ERROR',
+      error: error.message
+    });
   }
 };
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
 
+    if (!email?.trim()) {
+      return res.status(400).json({ 
+        message: 'Email is required',
+        status: 'ERROR'
+      });
+    }
 
+    // Find user by email
+    const querySnapshot = await db.collection('users')
+      .where('accountInfo.email', '==', email.toLowerCase())
+      .get();
 
+    if (querySnapshot.empty) {
+      return res.status(404).json({ 
+        message: 'User not found',
+        status: 'USER_NOT_FOUND'
+      });
+    }
+
+    const userDoc = querySnapshot.docs[0];
+
+    // Generate a 6-digit OTP
+    const generatedOTP = generateOTP();
+    
+    // Store OTP in database with expiration time
+    const expirationTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+    await userDoc.ref.update({
+      'accountInfo.resetOTP': generatedOTP,
+      'accountInfo.resetOTPExpiry': new Date(expirationTime).toISOString()
+    });
+
+    console.log('Generated and stored OTP for user:', email, 'OTP:', generatedOTP);
+
+    // Send OTP email
+    await sendOTPEmail(email, generatedOTP);
+
+    res.json({ 
+      message: 'Verification code has been sent to your email',
+      status: 'SUCCESS'
+    });
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ 
+      message: 'Error processing request. Please try again.',
+      status: 'ERROR',
+      error: error.message
+    });
+  }
+};
+
+export const verifyResetCode = async (req, res) => {
+  try {
+    const { email, code, otp } = req.body;
+    const submittedOTP = otp || code;
+
+    console.log('Verifying OTP for user:', email, 'Submitted OTP:', submittedOTP);
+
+    if (!email?.trim() || !submittedOTP?.trim()) {
+      return res.status(400).json({ 
+        message: 'Email and code required',
+        status: 'ERROR'
+      });
+    }
+
+    // Get user and their stored OTP
+    const querySnapshot = await db.collection('users')
+      .where('accountInfo.email', '==', email.toLowerCase())
+      .get();
+
+    if (querySnapshot.empty) {
+      console.log('User not found:', email);
+      return res.status(400).json({ 
+        message: 'Invalid code',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+    const storedOTP = userData.accountInfo?.resetOTP;
+
+    console.log('Stored OTP data:', storedOTP);
+
+    if (!storedOTP) {
+      console.log('No OTP found for user:', email);
+      return res.status(400).json({ 
+        message: 'No code found',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    // Check if OTP has expired
+    const otpExpiry = new Date(userData.accountInfo?.resetOTPExpiry);
+    if (Date.now() > otpExpiry.getTime()) {
+      console.log('OTP expired for user:', email);
+      // Clear expired OTP
+      await userDoc.ref.update({
+        'accountInfo.resetOTP': null,
+        'accountInfo.resetOTPExpiry': null
+      });
+      return res.status(400).json({ 
+        message: 'Code expired',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    // Verify exact match with stored OTP
+    if (submittedOTP !== storedOTP) {
+      console.log('OTP mismatch for user:', email);
+      return res.status(400).json({ 
+        message: 'Invalid code',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    console.log('OTP verified successfully for user:', email);
+    res.json({ 
+      message: 'Code verified',
+      status: 'SUCCESS',
+      email: email
+    });
+  } catch (error) {
+    console.error('Verify reset code error:', error);
+    res.status(500).json({ 
+      message: 'Verification failed',
+      status: 'ERROR',
+      error: error.message 
+    });
+  }
+};
+
+export const verifyOTPAndResetPassword = async (req, res) => {
+  try {
+    const { email, code, otp, newPassword } = req.body;
+    const submittedOTP = otp || code;
+
+    if (!email?.trim() || !submittedOTP?.trim() || !newPassword) {
+      return res.status(400).json({ 
+        message: 'Missing required fields',
+        status: 'ERROR'
+      });
+    }
+
+    // Get user document
+    const querySnapshot = await db.collection('users')
+      .where('accountInfo.email', '==', email.toLowerCase())
+      .get();
+
+    if (querySnapshot.empty) {
+      return res.status(400).json({ 
+        message: 'Invalid code',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+    const storedOTP = userData.accountInfo?.resetOTP;
+
+    if (!storedOTP) {
+      return res.status(400).json({ 
+        message: 'No code found',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    // Check if OTP has expired
+    const otpExpiry = new Date(userData.accountInfo?.resetOTPExpiry);
+    if (Date.now() > otpExpiry.getTime()) {
+      await userDoc.ref.update({
+        'accountInfo.resetOTP': null,
+        'accountInfo.resetOTPExpiry': null
+      });
+      return res.status(400).json({ 
+        message: 'Code expired',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    // Verify exact match with stored OTP
+    if (submittedOTP !== storedOTP) {
+      console.log('OTP mismatch for user:', email);
+      return res.status(400).json({ 
+        message: 'Invalid code',
+        status: 'INVALID_CODE'
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password and clear OTP
+    await userDoc.ref.update({
+      'accountInfo.password': hashedPassword,
+      'accountInfo.resetOTP': null,
+      'accountInfo.resetOTPExpiry': null,
+      'accountInfo.updatedAt': new Date().toISOString()
+    });
+
+    console.log('Password reset successful for user:', email);
+
+    // Return success without sensitive data
+    res.json({ 
+      message: 'Password reset successful',
+      status: 'SUCCESS',
+      email: email
+    });
+
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ 
+      message: 'Password reset failed',
+      status: 'ERROR'
+    });
+  }
+};
 
 export const changePassword = async (req, res) => {
   try {
@@ -208,44 +520,26 @@ export const changePassword = async (req, res) => {
   }
 };
 
-export const forgotPassword = async (req, res) => {
+export const logoutUser = async (req, res) => {
   try {
-    const { email } = req.body;
-    // Implement forgot password logic here
-    // This might include:
-    // 1. Checking if the email exists in the database
-    // 2. Generating a password reset token
-    // 3. Sending an email with the reset link/token
+    // Get userId from request body since token might be cleared
+    const { userId } = req.body;
+    
+    if (userId) {
+      console.log('Clearing chat session for user:', userId);
+      await clearUserSession(userId);
+      
+      // Clear user's chat sessions in database
+      const userRef = db.collection('users').doc(userId);
+      await userRef.update({
+        chatSessions: [],
+        lastUpdated: new Date().toISOString()
+      });
+    }
 
-    res.status(200).json({ message: 'Password reset email sent successfully' });
+    res.json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error('Error in forgotPassword:', error);
-    res.status(500).json({ message: 'Error processing forgot password request', error: error.message });
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Error during logout' });
   }
 };
-
-export const resetPassword = async (req, res) => {
-  try {
-    const { email, code, newPassword } = req.body;
-    // Implement reset password logic here
-    // This might include:
-    // 1. Verifying the reset token/code
-    // 2. Updating the user's password in the database
-
-    res.status(200).json({ message: 'Password reset successfully' });
-  } catch (error) {
-    console.error('Error in resetPassword:', error);
-    res.status(500).json({ message: 'Error resetting password', error: error.message });
-  }
-};
-
-
-export const logoutUser = async (req, res, next) => {
-  try {
-    res.status(200).json({ message: 'Logged out successfully' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
