@@ -73,9 +73,6 @@ export const findUserByPhoneNumber = async (phoneNumber) => {
   }
 };
 
-
-
-
 export const createUser = async (name, email, password, dateOfBirth, phoneNumber, firebaseUid) => {
   try {
     console.log('Creating new user with email:', email);
@@ -199,9 +196,6 @@ export const updateUserData = async (userId, updateData) => {
   }
 };
 
-
-
-
 export const updateUserAvatar = async (userId, imageUrl) => {
   try {
     if (!userId) {
@@ -285,8 +279,6 @@ export const changeUserPassword = async (userId, currentPassword, newPassword) =
     throw error;
   }
 };
-
-
 
 export const logoutUser = async (userId) => {
   try {
@@ -416,4 +408,20 @@ export const resetPasswordWithOTP = async (email, newPassword) => {
   }
 };
 
-export default User;
+const userModel = {
+  findUserByEmail,
+  findUserByPhoneNumber,
+  createUser,
+  findUserById,
+  getUserData,
+  updateUserData,
+  updateUserAvatar,
+  removeUserAvatar,
+  changeUserPassword,
+  logoutUser,
+  storeOTP,
+  verifyOTP,
+  resetPasswordWithOTP
+};
+
+export { User, AccountInfo, userModel as default };

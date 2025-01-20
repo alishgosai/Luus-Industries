@@ -3,6 +3,7 @@ import { admin, db } from '../services/firebaseAdmin.js';
 import { sendWelcomeEmail } from '../services/emailservice.js';
 import { sendOTPEmail } from '../services/emailservice.js';
 import { clearUserSession, sendWelcomeMessage } from './chatController.js';
+import userModel from '../models/userModel.js';
 
 // Function to convert Australian phone number to E.164 format
 const convertToE164 = (phoneNumber) => {
