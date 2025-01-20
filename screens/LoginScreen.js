@@ -13,11 +13,13 @@ import {
   BackHandler,
   Alert,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment';
 import { Feather } from '@expo/vector-icons';
-import { login, register, forgotPassword, resetPassword } from "../Services/authApi";
+import { login, register, forgotPassword, resetPassword, verifyCode, logout } from "../Services/authApi";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get("window");
 
@@ -28,7 +30,8 @@ export default function AuthScreen({ navigation }) {
   // Input states for Login
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginErrors, setLoginErrors] = useState({});
+  const [loginError, setLoginError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Input states for Register
   const [registerName, setRegisterName] = useState("");
@@ -116,7 +119,7 @@ export default function AuthScreen({ navigation }) {
     if (!loginPassword) {
       errors.password = "Password is required";
     }
-    setLoginErrors(errors);
+    setLoginError(errors.identifier || errors.password);
     return Object.keys(errors).length === 0;
   };
 
@@ -209,15 +212,31 @@ export default function AuthScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    if (validateLogin()) {
-      try {
-        const user = await login(loginIdentifier, loginPassword);
-        navigation.navigate("Home");
-        setLoginErrors({});
-      } catch (error) {
-        Alert.alert('Login Failed', error.message);
-        setLoginErrors({ general: error.message });
+    try {
+      setIsLoading(true);
+      setLoginError('');
+
+      if (!loginIdentifier?.trim() || !loginPassword?.trim()) {
+        setLoginError('Please enter your email/phone and password');
+        return;
       }
+
+      const user = await login(loginIdentifier, loginPassword);
+      
+      if (user) {
+        // Store login state
+        await AsyncStorage.setItem('isLoggedIn', 'true');
+        
+        // Navigate to home screen
+        navigation.replace('Home');
+      } else {
+        setLoginError('Login failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginError(error.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -239,6 +258,17 @@ export default function AuthScreen({ navigation }) {
         Alert.alert('Registration Failed', error.message);
         setRegisterErrors({ general: error.message });
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      await logout({ userId });
+      await AsyncStorage.clear();
+      navigation.replace('Login');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
@@ -308,10 +338,16 @@ export default function AuthScreen({ navigation }) {
             value={forgotCode}
             onChangeText={setForgotCode}
             returnKeyType="done"
-            onSubmitEditing={() => {
+            onSubmitEditing={async () => {
               if (validateForgotCode()) {
-                setForgotPasswordStep("SetNewPassword");
-                setForgotErrors({});
+                try {
+                  await verifyCode(forgotEmail, forgotCode);
+                  setForgotPasswordStep("SetNewPassword");
+                  setForgotErrors({});
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                  setForgotErrors({ code: error.message });
+                }
               }
             }}
           />
@@ -320,10 +356,16 @@ export default function AuthScreen({ navigation }) {
           )}
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => {
+            onPress={async () => {
               if (validateForgotCode()) {
-                setForgotPasswordStep("SetNewPassword");
-                setForgotErrors({});
+                try {
+                  await verifyCode(forgotEmail, forgotCode);
+                  setForgotPasswordStep("SetNewPassword");
+                  setForgotErrors({});
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                  setForgotErrors({ code: error.message });
+                }
               }
             }}
           >
@@ -379,11 +421,29 @@ export default function AuthScreen({ navigation }) {
                 if (validateNewPassword()) {
                   try {
                     await resetPassword(forgotEmail, forgotCode, newPassword);
-                    Alert.alert("Success", "Your password has been reset.");
-                    setActiveTab("Login");
-                    setForgotErrors({});
+                    Alert.alert(
+                      "Success", 
+                      "Password reset successful. Please login with your new password.",
+                      [
+                        {
+                          text: "OK",
+                          onPress: () => {
+                            setActiveTab("Login");
+                            // Clear all forgot password states
+                            setForgotEmail("");
+                            setForgotCode("");
+                            setNewPassword("");
+                            setConfirmNewPassword("");
+                            setForgotErrors({});
+                          }
+                        }
+                      ]
+                    );
                   } catch (error) {
                     Alert.alert('Error', error.message);
+                    if (error.message.includes('code')) {
+                      setForgotPasswordStep("VerifyCode");
+                    }
                     setForgotErrors({ general: error.message });
                   }
                 }
@@ -407,17 +467,35 @@ export default function AuthScreen({ navigation }) {
               if (validateNewPassword()) {
                 try {
                   await resetPassword(forgotEmail, forgotCode, newPassword);
-                  Alert.alert("Success", "Your password has been reset.");
-                  setActiveTab("Login");
-                  setForgotErrors({});
+                  Alert.alert(
+                    "Success", 
+                    "Password reset successful. Please login with your new password.",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () => {
+                          setActiveTab("Login");
+                          // Clear all forgot password states
+                          setForgotEmail("");
+                          setForgotCode("");
+                          setNewPassword("");
+                          setConfirmNewPassword("");
+                          setForgotErrors({});
+                        }
+                      }
+                    ]
+                  );
                 } catch (error) {
                   Alert.alert('Error', error.message);
+                  if (error.message.includes('code')) {
+                    setForgotPasswordStep("VerifyCode");
+                  }
                   setForgotErrors({ general: error.message });
                 }
               }
             }}
           >
-            <Text style={styles.actionButtonText}>Submit</Text>
+            <Text style={styles.actionButtonText}>Reset Password</Text>
           </TouchableOpacity>
         </>
       );
@@ -507,8 +585,8 @@ export default function AuthScreen({ navigation }) {
                     onSubmitEditing={() => passwordInput.current.focus()}
                     blurOnSubmit={false}
                   />
-                  {loginErrors.identifier && (
-                    <Text style={styles.errorText}>{loginErrors.identifier}</Text>
+                  {loginError && (
+                    <Text style={styles.errorText}>{loginError}</Text>
                   )}
                   <TextInput
                     ref={passwordInput}
@@ -521,17 +599,15 @@ export default function AuthScreen({ navigation }) {
                     returnKeyType="done"
                     onSubmitEditing={handleLogin}
                   />
-                  {loginErrors.password && (
-                    <Text style={styles.errorText}>{loginErrors.password}</Text>
-                  )}
-                  {loginErrors.general && (
-                    <Text style={styles.errorText}>{loginErrors.general}</Text>
-                  )}
                   <TouchableOpacity
                     style={styles.actionButton}
                     onPress={handleLogin}
                   >
-                    <Text style={styles.actionButtonText}>Login</Text>
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.actionButtonText}>Login</Text>
+                    )}
                   </TouchableOpacity>
                   <View style={styles.footerLinks}>
                     <TouchableOpacity
@@ -832,4 +908,3 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
-

@@ -209,3 +209,115 @@ export const sendEmail = async (formData, formType, file) => {
   }
 };
 
+export const sendWelcomeEmail = async (email, name) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Welcome to Luus Industries',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Welcome to Luus Industries, ${name}!</h2>
+          <p>Thank you for registering with us. We're excited to have you on board!</p>
+          <p>With your new account, you can:</p>
+          <ul>
+            <li>Browse our extensive product catalog</li>
+            <li>Access technical support</li>
+            <li>Track your warranty information</li>
+            <li>Get help from our support team</li>
+          </ul>
+          <p>If you have any questions, our support team is here to help.</p>
+          <p>Best regards,<br>The Luus Industries Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Welcome email sent successfully:', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    return false;
+  }
+};
+
+export const sendOTPEmail = async (email, otp) => {
+  if (!transporter) {
+    console.error('Email service not initialized');
+    return false;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Password Reset OTP - Luus Industries',
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Password Reset OTP</title>
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  line-height: 1.6;
+                  color: #333;
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+              }
+              .header {
+                  background-color: #f8f9fa;
+                  padding: 20px;
+                  text-align: center;
+                  border-radius: 5px;
+              }
+              .content {
+                  padding: 20px;
+              }
+              .otp-code {
+                  font-size: 24px;
+                  font-weight: bold;
+                  text-align: center;
+                  color: #007bff;
+                  padding: 10px;
+                  margin: 20px 0;
+                  background-color: #f8f9fa;
+                  border-radius: 5px;
+              }
+              .warning {
+                  color: #dc3545;
+                  font-size: 14px;
+                  margin-top: 20px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="header">
+              <h1>Password Reset Request</h1>
+          </div>
+          <div class="content">
+              <p>Hello,</p>
+              <p>We received a request to reset your password for your Luus Industries account.</p>
+              <p>Your One-Time Password (OTP) is:</p>
+              <div class="otp-code">${otp}</div>
+              <p>This OTP will expire in 10 minutes for security reasons.</p>
+              <p>If you didn't request this password reset, please ignore this email or contact our support team if you have concerns.</p>
+              <p class="warning">Never share your OTP with anyone. Our team will never ask for your OTP.</p>
+              <p>Best regards,<br>The Luus Industries Team</p>
+          </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('OTP email sent successfully');
+    return true;
+  } catch (error) {
+    console.error('Error sending OTP email:', error);
+    return false;
+  }
+};

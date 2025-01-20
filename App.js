@@ -7,10 +7,7 @@ import { app, auth } from './FireBase/firebase.config';
 import { getFirestore } from 'firebase/firestore';
 const db = getFirestore(app);
 
-
 // Import all screens
-//import ScanOrLoginScreen from "./screens/ScanBeforeLogin";
-
 import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
 import BrowseScreen from "./screens/Browse";
@@ -22,7 +19,6 @@ import ServiceForm from "./screens/ServiceForm";
 import EquipmentSales from "./screens/EquipmentSales";
 import TechnicalSupport from "./screens/TechnicalSupport";
 import HomeQR from "./screens/HomeQR";
-
 import SparePartsScreen from "./screens/SparePart";
 import WarrantyInformation from "./screens/WarrantyInformation";
 import MyProfileScreen from "./screens/MyProfile";
@@ -34,9 +30,9 @@ import HelpAndSupportScreen from "./screens/HelpAndSupportScreen";
 import FAQsScreen from "./screens/FAQsScreen";
 import ChatWithBot from "./screens/ChatWithBot";
 import WebScreen from "./components/WebScreen";
-
 import BottomNavBar from "./components/BottomNavBar";
 import ChangePasswordScreen from './screens/ChangePassword';
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 
 const Stack = createStackNavigator();
 
@@ -67,11 +63,8 @@ export default function App() {
           initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
-     
-        
-        
           <Stack.Screen name="Login" component={LoginScreen} />
-          
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="Home" component={withNavBar(HomeScreen)} />
           <Stack.Screen name="Browse" component={withNavBar(BrowseScreen)} />
           <Stack.Screen name="AsianProducts" component={withNavBar(AsianProducts)} />
@@ -104,4 +97,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-

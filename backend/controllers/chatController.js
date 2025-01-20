@@ -16,6 +16,71 @@ import {
   getAllUserIds 
 } from '../models/Chat.js';
 
+// Define predefined responses
+const predefinedResponses = {
+  'product details': {
+    response: "Great! Luus Industries specializes in two main categories of commercial kitchen equipment:",
+    options: ["Asian Range", "Professional Range"]
+  },
+  'asian range': {
+    response: getAsianCookingInfo(),
+    externalLink: "https://luus.com.au/range/asian/"
+  },
+  'professional range': {
+    response: getProfessionalEquipmentInfo(),
+    externalLink: "https://luus.com.au/range/professional/"
+  },
+  'warranty': {
+    response: getWarrantyInfo()
+  },
+  'contact information': {
+    response: formatContactInfo()
+  },
+  'spare parts': {
+    response: getSparePartsInfo(),
+    externalLink: "https://luus.com.au/spareparts/"
+  }
+};
+
+// Function to find predefined response
+function findPredefinedResponse(userMessage) {
+  return predefinedResponses[userMessage];
+}
+
+// Active user sessions map
+const activeSessions = new Map();
+
+// Welcome message function
+export async function sendWelcomeMessage(userId) {
+  try {
+    if (!userId) {
+      console.error('userId is required for welcome message');
+      return;
+    }
+
+    const welcomeMessage = "Welcome to Luus Industries, Australia's leading manufacturer of commercial kitchen equipment. How may I assist you today?";
+    const options = [
+      "About Us",
+      "Product Information",
+      "Warranty Services",
+      "Contact & Support"
+    ];
+
+    // Save welcome message to chat history
+    await saveChatSession(userId, [], welcomeMessage);
+    console.log('Welcome message saved for new user:', userId);
+
+    return {
+      response: welcomeMessage,
+      options,
+      externalLink: "https://luus.com.au/"
+    };
+  } catch (error) {
+    console.error('Error sending welcome message:', error);
+    throw error;
+  }
+}
+
 export async function handleChat(req, res) {
   console.log('Received chat request. Body:', JSON.stringify(req.body, null, 2));
   try {
@@ -25,111 +90,134 @@ export async function handleChat(req, res) {
       return res.status(400).json({ error: 'userId is required' });
     }
 
-    if (!Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Invalid messages format' });
-    }
-
+    // Check if this is a new user session
     if (isOpenEvent) {
       console.log('Handling chat open event for user:', userId);
-      const welcomeMessage = "Hello! 👋 I'm LuusBot, How can I help you today?";
-      const options = [
-        "Product Details",
-        "Warranty",
-        "Contact Information",
-        "Spare Parts"
-      ];
+      
+      // Clear any existing session for this user
+      if (activeSessions.has(userId)) {
+        console.log('Clearing existing session for user:', userId);
+        activeSessions.delete(userId);
+      }
+      
+      // Start new session
+      activeSessions.set(userId, {
+        startTime: new Date(),
+        messageCount: 0
+      });
+
       try {
-        await saveChatSession(userId, [], welcomeMessage);
-        return res.json({ response: welcomeMessage, options });
+        // Send welcome message
+        const welcomeResponse = await sendWelcomeMessage(userId);
+        return res.json(welcomeResponse);
       } catch (error) {
         console.error('Error saving welcome message:', error);
-        return res.json({ response: welcomeMessage, options }); // Continue even if save fails
+        return res.json({
+          response: "Welcome to Luus Industries. How may I assist you today?",
+          options: []
+        });
       }
+    }
+
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Invalid messages format' });
     }
 
     if (messages.length === 0) {
       return res.status(400).json({ error: 'No messages provided' });
     }
 
-    const lastMessage = messages[messages.length - 1];
-    let aiResponse;
-    let options;
-    let externalLink;
+    // Validate user has active session
+    if (!activeSessions.has(userId)) {
+      return res.status(401).json({ 
+        error: 'No active session',
+        message: 'Please start a new chat session'
+      });
+    }
 
+    const lastMessage = messages[messages.length - 1];
+    
+    if (!lastMessage || typeof lastMessage.content !== 'string') {
+      return res.status(400).json({ error: 'Invalid last message format' });
+    }
+    
     if (isPartial) {
-      aiResponse = `I'm listening... You're asking about ${lastMessage.content.slice(0, 20)}...`;
-    } else if (lastMessage.role === 'user') {
-      const userMessage = lastMessage.content.toLowerCase();
+      return res.json({
+        response: `I'm processing your question about ${lastMessage.content.slice(0, 20)}...`,
+        options: []
+      });
+    }
+
+    if (lastMessage.role === 'user') {
+      const userMessage = lastMessage.content.trim();
       console.log('Processing message:', userMessage);
       
       try {
-        switch (userMessage) {
-          case 'product details':
-            aiResponse = "Great! Luus Industries specializes in two main categories of commercial kitchen equipment:";
-            options = ["Asian Range", "Professional Range"];
-            break;
-          case 'asian range':
-            aiResponse = getAsianCookingInfo();
-            externalLink = "https://luus.com.au/range/asian/";
-            break;
-          case 'professional range':
-            aiResponse = getProfessionalEquipmentInfo();
-            externalLink = "https://luus.com.au/range/professional/";
-            break;
-          case 'warranty':
-            aiResponse = getWarrantyInfo();
-            break;
-          case 'contact information':
-            aiResponse = formatContactInfo();
-            break;
-          case 'spare parts':
-            aiResponse = getSparePartsInfo();
-            externalLink = "https://luus.com.au/spareparts/";
-            break;
-          default:
-            console.log('Generating AI response for custom message');
-            aiResponse = await generateAIResponse(messages);
-            console.log('AI response generated:', aiResponse);
-            const category = getProductCategory(userMessage);
-            if (category !== 'Other') {
-              options = LUUS_PRODUCT_CATEGORIES.filter(cat => cat !== category);
-            } else {
-              options = [
-                "Product Details",
-                "Warranty",
-                "Contact Information",
-                "Spare Parts"
-              ];
-            }
-            aiResponse += "\n\nIs there a specific category or topic you'd like more information about?";
-        }
-        
-        console.log('Final response:', { response: aiResponse, options, externalLink });
+        // Update session message count
+        const session = activeSessions.get(userId);
+        session.messageCount++;
+        activeSessions.set(userId, session);
 
-        try {
-          await saveChatSession(userId, messages, aiResponse);
-        } catch (error) {
-          console.error('Error saving chat session:', error);
-          // Continue with the response even if saving fails
-        }
+        // Generate AI response
+        console.log('Generating AI response');
+        const aiResponse = await generateAIResponse(messages);
         
-        return res.json({ response: aiResponse, options, externalLink });
+        if (!aiResponse || typeof aiResponse.response !== 'string') {
+          throw new Error('Invalid AI response format');
+        }
+
+        // Save the chat session
+        await saveChatSession(userId, messages, aiResponse.response);
+
+        return res.json({
+          response: aiResponse.response,
+          options: aiResponse.options || [],
+          externalLink: aiResponse.externalLink
+        });
+
       } catch (error) {
         console.error('Error processing message:', error);
-        return res.status(500).json({ 
-          error: 'Failed to process chat message',
-          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        return res.json({
+          response: "I apologize for the technical difficulty. For immediate assistance:\n\n" +
+                   "1. Visit our website: https://luus.com.au\n" +
+                   "2. Call us: +61 3 9240 6822\n" +
+                   "3. Email: info@luus.com.au\n\n" +
+                   "Our team is available Monday to Friday, 8:30 AM - 5:00 PM AEST.",
+          options: [],
+          externalLink: "https://luus.com.au/contact/"
         });
       }
-    } else {
-      return res.status(400).json({ error: 'Last message must be from user' });
     }
+
+    return res.json({
+      response: "I'm here to help you with information about Luus Industries' commercial kitchen equipment. Please feel free to ask any questions.",
+      options: []
+    });
+
   } catch (error) {
     console.error('Chat error:', error);
-    return res.status(500).json({ 
-      error: 'Failed to process chat message',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'An unexpected error occurred. Please try again.'
     });
+  }
+}
+
+// Helper function to get default options
+function getDefaultOptions() {
+  return [
+    "Product Information",
+    "Technical Support",
+    "Request Quote",
+    "Contact Us"
+  ];
+}
+
+// Handle user logout - clear their session
+export async function clearUserSession(userId) {
+  if (activeSessions.has(userId)) {
+    console.log('Clearing chat session for user:', userId);
+    activeSessions.delete(userId);
   }
 }
 
@@ -187,4 +275,3 @@ export async function getAllUsers(req, res) {
     });
   }
 }
-

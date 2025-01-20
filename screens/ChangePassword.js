@@ -42,10 +42,6 @@ const ChangePasswordScreen = ({ navigation }) => {
     }
   };
 
-  const handleForgotPassword = () => {
-    navigation.navigate('ForgotPassword');
-  };
-
   const renderPasswordInput = (value, setValue, placeholder, showPassword, setShowPassword, error) => (
     <View style={styles.inputRow}>
       <Icon name="lock" size={24} color="#87CEEB" style={styles.inputIcon} />
@@ -102,9 +98,7 @@ const ChangePasswordScreen = ({ navigation }) => {
         )}
       </View>
 
-      <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordButton}>
-        <Text style={styles.forgotPasswordText}>Forgotten your password?</Text>
-      </TouchableOpacity>
+    
 
       <TouchableOpacity 
         style={styles.changePasswordButton} 
@@ -175,13 +169,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   forgotPasswordButton: {
-    marginTop: 16,
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: 'center',
     marginHorizontal: 16,
-    alignSelf: 'flex-start',
   },
   forgotPasswordText: {
-    color: '#87CEEB',
-    fontSize: 16,
+    color: '#007AFF',
+    fontSize: 16
   },
   changePasswordButton: {
     backgroundColor: '#87CEEB',
@@ -198,4 +193,3 @@ const styles = StyleSheet.create({
 });
 
 export default ChangePasswordScreen;
-

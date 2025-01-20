@@ -16,37 +16,35 @@ const setAuthToken = async (token) => {
 // Helper function to handle errors
 const handleError = (error) => {
   console.error('API call error:', error);
-  let errorMessage = 'An unexpected error occurred. Please try again.';
+  let errorMessage = 'An unexpected error occurred';
   
   if (error.response) {
     console.error('Error response:', error.response.data);
     errorMessage = error.response.data.message || errorMessage;
   } else if (error.request) {
     console.error('Error request:', error.request);
-    errorMessage = 'No response received from the server. Please check your internet connection.';
-  } else {
-    console.error('Error message:', error.message);
+    errorMessage = 'Server not responding';
   }
 
   if (error.code) {
     switch (error.code) {
       case 'auth/invalid-credential':
-        errorMessage = 'Invalid email/mobile or password. Please check your credentials and try again.';
+        errorMessage = 'Invalid credentials';
         break;
       case 'auth/user-not-found':
-        errorMessage = 'No user found with this email/mobile. Please check your credentials or sign up.';
+        errorMessage = 'User not found';
         break;
       case 'auth/wrong-password':
-        errorMessage = 'Incorrect password. Please try again.';
+        errorMessage = 'Incorrect password';
         break;
       case 'auth/too-many-requests':
-        errorMessage = 'Too many unsuccessful login attempts. Please try again later or reset your password.';
+        errorMessage = 'Too many attempts. Try again later';
         break;
       case 'auth/network-request-failed':
-        errorMessage = 'Network error. Please check your internet connection and try again.';
+        errorMessage = 'Network error';
         break;
       case 'auth/email-already-in-use':
-        errorMessage = 'This email is already in use. Please use a different email or try logging in.';
+        errorMessage = 'Email already registered';
         break;
     }
   }
@@ -67,32 +65,38 @@ export const login = async (identifier, password) => {
 
     // Backend authentication
     const response = await axios.post(`${API_URL}/auth/login`, loginData);
-    
     console.log('Backend login response:', response.data);
-    const { userId, user } = response.data;
     
-    if (userId) {
-      // Store user ID
-      await AsyncStorage.setItem('userId', userId);
-      
-      // Store user data
-      await AsyncStorage.setItem('userData', JSON.stringify(user));
-      
-      return user;
-    } else {
+    if (response.data.status !== 'SUCCESS') {
+      throw new Error(response.data.message || 'Login failed');
+    }
+
+    const { token, user } = response.data;
+    
+    if (!user || !token) {
       throw new Error('Invalid response from server');
     }
+
+    // Store token
+    await AsyncStorage.setItem('authToken', token);
+    
+    // Store user data
+    await AsyncStorage.setItem('userData', JSON.stringify(user));
+    await AsyncStorage.setItem('userId', user.id);
+      
+    return user;
   } catch (error) {
     console.error('Login error:', error);
     if (error.response) {
       console.error('Error response:', error.response.data);
-      console.error('Error status:', error.response.status);
+      throw new Error(error.response.data.message || 'Login failed');
     } else if (error.request) {
       console.error('Error request:', error.request);
+      throw new Error('Server not responding');
     } else {
       console.error('Error message:', error.message);
+      throw error;
     }
-    handleError(error);
   }
 };
 
@@ -134,38 +138,83 @@ export const register = async (userData) => {
     }
   };
   
+export const logout = async ({ userId }) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/logout`, { userId });
+    return response.data;
+  } catch (error) {
+    throw handleError(error);
+  }
+};
+
 export const forgotPassword = async (email) => {
-    try {
-      console.log('Attempting forgot password for email:', email);
-      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
-      console.log('Forgot password response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Forgot password error:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        throw new Error(error.response.data.message || 'Failed to send password reset email');
-      } else if (error.request) {
-        console.error('Error request:', error.request);
-        throw new Error('No response received from the server');
-      } else {
-        console.error('Error message:', error.message);
-        throw new Error('Error setting up the request');
-      }
+  try {
+    console.log('Attempting forgot password for email:', email);
+    const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+    console.log('Forgot password response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      console.error('Error status:', error.response.status);
+      throw new Error(error.response.data.message || 'Failed to send code');
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+      throw new Error('Server not responding');
+    } else {
+      console.error('Error message:', error.message);
+      throw new Error('Request failed');
     }
-  };
-  
+  }
+};
+
+export const verifyCode = async (email, code) => {
+  try {
+    console.log('Attempting to verify code for email:', email);
+    const response = await axios.post(`${API_URL}/auth/verify-reset-code`, { email, code });
+    console.log('Verify code response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Verify code error:', error);
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      console.error('Error status:', error.response.status);
+      throw new Error(error.response.data.message || 'Invalid code');
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+      throw new Error('Server not responding');
+    } else {
+      console.error('Error message:', error.message);
+      throw new Error('Verification failed');
+    }
+  }
+};
+
 export const resetPassword = async (email, code, newPassword) => {
   try {
     console.log('Attempting password reset for email:', email);
-    const response = await axios.post(`${API_URL}/auth/reset-password`, { email, code, newPassword });
-    console.log('Password reset response:', response.data);
-    return response.data;
+    const response = await axios.post(`${API_URL}/auth/reset-password`, { 
+      email, 
+      code, 
+      newPassword 
+    });
+    
+    if (response.data.status === 'SUCCESS') {
+      return response.data;
+    } else {
+      throw new Error(response.data.message || 'Password reset failed');
+    }
   } catch (error) {
-    handleError(error);
+    console.error('Password reset error:', error);
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Password reset failed');
+    } else if (error.request) {
+      throw new Error('Server not responding');
+    } else {
+      throw new Error('Request failed');
+    }
   }
 };
 
 export { setAuthToken };
-
