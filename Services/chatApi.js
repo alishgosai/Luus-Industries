@@ -63,32 +63,41 @@ export const fetchChatHistory = async (userId) => {
   }
 };
 
-export const sendChatMessage = async (messages, userId, isPartial = false) => {
+export const sendChatMessage = async ({ messages, userId, isPartial = false }) => {
   if (!userId) {
     throw new Error('userId is required');
   }
+
+  if (!Array.isArray(messages)) {
+    throw new Error('messages must be an array');
+  }
+
   try {
     const response = await handleApiRequest('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        messages,
+      body: JSON.stringify({
         userId,
+        messages,
         isPartial
       }),
     });
-    
-    if (!response || (!response.response && !isPartial)) {
-      throw new Error('Invalid response from server');
+
+    // If the server doesn't provide options, use default options
+    if (!response.options) {
+      response.options = [
+        "Products",
+        "Warranty",
+        "Spare Parts",
+        "Contact Information"
+      ];
     }
-    
-    console.log('Server response:', response);
+
     return response;
   } catch (error) {
     console.error('Error in sendChatMessage:', error);
     throw error;
   }
 };
-

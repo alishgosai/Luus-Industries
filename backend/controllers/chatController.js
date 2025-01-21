@@ -18,26 +18,28 @@ import {
 
 // Define predefined responses
 const predefinedResponses = {
-  'product details': {
+  'product information': {
     response: "Great! Luus Industries specializes in two main categories of commercial kitchen equipment:",
-    options: ["Asian Range", "Professional Range"]
+    options: ["Asian Range", "Professional Range"],
+    type: 'buttons'
   },
   'asian range': {
-    response: getAsianCookingInfo(),
+    response: getAsianCookingInfo().response,
     externalLink: "https://luus.com.au/range/asian/"
   },
   'professional range': {
-    response: getProfessionalEquipmentInfo(),
+    response: getProfessionalEquipmentInfo().response,
     externalLink: "https://luus.com.au/range/professional/"
   },
-  'warranty': {
-    response: getWarrantyInfo()
+  'warranty services': {
+    response: getWarrantyInfo().response
   },
-  'contact information': {
-    response: formatContactInfo()
+  'contact & support': {
+    response: formatContactInfo().response,
+    externalLink: "https://luus.com.au/contact/"
   },
   'spare parts': {
-    response: getSparePartsInfo(),
+    response: getSparePartsInfo().response,
     externalLink: "https://luus.com.au/spareparts/"
   }
 };
@@ -47,7 +49,7 @@ function findPredefinedResponse(userMessage) {
   return predefinedResponses[userMessage];
 }
 
-// Active user sessions map
+// Active chat sessions
 const activeSessions = new Map();
 
 // Welcome message function
@@ -58,23 +60,22 @@ export async function sendWelcomeMessage(userId) {
       return;
     }
 
-    const welcomeMessage = "Welcome to Luus Industries, Australia's leading manufacturer of commercial kitchen equipment. How may I assist you today?";
-    const options = [
-      "About Us",
-      "Product Information",
-      "Warranty Services",
-      "Contact & Support"
-    ];
-
-    // Save welcome message to chat history
-    await saveChatSession(userId, [], welcomeMessage);
-    console.log('Welcome message saved for new user:', userId);
-
-    return {
-      response: welcomeMessage,
-      options,
+    const welcomeMessage = {
+      response: "Hello, I'm your Luus Bot. How can I assist you today!",
+      options: [
+        "Product Information",
+        "Warranty Services",
+        "Spare Parts",
+        "Contact & Support"
+      ],
+      type: 'buttons',
       externalLink: "https://luus.com.au/"
     };
+
+    // Save welcome message to chat history
+    await saveChatSession(userId, [], welcomeMessage.response);
+
+    return welcomeMessage;
   } catch (error) {
     console.error('Error sending welcome message:', error);
     throw error;
@@ -84,17 +85,23 @@ export async function sendWelcomeMessage(userId) {
 export async function handleChat(req, res) {
   console.log('Received chat request. Body:', JSON.stringify(req.body, null, 2));
   try {
-    const { messages, userId, isOpenEvent, isPartial } = req.body;
+    const { messages, userId, isOpenEvent } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'userId is required' });
     }
 
-    // Check if this is a new user session
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ 
+        error: 'Invalid messages format. Expected an array of messages.'
+      });
+    }
+
+    // Handle new session
     if (isOpenEvent) {
       console.log('Handling chat open event for user:', userId);
       
-      // Clear any existing session for this user
+      // Clear any existing session
       if (activeSessions.has(userId)) {
         console.log('Clearing existing session for user:', userId);
         activeSessions.delete(userId);
@@ -106,28 +113,11 @@ export async function handleChat(req, res) {
         messageCount: 0
       });
 
-      try {
-        // Send welcome message
-        const welcomeResponse = await sendWelcomeMessage(userId);
-        return res.json(welcomeResponse);
-      } catch (error) {
-        console.error('Error saving welcome message:', error);
-        return res.json({
-          response: "Welcome to Luus Industries. How may I assist you today?",
-          options: []
-        });
-      }
+      const welcomeResponse = await sendWelcomeMessage(userId);
+      return res.json(welcomeResponse);
     }
 
-    if (!Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Invalid messages format' });
-    }
-
-    if (messages.length === 0) {
-      return res.status(400).json({ error: 'No messages provided' });
-    }
-
-    // Validate user has active session
+    // Validate active session
     if (!activeSessions.has(userId)) {
       return res.status(401).json({ 
         error: 'No active session',
@@ -135,70 +125,43 @@ export async function handleChat(req, res) {
       });
     }
 
+    // Get the last message from the user
     const lastMessage = messages[messages.length - 1];
-    
-    if (!lastMessage || typeof lastMessage.content !== 'string') {
-      return res.status(400).json({ error: 'Invalid last message format' });
-    }
-    
-    if (isPartial) {
-      return res.json({
-        response: `I'm processing your question about ${lastMessage.content.slice(0, 20)}...`,
-        options: []
+    if (!lastMessage || !lastMessage.content) {
+      return res.status(400).json({ 
+        error: 'Invalid message format. Expected message to have content.'
       });
     }
 
-    if (lastMessage.role === 'user') {
-      const userMessage = lastMessage.content.trim();
-      console.log('Processing message:', userMessage);
-      
-      try {
-        // Update session message count
-        const session = activeSessions.get(userId);
-        session.messageCount++;
-        activeSessions.set(userId, session);
+    // Update session message count
+    const session = activeSessions.get(userId);
+    session.messageCount++;
+    activeSessions.set(userId, session);
 
-        // Generate AI response
-        console.log('Generating AI response');
-        const aiResponse = await generateAIResponse(messages);
-        
-        if (!aiResponse || typeof aiResponse.response !== 'string') {
-          throw new Error('Invalid AI response format');
-        }
+    console.log('Processing message:', lastMessage.content);
 
-        // Save the chat session
-        await saveChatSession(userId, messages, aiResponse.response);
-
-        return res.json({
-          response: aiResponse.response,
-          options: aiResponse.options || [],
-          externalLink: aiResponse.externalLink
-        });
-
-      } catch (error) {
-        console.error('Error processing message:', error);
-        return res.json({
-          response: "I apologize for the technical difficulty. For immediate assistance:\n\n" +
-                   "1. Visit our website: https://luus.com.au\n" +
-                   "2. Call us: +61 3 9240 6822\n" +
-                   "3. Email: info@luus.com.au\n\n" +
-                   "Our team is available Monday to Friday, 8:30 AM - 5:00 PM AEST.",
-          options: [],
-          externalLink: "https://luus.com.au/contact/"
-        });
-      }
+    // Try to find a predefined response first
+    const predefinedResponse = findPredefinedResponse(lastMessage.content.toLowerCase());
+    if (predefinedResponse) {
+      await saveChatSession(userId, messages, predefinedResponse.response);
+      console.log('Predefined response:', predefinedResponse);
+      return res.json(predefinedResponse);
     }
 
-    return res.json({
-      response: "I'm here to help you with information about Luus Industries' commercial kitchen equipment. Please feel free to ask any questions.",
-      options: []
-    });
+    // If no predefined response, generate AI response
+    console.log('Generating AI response');
+    const response = await generateAIResponse(messages);
+    await saveChatSession(userId, messages, response.response);
+    console.log('AI response:', response);
+    
+    return res.json(response);
 
   } catch (error) {
-    console.error('Chat error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'An unexpected error occurred. Please try again.'
+    console.error('Error in handleChat:', error);
+    return res.status(500).json({
+      response: "I apologize for the technical difficulty. Please select from our main services:",
+      options: ["Product Information", "Warranty Services", "Spare Parts", "Contact & Support"],
+      type: 'buttons'
     });
   }
 }
