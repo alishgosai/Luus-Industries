@@ -89,11 +89,11 @@ const defaultFAQs = [
         actionTarget: "+61 0392406822"
       },
       {
-        title: "Where can I see LUUS products?",
-        answer: "LUUS products can be viewed on our website, through our authorized dealers, or by visiting our showroom. Contact us to find the nearest dealer or to schedule a showroom visit.",
-        action: "Find Dealer",
-        actionType: "navigate",
-        actionTarget: "ContactUs"
+        title: "Where can I find LUUS on social media?",
+        answer: "Stay updated with LUUS news and events by following us on social media. We're active on Facebook, Instagram, and LinkedIn.",
+        action: "Follow Us",
+        actionType: "link",
+        actionTarget: "https://www.instagram.com/luusau?igsh=M2JocW1qbjFxOWhs"
       }
     ]
   }
