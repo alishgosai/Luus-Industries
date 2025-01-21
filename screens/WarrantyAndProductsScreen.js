@@ -223,7 +223,7 @@ const WarrantyAndProductsScreen = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#000000',
     },
     header: {
         flexDirection: 'row',

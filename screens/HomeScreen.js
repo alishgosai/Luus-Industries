@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef } from "react";
-import { fetchUserProfile } from '../Services/userApi';
+import React, { useState, useCallback, useRef } from "react"
+import { fetchUserProfile } from "../Services/userApi"
 import {
   View,
   Text,
@@ -11,42 +11,37 @@ import {
   FlatList,
   ActivityIndicator,
   Animated,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from '@react-navigation/native';
+} from "react-native"
+import { Ionicons } from "@expo/vector-icons"
+import { useFocusEffect } from "@react-navigation/native"
 
-const BUTTON_COLOR = "#87CEEB";
-const HEADER_MAX_HEIGHT = 100;
-const HEADER_MIN_HEIGHT = 60;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
+const BUTTON_COLOR = "#87CEEB"
+const HEADER_MAX_HEIGHT = 100
+const HEADER_MIN_HEIGHT = 60
+const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT
 
-const { width } = Dimensions.get("window");
-const ITEM_WIDTH = width * 0.85;
-const IMAGE_WIDTH = width * 0.75;
-const CLIENT_IMAGE_SIZE = 60;
-const CLIENT_IMAGE_MARGIN_RIGHT = 10;
-const CLIENT_COUNT = 10;
-const TOTAL_CLIENTS_WIDTH =
-  (CLIENT_IMAGE_SIZE + CLIENT_IMAGE_MARGIN_RIGHT) * CLIENT_COUNT;
+const { width } = Dimensions.get("window")
+const ITEM_WIDTH = width * 0.85
+const IMAGE_WIDTH = width * 0.75
 
 export default function HomeScreen({ navigation }) {
-  const [userData, setUserData] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const [userData, setUserData] = useState(null)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const scrollY = useRef(new Animated.Value(0)).current
 
   const cards = [
     {
       id: "1",
       text: "Your kitchen is our vision. Housed within a purpose-built facility in Melbourne's West, Luus Industries are proudly committed to being the leading manufacturer and solutions provider of commercial catering equipment in Australia.",
-      image: require("../assets/images/image19.png"),
+      image: require("../assets/images/feature2.jpg"),
     },
     {
       id: "2",
       text: "Another vision for your kitchen. With enhanced facilities, we aim to redefine quality and efficiency for modern catering equipment.",
-      image: require("../assets/images/feature2.jpg"),
+      image: require("../assets/images/feature3.jpg"),
     },
-  ];
+  ]
 
   const products = [
     {
@@ -77,136 +72,82 @@ export default function HomeScreen({ navigation }) {
       image: require("../assets/images/pasta-cooker.jpg"),
       route: "PastaCooker",
     },
-  ];
-
-  const testimonials = [
-    {
-      id: "1",
-      name: "John Doe",
-      feedback: "Luus Industries provided us with top-notch equipment that has transformed our kitchen operations.",
-      image: require("../assets/images/person.png"),
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      feedback: "Exceptional quality and customer service. Highly recommend Luus for all your catering needs.",
-      image: require("../assets/images/person.png"),
-    },
-  ];
-
-  const ranges = [
-    {
-      title: "ASIAN RANGE",
-      description: "We've been involved in Asian cuisine since birth! With that in mind, we hold Asian food, and the people who prepare it, close to our hearts. We notice every little detail. Our intricate knowledge of the demands of Asian cooking mean we've taken care of the frustrations Asian chefs often experience.",
-      buttonText: "Explore Asian Products",
-      route: "AsianProducts",
-    },
-    {
-      title: "PROFESSIONAL RANGE",
-      description: "Engineered with higher specifications, heavy duty construction and time-saving features, our Professional Series of commercial cooking equipment excels in all restaurants, hotels and franchises looking for extra performance, reliability and style. Standing a compact 800mm in depth, all units are ideal for small spaces and offer outstanding quality and exceptional value. Our Professional Series will transform your kitchen.",
-      buttonText: "Explore Professional Products",
-      route: "ProfessionalProducts",
-    },
-    {
-      title: "SPARE PARTS",
-      description: "Ensure the longevity and optimal performance of your equipment with our wide range of spare parts. From essential components to specialized replacements, we have everything you need to keep your kitchen running smoothly.",
-      buttonText: "Explore Spare Parts",
-      route: "SpareParts",
-    },
-  ];
+  ]
 
   const headerHeight = scrollY.interpolate({
     inputRange: [0, HEADER_SCROLL_DISTANCE],
     outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-    extrapolate: 'clamp',
-  });
+    extrapolate: "clamp",
+  })
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],
     outputRange: [1, 0.5, 1],
-    extrapolate: 'clamp',
-  });
+    extrapolate: "clamp",
+  })
 
   const logoScale = scrollY.interpolate({
     inputRange: [0, HEADER_SCROLL_DISTANCE],
     outputRange: [1, 1],
-    extrapolate: 'clamp',
-  });
-
-  const renderRangeItem = ({ item }) => (
-    <View style={[styles.card, styles.rangeCard]}>
-      <Text style={styles.rangeTitle}>{item.title}</Text>
-      <Text style={styles.rangeDescription}>{item.description}</Text>
-      <TouchableOpacity
-        style={styles.exploreButton}
-        onPress={() => navigation.navigate(item.route)}
-      >
-        <Text style={styles.exploreButtonText}>{item.buttonText}</Text>
-        <Ionicons name="arrow-forward" size={16} color="#000" />
-      </TouchableOpacity>
-    </View>
-  );
+    extrapolate: "clamp",
+  })
 
   const getUserData = useCallback(async () => {
     try {
-      setIsLoading(true);
-      console.log('Fetching user profile...');
-      const userProfile = await fetchUserProfile();
-      console.log('User profile fetched:', userProfile);
+      setIsLoading(true)
+      console.log("Fetching user profile...")
+      const userProfile = await fetchUserProfile()
+      console.log("User profile fetched:", userProfile)
       setUserData({
         name: userProfile.name || "Guest",
-        avatar: userProfile.avatar || null
-      });
+        avatar: userProfile.avatar || null,
+      })
     } catch (error) {
-      console.error("Error fetching user profile:", error);
-      setUserData({ name: "Guest", avatar: null });
+      console.error("Error fetching user profile:", error)
+      setUserData({ name: "Guest", avatar: null })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, []);
+  }, [])
 
   useFocusEffect(
     useCallback(() => {
-      getUserData();
-    }, [getUserData])
-  );
+      getUserData()
+    }, [getUserData]),
+  )
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00aaff" />
       </View>
-    );
+    )
   }
 
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.container}>
-        <Animated.View style={[
-          styles.header,
-          {
-            height: headerHeight,
-            opacity: headerOpacity,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            elevation: 1000,
-          }
-        ]}>
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              height: headerHeight,
+              opacity: headerOpacity,
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              elevation: 1000,
+            },
+          ]}
+        >
           <Animated.Image
             source={require("../assets/images/logo.png")}
-            style={[
-              styles.logo,
-              { transform: [{ scale: logoScale }] }
-            ]}
+            style={[styles.logo, { transform: [{ scale: logoScale }] }]}
             resizeMode="contain"
           />
-          <TouchableOpacity
-            style={styles.serviceButton}
-            onPress={() => navigation.navigate("ServiceForm")}
-          >
+          <TouchableOpacity style={styles.serviceButton} onPress={() => navigation.navigate("ServiceForm")}>
             <Text style={styles.serviceButtonText}>Book a Service</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -215,10 +156,7 @@ export default function HomeScreen({ navigation }) {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: false }
-          )}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
         >
           <View style={{ paddingTop: HEADER_MAX_HEIGHT }}>
             {userData && (
@@ -232,24 +170,15 @@ export default function HomeScreen({ navigation }) {
                 </View>
               </View>
             )}
-            {errorMessage && (
-              <Text style={styles.errorMessage}>{errorMessage}</Text>
-            )}
+            {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
 
             <FlatList
               data={cards}
               renderItem={({ item }) => (
                 <View style={[styles.card, styles.carouselBorder]}>
-                  <Image
-                    source={item.image}
-                    style={styles.cardImage}
-                    resizeMode="cover"
-                  />
+                  <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
                   <Text style={styles.cardText}>{item.text}</Text>
-                  <TouchableOpacity
-                    style={styles.readMoreButton}
-                    onPress={() => navigation.navigate("AboutUs")}
-                  >
+                  <TouchableOpacity style={styles.readMoreButton} onPress={() => navigation.navigate("AboutUs")}>
                     <Text style={styles.readMoreText}>Read More About Us</Text>
                     <Ionicons name="arrow-forward" size={16} color="#000" />
                   </TouchableOpacity>
@@ -272,28 +201,12 @@ export default function HomeScreen({ navigation }) {
                   require("../assets/images/image19-1.png"),
                   require("../assets/images/feature2.jpg"),
                 ]}
-                renderItem={({ item }) => (
-                  <Image source={item} style={styles.imageCarouselItem} />
-                )}
+                renderItem={({ item }) => <Image source={item} style={styles.imageCarouselItem} />}
                 keyExtractor={(item, index) => `image-${index}`}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 10 }}
                 style={{ marginVertical: 20 }}
-              />
-            </View>
-
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Product Ranges</Text>
-              <FlatList
-                data={ranges}
-                renderItem={renderRangeItem}
-                keyExtractor={(item) => item.title}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                snapToInterval={ITEM_WIDTH + 20}
-                decelerationRate="fast"
-                contentContainerStyle={{ paddingHorizontal: 0 }}
               />
             </View>
 
@@ -305,24 +218,12 @@ export default function HomeScreen({ navigation }) {
                 data={products}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.productCard}
-                    onPress={() => navigation.navigate(item.route)}
-                  >
-                    <Image
-                      source={item.image}
-                      style={styles.productImage}
-                      resizeMode="cover"
-                    />
+                  <TouchableOpacity style={styles.productCard} onPress={() => navigation.navigate(item.route)}>
+                    <Image source={item.image} style={styles.productImage} resizeMode="cover" />
                     <View style={styles.productOverlay}>
                       <Text style={styles.productTitle}>{item.title}</Text>
-                      <Text style={styles.productDescription}>
-                        {item.description}
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.productButton}
-                        onPress={() => navigation.navigate(item.route)}
-                      >
+                      <Text style={styles.productDescription}>{item.description}</Text>
+                      <TouchableOpacity style={styles.productButton} onPress={() => navigation.navigate(item.route)}>
                         <Text style={styles.productButtonText}>Learn More</Text>
                         <Ionicons name="arrow-forward" size={16} color="#000" />
                       </TouchableOpacity>
@@ -332,37 +233,9 @@ export default function HomeScreen({ navigation }) {
               />
             </View>
 
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>What Our Clients Say</Text>
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={testimonials}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <View style={styles.testimonialCard}>
-                    <Image
-                      source={item.image}
-                      style={styles.testimonialImage}
-                      resizeMode="cover"
-                    />
-                    <Text style={styles.testimonialFeedback}>
-                      "{item.feedback}"
-                    </Text>
-                    <Text style={styles.testimonialName}>
-                      - {item.name}
-                    </Text>
-                  </View>
-                )}
-              />
-            </View>
-
             <View style={styles.ctaContainer}>
               <Text style={styles.ctaText}>Ready to upgrade your kitchen?</Text>
-              <TouchableOpacity
-                style={styles.ctaButton}
-                onPress={() => navigation.navigate("ChatWithBot")}
-              >
+              <TouchableOpacity style={styles.ctaButton} onPress={() => navigation.navigate("ChatWithBot")}>
                 <Text style={styles.ctaButtonText}>Contact Us</Text>
                 <Ionicons name="arrow-forward" size={16} color="#000" />
               </TouchableOpacity>
@@ -371,7 +244,7 @@ export default function HomeScreen({ navigation }) {
         </Animated.ScrollView>
       </View>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -493,43 +366,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 10,
   },
-  rangeCard: {
-    width: ITEM_WIDTH,
-    marginRight: 20,
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 16,
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  rangeTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  rangeDescription: {
-    color: "#aaa",
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  exploreButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: BUTTON_COLOR,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignSelf: "center",
-  },
-  exploreButtonText: {
-    color: "#000",
-    marginRight: 8,
-    fontSize: 14,
-    fontWeight: "600",
-  },
   productCard: {
     width: width * 0.6,
     height: 200,
@@ -577,32 +413,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
     fontWeight: "600",
   },
-  testimonialCard: {
-    width: width * 0.8,
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 15,
-    marginRight: 15,
-    alignItems: "center",
-  },
-  testimonialImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginBottom: 10,
-  },
-  testimonialFeedback: {
-    color: "#ddd",
-    fontSize: 14,
-    fontStyle: "italic",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  testimonialName: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
   ctaContainer: {
     backgroundColor: "#111",
     padding: 20,
@@ -633,16 +443,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   errorMessage: {
-    color: 'red',
+    color: "red",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 10,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
   },
-});
+})
 
