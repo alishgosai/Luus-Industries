@@ -6,32 +6,59 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CHAT_STORAGE_KEY = 'LUUS_CHAT_HISTORY';
-const CHAT_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CHAT_EXPIRY_TIME = 10 * 1000; // 10 seconds in milliseconds
 
 const TypingIndicator = () => {
-  const [dotOpacity] = useState([
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]);
+  const [dotOpacities] = useState([new Animated.Value(0.3), new Animated.Value(0.3), new Animated.Value(0.3)]);
 
   useEffect(() => {
-    const animateDot = (dot, delay) => {
+    const animations = dotOpacities.map((opacity, index) =>
       Animated.sequence([
-        Animated.timing(dot, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.timing(dot, { toValue: 0, duration: 400, useNativeDriver: true }),
-      ]).start(() => animateDot(dot, delay));
-    };
+        Animated.delay(index * 200),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(opacity, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(opacity, {
+              toValue: 0.3,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ])
+        ),
+      ])
+    );
 
-    dotOpacity.forEach((dot, index) => {
-      setTimeout(() => animateDot(dot, index * 200), index * 200);
-    });
+    Animated.parallel(animations).start();
+
+    return () => {
+      animations.forEach(anim => anim.stop());
+    };
   }, []);
 
   return (
-    <View style={styles.typingIndicator}>
-      {dotOpacity.map((dot, index) => (
-        <Animated.View key={index} style={[styles.typingDot, { opacity: dot }]} />
+    <View style={styles.typingContainer}>
+      {dotOpacities.map((opacity, index) => (
+        <Animated.View
+          key={index}
+          style={[
+            styles.typingDot,
+            {
+              opacity,
+              transform: [
+                {
+                  scale: opacity.interpolate({
+                    inputRange: [0.3, 1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
       ))}
     </View>
   );
@@ -41,19 +68,24 @@ const AIChatComponent = ({ userId, initialMessage }) => {
   const [messages, setMessages] = useState(initialMessage ? [initialMessage] : []);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isBotThinking, setIsBotThinking] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
   const flatListRef = useRef(null);
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (userId) {
-      loadChatHistory();
+    if (!userId) {
+      console.error('userId is required for AIChatComponent');
+      return;
     }
+    loadChatHistory();
   }, [userId]);
 
   const loadChatHistory = async () => {
     try {
+      if (!userId) {
+        throw new Error('userId is required');
+      }
+
       const storedData = await AsyncStorage.getItem(CHAT_STORAGE_KEY);
       if (storedData) {
         const { timestamp, messages } = JSON.parse(storedData);
@@ -85,30 +117,29 @@ const AIChatComponent = ({ userId, initialMessage }) => {
   };
 
   const sendOpenEvent = async () => {
-    if (!userId) return;
+    if (!userId) {
+      console.error('userId is required for sending open event');
+      return;
+    }
+
     try {
-      setIsBotThinking(true);
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+      setIsBotTyping(true);
       const response = await sendChatOpenEvent(userId);
-      setIsBotThinking(false);
+      setIsBotTyping(false);
+
       if (response && response.response) {
         const welcomeMessage = {
           role: 'assistant',
           content: response.response,
-          options: response.options || [
-            "Product Details",
-            "Warranty",
-            "Contact Information",
-            "Spare Parts"
-          ]
+          options: response.options,
+          type: response.type || 'buttons'
         };
-        await simulateTyping(welcomeMessage);
         setMessages([welcomeMessage]);
         await saveChatHistory([welcomeMessage]);
       }
     } catch (error) {
-      console.error('Error sending chat open event:', error);
-      Alert.alert('Error', 'Failed to initialize chat. Please try again.');
+      setIsBotTyping(false);
+      console.error('Error sending open event:', error);
     }
   };
 
@@ -146,61 +177,103 @@ const AIChatComponent = ({ userId, initialMessage }) => {
     });
   };
 
-  const sendMessage = useCallback(async (messageText) => {
-    if (!messageText.trim() || !userId) return;
+  const handleOptionSelect = async (option) => {
+    if (!userId) {
+      console.error('userId is required');
+      Alert.alert('Error', 'Session error. Please restart the app.');
+      return;
+    }
 
-    const userMessage = { role: 'user', content: messageText };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    const userMessage = {
+      role: 'user',
+      content: option
+    };
+
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    await saveChatHistory(newMessages);
     setInput('');
-
-    setIsBotThinking(true);
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    setIsBotThinking(false);
-
+    
+    setIsBotTyping(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     try {
-      console.log('Sending message:', messageText);
-      const data = await sendChatMessage([...messages, userMessage], userId);
-      console.log('Received response:', data);
-      if (data && data.response) {
+      const response = await sendChatMessage({
+        messages: newMessages,
+        userId,
+        isPartial: false
+      });
+      
+      setIsBotTyping(false);
+      
+      if (response) {
         const botMessage = {
           role: 'assistant',
-          content: data.response,
-          options: data.options,
-          externalLink: data.externalLink
+          content: response.response,
+          options: response.options,
+          type: response.type,
+          externalLink: response.externalLink
         };
-        await simulateTyping(botMessage);
-        saveChatHistory([...messages, userMessage, botMessage]);
-      } else {
-        throw new Error('Invalid response from server');
+        
+        const updatedMessages = [...newMessages, botMessage];
+        setMessages(updatedMessages);
+        await saveChatHistory(updatedMessages);
       }
-    } catch (err) {
-      console.error('Error in sendMessage:', err);
+    } catch (error) {
+      setIsBotTyping(false);
+      console.error('Error sending message:', error);
       Alert.alert('Error', 'Failed to send message. Please try again.');
-      setMessages(prevMessages => prevMessages.slice(0, -1));
     }
-  }, [messages, userId]);
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || !userId) return;
+
+    const userMessage = {
+      role: 'user',
+      content: input.trim()
+    };
+
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    await saveChatHistory(newMessages);
+    setInput('');
+    setIsTyping(false);
+
+    try {
+      setIsBotTyping(true);
+      const response = await sendChatMessage({
+        messages: newMessages,
+        userId,
+        isPartial: false
+      });
+      
+      setIsBotTyping(false);
+
+      if (response) {
+        const botMessage = {
+          role: 'assistant',
+          content: response.response,
+          options: response.options,
+          type: response.type,
+          externalLink: response.externalLink
+        };
+
+        const updatedMessages = [...newMessages, botMessage];
+        setMessages(updatedMessages);
+        await saveChatHistory(updatedMessages);
+      }
+    } catch (error) {
+      setIsBotTyping(false);
+      console.error('Error sending message:', error);
+      Alert.alert('Error', 'Failed to send message. Please try again.');
+    }
+  };
 
   const handleInputChange = (text) => {
     setInput(text);
     setIsTyping(text.length > 0);
   };
-
-  const handleOptionClick = (option) => {
-    sendMessage(option);
-  };
-
-  const handleLinkPress = useCallback((url) => {
-    if (url) {
-      Linking.canOpenURL(url).then(supported => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          console.log("Don't know how to open URI: " + url);
-          Alert.alert("Error", "Cannot open this link");
-        }
-      });
-    }
-  }, []);
 
   const handleContactAction = (action) => {
     if (action === 'call') {
@@ -210,58 +283,71 @@ const AIChatComponent = ({ userId, initialMessage }) => {
     }
   };
 
-  const renderMessage = ({ item, index }) => {
-    if (item.role === 'assistant') {
-      return (
-        <View style={styles.botMessageContainer}>
-          <Image
-            source={require('../assets/images/chatbot.png')}
-            style={styles.botAvatar}
-          />
-          <View style={[styles.botMessageBubble, item.isPartial && styles.partialMessage]}>
-            <Text style={styles.messageText}>{item.content}</Text>
-            {!item.isPartial && item.content === "How would you like to get in touch with Luus Industries?" && (
-              <View style={styles.contactOptionsContainer}>
-                <TouchableOpacity onPress={() => handleContactAction('call')} style={styles.contactButton}>
-                  <Text style={styles.contactButtonText}>Call Us</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleContactAction('book')} style={styles.contactButton}>
-                  <Text style={styles.contactButtonText}>Book a Service</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            {!item.isPartial && item.externalLink && (
-              <View style={styles.linkContainer}>
-                <Text style={styles.messageText}>For more information visit our website:</Text>
-                <Text style={styles.urlText} onPress={() => handleLinkPress(item.externalLink)}>
-                  {item.externalLink}
-                </Text>
-              </View>
-            )}
-            {!item.isPartial && item.options && (
-              <View style={styles.optionsContainer}>
-                {item.options.map((option, optionIndex) => (
-                  <TouchableOpacity
-                    key={optionIndex}
-                    style={styles.optionButton}
-                    onPress={() => handleOptionClick(option)}
-                  >
-                    <Text style={styles.optionText}>{option}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+  const renderMessage = ({ item }) => {
+    const isBot = item.role === 'assistant';
+    const hasOptions = item.options && item.options.length > 0;
+    const hasExternalLink = item.externalLink;
+
+    return (
+      <View style={[styles.messageContainer, isBot ? styles.botMessage : styles.userMessage]}>
+        {isBot && (
+          <View style={styles.botIconContainer}>
+            <Image source={require('../assets/images/chatbot.png')} style={styles.botIcon} />
           </View>
+        )}
+        <View style={[styles.messageContent, isBot ? styles.botMessageContent : styles.userMessageContent]}>
+          <Text style={[styles.messageText, isBot ? styles.botMessageText : styles.userMessageText]}>
+            {item.content}
+          </Text>
+          
+          {/* Always show options if they exist */}
+          {hasOptions && (
+            <View style={styles.optionsContainer}>
+              {item.options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    item.type === 'buttons' && styles.primaryOptionButton
+                  ]}
+                  onPress={() => handleOptionSelect(option)}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    item.type === 'buttons' && styles.primaryOptionText
+                  ]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Render external link if available */}
+          {hasExternalLink && (
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => handleLinkPress(item.externalLink)}
+            >
+              <Text style={styles.linkText}>View More Details →</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      );
-    } else {
-      return (
-        <View style={styles.userMessageContainer}>
-          <View style={styles.userMessageBubble}>
-            <Text style={styles.userMessageText}>{item.content}</Text>
-          </View>
-        </View>
-      );
+      </View>
+    );
+  };
+
+  const handleLinkPress = async (url) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Cannot open this URL');
+      }
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      Alert.alert('Error', 'Failed to open the link');
     }
   };
 
@@ -279,36 +365,37 @@ const AIChatComponent = ({ userId, initialMessage }) => {
         renderItem={renderMessage}
         keyExtractor={(item, index) => index.toString()}
         style={styles.messageList}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
-      {isBotThinking && (
-        <View style={styles.botActivityContainer}>
-          <Text style={styles.botActivityText}>LuusBot is thinking</Text>
-          <TypingIndicator />
-        </View>
-      )}
+      
       {isBotTyping && (
-        <View style={styles.botActivityContainer}>
-          <Text style={styles.botActivityText}>LuusBot is typing</Text>
-          <TypingIndicator />
+        <View style={styles.typingIndicatorContainer}>
+          <View style={styles.botIconContainer}>
+            <Image source={require('../assets/images/chatbot.png')} style={styles.botIcon} />
+          </View>
+          <View style={styles.typingContent}>
+            <TypingIndicator />
+          </View>
         </View>
       )}
-      <View style={styles.inputWrapper}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ask LuusBot a question..."
-            placeholderTextColor="#666"
-            value={input}
-            onChangeText={handleInputChange}
-          />
-          <TouchableOpacity 
-            style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]} 
-            onPress={() => sendMessage(input)}
-            disabled={!input.trim()}
-          >
-            <Ionicons name="arrow-forward" size={24} color={input.trim() ? "#87CEEB" : "#666"} />
-          </TouchableOpacity>
-        </View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={handleInputChange}
+          placeholder="Ask LuusBot a question..."
+          placeholderTextColor="#666"
+          multiline
+        />
+        <TouchableOpacity 
+          style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]} 
+          onPress={handleSend}
+          disabled={!input.trim()}
+        >
+          <Ionicons name="arrow-forward" size={24} color={input.trim() ? "#87CEEB" : "#666"} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -398,18 +485,29 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginTop: 10,
+    gap: 8,
   },
   optionButton: {
-    backgroundColor: '#87CEEB',
-    padding: 10,
-    borderRadius: 15,
-    marginTop: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  primaryOptionButton: {
+    backgroundColor: '#2B78E4',
   },
   optionText: {
-    color: '#000000',
+    color: '#333333',
     fontSize: 14,
-    textAlign: 'center',
+    fontWeight: '500',
+  },
+  primaryOptionText: {
+    color: '#FFFFFF',
   },
   partialMessage: {
     opacity: 0.7,
@@ -455,24 +553,81 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginRight: 10,
   },
-  typingIndicator: {
+  typingIndicatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 5,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    maxWidth: '80%',
+  },
+  typingContent: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    marginLeft: 8,
+  },
+  typingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 4,
   },
   typingDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 2,
+    backgroundColor: '#87CEEB',
+    marginHorizontal: 3,
   },
-  typingText: {
-    color: '#666',
-    fontSize: 12,
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 14,
+    paddingHorizontal: 16,
+  },
+  botMessage: {
+    justifyContent: 'flex-start',
+  },
+  userMessage: {
+    justifyContent: 'flex-end',
+  },
+  botIconContainer: {
+    marginRight: 10,
+  },
+  botIcon: {
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
+    backgroundColor: '#FFFFFF',
+  },
+  messageContent: {
+    padding: 10,
+    borderRadius: 20,
+    maxWidth: '80%',
+  },
+  botMessageContent: {
+    backgroundColor: '#FFFFFF',
+  },
+  userMessageContent: {
+    backgroundColor: '#2B78E4',
+  },
+  botMessageText: {
+    color: '#000',
+  },
+  userMessageText: {
+    color: '#FFFFFF',
+  },
+  linkButton: {
+    padding: 10,
+    borderRadius: 15,
     marginTop: 5,
-    fontStyle: 'italic',
+  },
+  linkText: {
+    color: '#2B78E4',
+    textDecorationLine: 'underline',
   },
 });
 
 export default AIChatComponent;
-
