@@ -1,10 +1,8 @@
-# **Mobile App Project**
+# Luus Industries Mobile App
 
-Welcome to the **Mobile App Project**! This project is a React Native application designed to provide seamless user experience with various features including a home page, navigation bar, and interactive screens.
+Welcome to the Luus Industries Mobile App project! This React Native application is designed to showcase Luus Industries' products and provide a seamless user experience for customers and partners.
 
----
-
-## **Table of Contents**
+## Table of Contents
 
 - [About the Project](#about-the-project)
 - [Features](#features)
@@ -14,138 +12,128 @@ Welcome to the **Mobile App Project**! This project is a React Native applicatio
   - [Installation](#installation)
   - [Running the Project](#running-the-project)
 - [Project Structure](#project-structure)
+- [Contributing](#contributing)
 - [License](#license)
 
----
+## About the Project
 
-## **About the Project**
+The Luus Industries Mobile App is a cross-platform mobile application developed for Android and iOS using React Native and Expo. It serves as a digital platform for Luus Industries, allowing users to browse products, access information, and interact with the company's services.
 
-The **Mobile App Project** is a scalable React Native mobile application developed for Android and iOS using the Expo framework. It includes:
-- Dynamic navigation and screen transitions.
-- Interactive UI components such as carousels, navigation bars, and buttons.
-- Responsive design to ensure compatibility with various device sizes.
+## Features
 
----
+- **Home Screen:** Displays featured products and company information.
+- **Browse:** Explore Luus Industries' range of commercial kitchen equipment.
+- **Product Details:** View detailed information and specifications for each product.
+- **Services:** Information about services offered by Luus Industries.
+- **Chatbot:** In-app customer support chatbot feature.
+- **Account Profile:** Manage user account information.
+- **FAQs:** Access frequently asked questions and answers.
+- **Scan Feature:** Scan QR codes for additional product information.
+- **In-App Browser:** Open website links within the app.
 
-## **Features**
 
-- **Home Screen:** Features a fixed header, scrollable content, and a fixed navigation bar.
-- **Dynamic Carousels:** Carousels for showcasing product ranges and additional sections.
-- **Navigation Bar:** Bottom navigation bar with icons for Home, Browse, Scan, Chat, and Account.
-- **Authentication Pages:** Login, Register, Forgot Password, and Reset Password flows.
-- **External Links:** Buttons linking to external resources or products.
+## Technologies Used
 
----
+- **React Native:** Core framework for building the cross-platform mobile app.
+- **Expo:** Development toolchain and platform for React Native.
+- **React Navigation:** For managing screen navigation and routing.
+- **Firebase:** For backend services and database management.
+- **Node.js:** For server-side operations.
+- **Axios:** For making HTTP requests to the backend API.
+- **React Native Elements:** UI component library for consistent design.
+- **React Native Vector Icons:** For using custom icons throughout the app.
+- **AsyncStorage:** For local data persistence.
 
-## **Technologies Used**
+## Getting Started
 
-- **React Native:** For building the mobile application.
-- **Expo:** For simplifying the development and testing process.
-- **React Navigation:** For managing screen transitions and navigation.
-- **Custom Components:** Designed for a user-friendly experience.
+Follow these instructions to set up the project on your local machine for development and testing purposes.
 
----
+### Prerequisites
 
-## **Getting Started**
+- Node.js (v14.0.0 or later)
+- npm (v6.0.0 or later)
+- Expo CLI (`npm install -g expo-cli`)
+- Xcode (for iOS development, macOS only)
+- Android Studio (for Android development)
 
-Follow the steps below to set up and run the project on your local machine.
+### Installation
 
-### **Prerequisites**
+1. Clone the repository:
+   \`\`\`bash
+   git clone https://github.com/luus-industries/mobile-app.git
+   cd mobile-app
+   \`\`\`
 
-Ensure the following tools are installed on your machine:
-1. **Node.js** (v14 or later) and npm.
-2. **Expo CLI:** Install globally using:
-   ```bash
-   npm install -g expo-cli
-   ```
-3. **Git:** For cloning the repository.
-
-### **Installation**
-
-1. **Clone the Repository:**
-   ```bash
-   git clone <repository-url>
-   cd <repository-folder>
-   ```
-
-2. **Install Dependencies:**
-   Run the following command to install all required packages:
-   ```bash
+2. Install dependencies:
+   \`\`\`bash
    npm install
-   ```
+   \`\`\`
 
-### **Running the Project**
+3. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in the required API endpoints and keys
 
-1. Start the Expo server:
-   ```bash
-   npx expo start
-   ```
-2. A QR code will appear in the terminal or browser.
-3. Open the Expo Go app on your phone (available on Android/iOS) and scan the QR code.
-4. Alternatively, press `a` to open the app on an Android emulator or `i` for an iOS simulator.
+### Running the Project
 
----
+1. Start the Expo development server:
+   \`\`\`bash
+   expo start
+   \`\`\`
 
-## **Project Structure**
+2. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator:
+   - Press `a` for Android emulator
+   - Press `i` for iOS simulator (macOS only)
 
-```
-MobileApp/
-├── assets/                  # Images, fonts, and other static assets
-├── components/              # Reusable React Native components
-│   └── BottomNavBar.js      # Bottom navigation bar component
-├── screens/                 # Individual screens for the app
-│   ├── HomeScreen.js        # Home screen with carousel and content
+## Project Structure
+
+\`\`\`
+luus-industries-mobile-app/
+├── assets/                  # Static assets (images, fonts)
+├── components/              # Reusable React components
+│   ├── BottomNavBar.js      # Bottom navigation bar component
+│   └── ...
+├── screens/                 # Individual app screens
+│   ├── HomeScreen.js        # Home screen with featured products
 │   ├── LoginScreen.js       # Login screen
 │   ├── RegisterScreen.js    # Register screen
-│   ├── ScanPage.js          # Scan page
+│   ├── ScanPage.js          # QR code scanning page
+│   ├── BrowseScreen.js      # Product browsing screen
+│   ├── ServicesScreen.js    # Services information screen
+│   ├── ChatbotScreen.js     # Chatbot interface
+│   ├── ProfileScreen.js     # User profile management
+│   ├── FAQScreen.js         # Frequently Asked Questions
 │   ├── ForgotPasswordScreen.js
 │   ├── ResetCodeScreen.js
 │   ├── NewPasswordScreen.js
-│   └── OtherScreens.js      # Placeholder for additional screens
-├── App.js                   # Main entry point of the app
-├── package.json             # Dependency and project metadata
-└── README.md                # Documentation (this file)
-```
+│   └── ...
+├── navigation/              # Navigation configuration
+├── services/                # API and Firebase service integrations
+├── utils/                   # Utility functions and helpers
+├── App.js                   # Main app entry point
+├── app.json                 # Expo configuration
+├── babel.config.js          # Babel configuration
+├── package.json             # Project dependencies and scripts
+└── README.md                # Project documentation
+\`\`\`
+
+## Contributing
+
+We welcome contributions to the Luus Industries Mobile App! Please follow these steps to contribute:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/AmazingFeature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+5. Push to the branch (`git push origin feature/AmazingFeature`)
+6. Open a Pull Request
+
+Please ensure your code adheres to our coding standards and includes appropriate tests.
+
+## License
+
+This project is proprietary and confidential. Unauthorized copying, distribution, or use of this software, via any medium, is strictly prohibited.
 
 ---
 
-## **How to Open and Use**
+For any questions or support, please contact the Luus Industries development team.
 
-1. **Open the Project in Your Editor:**
-   Open the project folder in your favorite editor (e.g., VS Code).
-
-2. **Run the App Locally:**
-   - Use `npx expo start` to start the app.
-   - Choose to run it on a simulator, emulator, or a physical device.
-
-3. **Modify or Add Screens:**
-   - Add or edit screens in the `screens` folder.
-   - Reusable components can be placed in the `components` folder.
-
-4. **Build for Production (Optional):**
-   Build the app for Android or iOS using Expo’s build service:
-   ```bash
-   npx expo build:android
-   npx expo build:ios
-   ```
-
----
-
-## **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-### **Contributions**
-
-If you'd like to contribute to this project:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Commit your changes (`git commit -m 'Add your feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
-
----
-
-Let me know if you’d like to make any further customizations! 🚀
